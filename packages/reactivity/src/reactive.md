@@ -24,14 +24,21 @@ const state = reactive({ count: 0, name: 'Vue' });
 
 为了避免重复创建代理对象，`reactive` 实现了两层缓存机制。
 
+**设计原因：**
+
+- 同一个对象多次调用 `reactive` 应该返回同一个代理对象
+- 避免重复代理导致的性能问题和内存浪费
+- 保证响应式对象的一致性
+
 **第一层：reactiveSet**
 
 ```typescript
 const reactiveSet = new WeakSet<object>();
 ```
 
-- 使用 `WeakSet` 存储所有已创建的响应式对象
+- 使用 `WeakSet` 存储所有已创建的响应式对象（代理对象）
 - 如果传入的对象已经是响应式对象，直接返回
+- `WeakSet` 的优势：不阻止对象被垃圾回收，避免内存泄漏
 
 **第二层：reactiveMap**
 
@@ -41,12 +48,23 @@ const reactiveMap = new WeakMap<object, object>();
 
 - 使用 `WeakMap` 存储原始对象和代理对象的映射关系
 - 同一个原始对象只会创建一个代理对象
+- `WeakMap` 的优势：key 被回收时，value 也会自动回收
 
 **缓存逻辑：**
 
-1. 首先检查传入对象是否已经是响应式对象（在 `reactiveSet` 中）
-2. 然后检查是否已经为该对象创建过代理（在 `reactiveMap` 中）
-3. 如果都没有，才创建新的 Proxy 对象并缓存
+1. **类型检查**：如果不是对象，直接返回
+2. **响应式检查**：检查传入对象是否已经在 `reactiveSet` 中（说明已经是响应式对象）
+3. **缓存检查**：检查 `reactiveMap` 中是否已有该对象的代理
+4. **创建代理**：如果都没有，创建新的 Proxy 对象
+5. **缓存存储**：
+   - 将代理对象存入 `reactiveSet`（标记为响应式对象）
+   - 将原始对象和代理对象的映射存入 `reactiveMap`（避免重复创建）
+
+**为什么使用 WeakSet 和 WeakMap？**
+
+- **自动垃圾回收**：当对象不再被引用时，WeakSet/WeakMap 中的条目会自动清除
+- **避免内存泄漏**：不会阻止对象被垃圾回收
+- **性能优化**：减少内存占用，提高性能
 
 ### 3. 响应式判断
 
