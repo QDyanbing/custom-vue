@@ -31,10 +31,23 @@ const obj = ref({ count: 0 });
 // obj._value 实际上是 reactive({ count: 0 })
 ```
 
+**设计原因：**
+
+- 对象类型需要深度响应式，直接使用 `reactive` 更高效
+- 统一响应式处理，避免对象属性变化无法被追踪
+- 保持 API 一致性，用户无需关心内部实现
+
 **实现逻辑：**
 
 - 在构造函数中，如果 `value` 是对象，则调用 `reactive(value)` 进行转换
 - 在 `set value` 时，如果新值是对象，也会自动转换为响应式对象
+- 使用 `isObject()` 判断是否为对象类型
+
+**为什么对象需要转换？**
+
+- 基本类型值可以直接存储，无需代理
+- 对象需要 Proxy 代理才能拦截属性访问
+- 转换后可以统一使用 `reactive` 的依赖收集机制
 
 ### 3. 值变化检测
 
@@ -110,17 +123,29 @@ isRef(0); // false
 
 `RefImpl` 是 `ref` 的实现类，实现了 `Dependency` 接口。
 
+**设计思路：**
+
+- 使用 `_value` 私有属性保存实际值，避免与 `value` 访问器冲突
+- 通过 `get value()` 和 `set value()` 访问器实现响应式拦截
+- 实现 `Dependency` 接口，维护订阅者链表，支持依赖收集和触发更新
+
 **主要属性：**
 
-- `_value`: 保存实际的值
-- `[ReactiveFlags.IS_REF]`: 标记为 Ref 对象
+- `_value`: 保存实际的值（使用下划线前缀表示私有属性）
+- `[ReactiveFlags.IS_REF]`: 标记为 Ref 对象，用于 `isRef()` 判断
 - `subs`: 订阅者链表的头节点（所有依赖该 ref 的 effect）
-- `subsTail`: 订阅者链表的尾节点
+- `subsTail`: 订阅者链表的尾节点（用于快速追加新订阅者）
 
 **主要方法：**
 
 - `get value()`: 读取值时收集依赖
 - `set value()`: 设置值时触发更新
+
+**为什么使用 `_value`？**
+
+- 避免与 `value` 访问器形成循环引用
+- 明确区分内部存储值和外部访问接口
+- 符合 JavaScript 私有属性的命名约定
 
 ## 使用示例
 
@@ -179,18 +204,44 @@ console.log(isRef(num)); // false
 
 ### 依赖收集流程
 
+**完整流程：**
+
 1. 读取 `ref.value` 时，调用 `get value()`
-2. `get value()` 调用 `trackRef(this)`
-3. `trackRef()` 检查 `activeSub` 是否存在
+2. `get value()` 调用 `trackRef(this)`，传入当前 RefImpl 实例
+3. `trackRef()` 检查全局变量 `activeSub` 是否存在（当前正在执行的 effect）
 4. 如果存在，调用 `link(dep, activeSub)` 建立双向链表关系
+5. `link()` 函数会：
+   - 在 `ref.subs` 链表中添加 effect
+   - 在 `effect.deps` 链表中添加 ref
+   - 建立双向引用，方便后续清理
+
+**关键点：**
+
+- `activeSub` 是全局变量，由 `effect` 在执行时设置
+- 只有在 effect 执行期间访问 `ref.value` 才会收集依赖
+- 双向链表设计支持快速查找和清理
 
 ### 触发更新流程
 
+**完整流程：**
+
 1. 设置 `ref.value = newValue` 时，调用 `set value()`
-2. 使用 `hasChanged()` 检测值是否变化
-3. 如果变化，更新 `_value` 并调用 `triggerRef(this)`
-4. `triggerRef()` 调用 `propagate(dep.subs)` 通知所有订阅者
-5. `propagate()` 遍历订阅者链表，触发 effect 重新执行
+2. 使用 `hasChanged(newValue, this._value)` 检测值是否变化
+3. 如果变化：
+   - 更新 `_value`（如果是对象，先转换为 reactive）
+   - 调用 `triggerRef(this)` 触发更新
+4. `triggerRef()` 检查 `dep.subs` 是否存在
+5. 如果存在，调用 `propagate(dep.subs)` 通知所有订阅者
+6. `propagate()` 遍历订阅者链表：
+   - 标记订阅者为脏状态（`dirty = true`）
+   - 区分 effect 和 computed，分别处理
+   - 调用 effect 的 `notify()` 方法重新执行
+
+**关键点：**
+
+- `hasChanged()` 使用 `Object.is()` 进行严格相等比较
+- 只有值真正变化时才触发更新，避免不必要的重新渲染
+- `propagate()` 使用队列机制，避免重复执行
 
 ## 注意事项
 
