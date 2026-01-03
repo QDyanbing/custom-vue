@@ -153,9 +153,35 @@ state2.count = 1; // 不触发更新（不同的对象）
 
 使用 `WeakMap` 存储 `targetMap`，具有以下优势：
 
+**为什么使用 WeakMap？**
+
 - **自动垃圾回收**：当对象被回收时，对应的映射关系也会自动回收
-- **内存安全**：不会阻止对象被垃圾回收
-- **性能优化**：避免内存泄漏
+- **内存安全**：不会阻止对象被垃圾回收，避免内存泄漏
+- **性能优化**：减少内存占用，提高性能
+
+**WeakMap vs Map：**
+
+```typescript
+// 使用 WeakMap（推荐）
+const targetMap = new WeakMap<object, Map<string, Dep>>();
+
+// 如果使用 Map（不推荐）
+const targetMap = new Map<object, Map<string, Dep>>();
+// 问题：Map 会阻止对象被垃圾回收，导致内存泄漏
+```
+
+**数据结构设计：**
+
+```
+targetMap (WeakMap)
+  └─ [target对象] → depsMap (Map)
+       └─ 'count' → Dep实例
+       └─ 'name' → Dep实例
+```
+
+- 外层使用 `WeakMap`，key 是原始对象
+- 内层使用 `Map`，key 是属性名（string 或 symbol）
+- 每个属性对应一个 `Dep` 实例，管理该属性的所有订阅者
 
 ### 2. 按属性存储依赖
 
