@@ -135,14 +135,33 @@ state.count = 1; // 触发更新，值发生变化
 
 `receiver` 参数用于保证访问器中的 `this` 指向代理对象。
 
+**为什么需要 receiver？**
+
 ```typescript
 const res = Reflect.get(target, key, receiver);
 ```
 
-**作用：**
+- `receiver` 是 Proxy 的 `get` 拦截器的第三个参数
+- 表示属性访问的接收者（通常是代理对象本身）
+- 传递给 `Reflect.get`，确保访问器属性中的 `this` 指向代理对象
 
-- 确保访问器属性中的 `this` 指向代理对象
-- 保证响应式行为的一致性
+**示例说明：**
+
+```typescript
+const obj = {
+  _value: 0,
+  get value() {
+    return this._value;  // this 应该指向代理对象
+  }
+};
+
+const proxy = reactive(obj);
+console.log(proxy.value);  // 如果不用 receiver，this 指向原始对象
+```
+
+- 如果不用 `receiver`，访问器中的 `this` 会指向原始对象
+- 使用 `receiver`，`this` 指向代理对象，保证响应式行为一致
+- 这是 Proxy 和 Reflect 配合使用的标准做法
 
 ### 2. 自动解包 ref
 
