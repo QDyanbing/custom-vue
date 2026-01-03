@@ -56,15 +56,35 @@ console.log(doubleCount.value); // 2，依赖变化，重新计算
 
 计算属性既是依赖项（Dependency），也是订阅者（Sub）。
 
+**设计原因：**
+
+- 计算属性需要依赖其他响应式数据（作为 Sub）
+- 计算属性也可能被其他 effect 依赖（作为 Dependency）
+- 这种双重身份设计，使得计算属性可以形成依赖链
+
 **作为依赖项（Dependency）：**
 
 - 当 effect 访问计算属性时，计算属性作为依赖项
-- 维护订阅者链表，当值变化时通知订阅者
+- 维护订阅者链表（`subs`），当值变化时通知订阅者
+- 实现 `Dependency` 接口，支持依赖收集和触发更新
 
 **作为订阅者（Sub）：**
 
 - 当计算属性执行 getter 函数时，作为订阅者
-- 收集 getter 函数中访问的响应式数据作为依赖
+- 收集 getter 函数中访问的响应式数据作为依赖（`deps`）
+- 实现 `Sub` 接口，支持依赖追踪和清理
+
+**依赖链示例：**
+
+```
+ref(count) → computed(doubleCount) → effect(console.log)
+   ↑              ↑                        ↑
+  dep           dep/sub                   sub
+```
+
+- `count` 是 `doubleCount` 的依赖（`doubleCount` 作为 Sub）
+- `doubleCount` 是 `effect` 的依赖（`doubleCount` 作为 Dependency）
+- 当 `count` 变化时，会触发 `doubleCount` 重新计算，然后触发 `effect` 更新
 
 ### 4. 值变化检测
 
