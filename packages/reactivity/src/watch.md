@@ -4,6 +4,13 @@
 
 `watch` 是 Vue 3 响应式系统提供的监听 API，用于监听响应式数据的变化并执行回调函数。它基于 `effect` 的 `scheduler` 机制实现。
 
+**设计思路：**
+
+- `watch` 本质上是 `effect` 的封装，通过 `scheduler` 控制执行时机
+- 使用 `scheduler` 而不是直接 `run`，可以获取新值和旧值
+- 支持多种数据源类型（ref、reactive、getter 函数）
+- 提供丰富的选项（immediate、once、deep 等）
+
 ## 主要功能
 
 ### 1. 监听响应式数据
@@ -86,24 +93,57 @@ watch(source, (newValue, oldValue, onCleanup) => {
 
 ### watch 函数
 
+**核心实现：**
+
+```typescript
+const effect = new ReactiveEffect(getter);
+effect.scheduler = job;  // 关键：使用 scheduler 而不是直接 run
+```
+
+**为什么使用 scheduler？**
+
+- 如果直接使用 `effect.run()`，依赖变化时会立即执行，无法获取旧值
+- 使用 `scheduler`，可以控制执行时机，在 `job` 中获取新值和旧值
+- `scheduler` 在依赖变化时被调用，而不是立即执行 getter
+
 **处理流程：**
 
 1. **处理 once 选项**：如果 `once` 为 `true`，包装回调函数，执行后自动停止
 2. **创建 getter**：根据数据源类型创建对应的 getter 函数
+   - `ref`：`getter = () => source.value`
+   - `reactive`：`getter = () => source`（返回整个对象）
+   - `function`：`getter = source`（直接使用函数）
 3. **处理 deep 选项**：如果 `deep` 为 `true`，使用 `traverse` 函数深度遍历
+   - `reactive` 对象默认 `deep = true`
+   - 使用 `traverse` 递归访问所有属性，触发依赖收集
 4. **创建 effect**：使用 `ReactiveEffect` 创建副作用，设置 `scheduler` 为 `job`
 5. **执行初始化**：根据 `immediate` 选项决定是否立即执行
+   - `immediate: true`：立即执行 `job()`
+   - `immediate: false`：执行 `effect.run()` 收集依赖并获取初始值
 
 ### job 函数
 
 `job` 是 watch 的调度函数，在数据变化时执行。
 
+**为什么需要 job 函数？**
+
+- `scheduler` 在依赖变化时被调用，此时可以获取新值
+- 通过 `effect.run()` 获取新值，同时会重新收集依赖
+- 在 `job` 中可以比较新值和旧值，决定是否执行回调
+
 **处理流程：**
 
-1. **清理副作用**：执行上一次注册的清理函数
+1. **清理副作用**：执行上一次注册的清理函数（`cleanup()`）
+   - 每次回调执行前，先清理上一次的副作用
+   - 用于清理定时器、取消请求等
 2. **获取新值**：通过 `effect.run()` 获取新值（同时收集依赖）
+   - 不能直接执行 `getter()`，因为需要收集依赖
+   - `effect.run()` 会执行 getter 并收集新的依赖关系
 3. **执行回调**：调用用户传入的回调函数，传入新值和旧值
+   - 如果回调存在，调用 `cb(newValue, oldValue, onCleanup)`
+   - 用户可以在回调中注册新的清理函数
 4. **更新旧值**：将新值保存为下次的旧值
+   - `oldValue = newValue`，为下次比较做准备
 
 ### traverse 函数
 
