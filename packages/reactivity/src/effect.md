@@ -160,11 +160,35 @@ stop(); // 停止副作用，不再响应依赖变化
 
 `activeSub` 是全局变量，用于保存当前正在执行的 effect。
 
+**设计原因：**
+
+- 依赖收集需要在运行时动态进行，无法静态分析
+- 通过全局变量，让 `track` 和 `trackRef` 能够访问当前正在执行的 effect
+- 支持嵌套 effect 的正确处理
+
 **作用：**
 
 - 在依赖收集时，`track` 和 `trackRef` 会使用 `activeSub` 建立依赖关系
-- 支持嵌套 effect 的正确处理
-- 确保依赖收集的准确性
+- 支持嵌套 effect 的正确处理（通过保存和恢复机制）
+- 确保依赖收集的准确性（只有正在执行的 effect 才会被收集）
+
+**嵌套处理机制：**
+
+```typescript
+const prevSub = activeSub;  // 保存外层 effect
+setActiveSub(this);         // 设置当前 effect
+try {
+  return this.fn();          // 执行函数，可能触发嵌套 effect
+} finally {
+  setActiveSub(prevSub);     // 恢复外层 effect
+}
+```
+
+**为什么需要保存和恢复？**
+
+- effect 可以嵌套调用，内层 effect 执行时，外层 effect 应该被"隐藏"
+- 内层 effect 执行完成后，需要恢复外层 effect，保证依赖收集正确
+- 这是栈式调用模型的体现
 
 ## 使用示例
 
