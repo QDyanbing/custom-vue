@@ -24,9 +24,9 @@ class Dep {
  *   },
  * }
  */
-const targetMap = new WeakMap<object, Map<string | symbol, Dep>>();
+const targetMap = new WeakMap<object, Map<string | number | symbol, Dep>>();
 
-export const track = (target: object, key: string | symbol) => {
+export const track = (target: object, key: string | number | symbol) => {
   // 如果当前没有活跃的 effect，则直接返回
   if (!activeSub) return;
   // 获取 target 对应的 depsMap
