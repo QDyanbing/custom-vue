@@ -12,12 +12,19 @@
 
       const state = reactive(['a', 'b', 'c', 'd']);
 
+      /**
+       * 更新数组的length
+       * 更新前: length = 4 => ['a', 'b', 'c', 'd']
+       * 更新后: length = 2 => ['a', 'b']
+       * 这里并不会触发依赖更新；所以我们要修改我们目前的代码
+       * 得出结论：要通知访问了 c 和 d 的 effect 重新执行；即访问了大于等于 length 的索引的 effect 重新执行；
+       */
       effect(() => {
         console.log('state[3] => ', state[3]); // d
       });
 
       setTimeout(() => {
-        state[3] = 'e';
+        state.length = 2;
       }, 1000);
     </script>
   </body>
