@@ -36,17 +36,17 @@ export const mutableHandlers: ProxyHandler<object> = {
     const targetIsArray = Array.isArray(target);
     const oldLength = targetIsArray ? target.length : 0;
 
-    // 先完成赋值操作
-    const res = Reflect.set(target, key, newValue, receiver);
-
     if (isRef(oldVal) && !isRef(newValue)) {
       // 旧值是 ref，新值不是 ref，则需要对旧值的 .value 进行赋值；
       // 旧值是 ref，新值是 ref，直接跳过即可；
       oldVal.value = newValue;
 
       // 这里之所以return是因为：已经在ref中完成trigger，如果不return会多次触发；
-      return res;
+      return true;
     }
+
+    // 先完成赋值操作
+    const res = Reflect.set(target, key, newValue, receiver);
 
     if (hasChanged(newValue, oldVal)) {
       // 如果旧值和新值不相等，则触发依赖更新
