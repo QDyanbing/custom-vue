@@ -49,17 +49,33 @@ export const track = (target: object, key: string | symbol) => {
   link(dep, activeSub);
 };
 
-export const trigger = (target: object, key: string | symbol) => {
+export const trigger = (target: object, key: string | number | symbol) => {
   // 获取 target 对应的 depsMap
   const depsMap = targetMap.get(target);
   // 如果没有 depsMap，则说明没有收集过依赖，直接返回
   if (!depsMap) return;
 
-  // 获取 key 对应的 dep
-  const dep = depsMap.get(key);
-  // 如果没有 dep，则说明没有收集过依赖，直接返回
-  if (!dep) return;
+  const targetIsArray = Array.isArray(target);
 
-  // 触发依赖更新
-  propagate(dep.subs);
+  if (targetIsArray && key === 'length') {
+    // 如果target是数组，并且key是length，则需要通知所有访问了大于等于 length 的索引的 effect 重新执行；
+
+    depsMap.forEach((dep, depKey) => {
+      if ((depKey as unknown as number) >= target.length || depKey === 'length') {
+        // 通知所有访问了大于等于 length 的索引的 effect 重新执行；
+        // 和访问了 length 的 effect 也要重新执行；
+        propagate(dep.subs);
+      }
+    });
+  } else {
+    // 如果target不是数组，或者key不是length;
+
+    // 获取 key 对应的 dep
+    const dep = depsMap.get(key);
+    // 如果没有 dep，则说明没有收集过依赖，直接返回
+    if (!dep) return;
+
+    // 触发依赖更新
+    propagate(dep.subs);
+  }
 };
