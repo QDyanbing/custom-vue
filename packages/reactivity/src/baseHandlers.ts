@@ -32,6 +32,10 @@ export const mutableHandlers: ProxyHandler<object> = {
   set(target, key, newValue, receiver) {
     const oldVal = target[key];
 
+    // 为了处理数组的隐式更新length问题，我们需要获取旧的length；
+    const targetIsArray = Array.isArray(target);
+    const oldLength = targetIsArray ? target.length : 0;
+
     // 先完成赋值操作
     const res = Reflect.set(target, key, newValue, receiver);
 
@@ -47,6 +51,13 @@ export const mutableHandlers: ProxyHandler<object> = {
     if (hasChanged(newValue, oldVal)) {
       // 如果旧值和新值不相等，则触发依赖更新
       trigger(target, key);
+    }
+
+    const newLength = targetIsArray ? target.length : 0;
+
+    if (targetIsArray && newLength !== oldLength && key !== 'length') {
+      // 如果新长度不等于旧长度，则需要隐式更新length
+      trigger(target, 'length');
     }
 
     return res;
