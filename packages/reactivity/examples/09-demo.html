@@ -10,20 +10,30 @@
     <script type="module">
       import { reactive, effect, ref } from '../dist/reactivity.esm.js';
 
+      function toRef(target, key) {
+        return {
+          get value() {
+            return target[key];
+          },
+          set value(newValue) {
+            target[key] = newValue;
+          },
+        };
+      }
+
       const state = reactive({
         name: 'John',
         age: 20,
       });
 
-      // 解构赋值会丢失响应式；所以我们应该实现一个 toRef 函数；
-      const { name } = state;
+      const name = toRef(state, 'name');
 
       effect(() => {
-        console.log(name);
+        console.log(name.value);
       });
 
       setTimeout(() => {
-        name = 'Jane';
+        state.name = 'Jane';
       }, 1000);
     </script>
   </body>
