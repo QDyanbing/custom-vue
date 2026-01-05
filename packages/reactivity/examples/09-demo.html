@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>toRef,toRefs,unref,proxyRefs</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { reactive, effect, ref } from '../dist/reactivity.esm.js';
+
+      const state = reactive({
+        name: 'John',
+        age: 20,
+      });
+
+      // 解构赋值会丢失响应式；所以我们应该实现一个 toRef 函数；
+      const { name } = state;
+
+      effect(() => {
+        console.log(name);
+      });
+
+      setTimeout(() => {
+        name = 'Jane';
+      }, 1000);
+    </script>
+  </body>
+</html>
