@@ -87,13 +87,14 @@ export function triggerRef(dep: RefImpl) {
   }
 }
 
-export function toRef(target, key) {
+export function toRef<T extends object, K extends keyof T>(target: T, key: K): Ref<T[K]> {
   return {
     get value() {
       return target[key];
     },
-    set value(newValue) {
+    set value(newValue: T[K]) {
       target[key] = newValue;
     },
+    [RefSymbol]: true as const,
   };
 }
