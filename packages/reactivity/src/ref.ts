@@ -106,10 +106,12 @@ class ObjectRefImpl<T extends object, K extends keyof T> {
   ) {}
 
   get value(): T[K] {
+    // 直接返回对象对应属性的值
     return this._object[this._key];
   }
 
   set value(newValue: T[K]) {
+    // 直接设置对象对应属性的值，实现双向绑定
     this._object[this._key] = newValue;
   }
 }
@@ -128,6 +130,7 @@ class ObjectRefImpl<T extends object, K extends keyof T> {
  * @returns 指向对象属性的 ref
  */
 export function toRef<T extends object, K extends keyof T>(target: T, key: K): ToRef<T[K]> {
+  // 创建 ObjectRefImpl 实例，使用类型断言转换为 ToRef 类型
   return new ObjectRefImpl<T, K>(target, key) as unknown as ToRef<T[K]>;
 }
 
@@ -146,7 +149,10 @@ export function toRef<T extends object, K extends keyof T>(target: T, key: K): T
  */
 export function toRefs<T extends object>(target: T): ToRefs<T> {
   const res = {} as ToRefs<T>;
+  // 遍历对象的所有属性，为每个属性创建一个 ref
   for (const key in target) {
+    // 使用 ObjectRefImpl 为每个属性创建 ref，保持与原始对象的双向绑定
+    // 使用类型断言转换为 ToRef 类型，以满足返回类型要求
     res[key] = new ObjectRefImpl<T, keyof T>(target, key as keyof T) as unknown as ToRef<
       T[Extract<keyof T, string>]
     >;
@@ -173,6 +179,7 @@ export type MaybeRef<T = any> = T | Ref<T>;
  * @returns 如果是 ref 则返回其内部值，否则返回原值
  */
 export function unref<T>(ref: MaybeRef<T>): T {
+  // 如果是 ref，返回其内部值；否则直接返回原值
   return isRef(ref) ? (ref as Ref<T>).value : (ref as T);
 }
 
@@ -192,16 +199,20 @@ export function unref<T>(ref: MaybeRef<T>): T {
 export function proxyRefs<T extends object>(target: T): T {
   return new Proxy(target, {
     get(target, key, receiver) {
+      // 获取属性值，如果是 ref 则自动解包，否则返回原值
       return unref(Reflect.get(target, key, receiver));
     },
     set(target, key, newValue, receiver) {
       const oldValue = target[key];
 
+      // 如果原属性是 ref 且新值不是 ref，则更新 ref.value
+      // 这样可以保持 ref 的引用不变，只更新其内部值
       if (isRef(oldValue) && !isRef(newValue)) {
         oldValue.value = newValue;
         return true;
       }
 
+      // 否则直接设置属性值
       return Reflect.set(target, key, newValue, receiver);
     },
   });
