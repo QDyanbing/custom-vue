@@ -86,3 +86,14 @@ export function triggerRef(dep: RefImpl) {
     propagate(dep.subs);
   }
 }
+
+export function toRef(target, key) {
+  return {
+    get value() {
+      return target[key];
+    },
+    set value(newValue) {
+      target[key] = newValue;
+    },
+  };
+}

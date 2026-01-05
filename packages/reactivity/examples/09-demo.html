@@ -8,18 +8,7 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      import { reactive, effect, ref } from '../dist/reactivity.esm.js';
-
-      function toRef(target, key) {
-        return {
-          get value() {
-            return target[key];
-          },
-          set value(newValue) {
-            target[key] = newValue;
-          },
-        };
-      }
+      import { reactive, effect, ref, toRef } from '../dist/reactivity.esm.js';
 
       const state = reactive({
         name: 'John',
