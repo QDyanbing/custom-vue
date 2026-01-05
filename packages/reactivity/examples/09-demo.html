@@ -8,21 +8,21 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      import { reactive, effect, ref, toRef } from '../dist/reactivity.esm.js';
+      import { reactive, effect, ref, toRefs } from '../dist/reactivity.esm.js';
 
       const state = reactive({
         name: 'John',
         age: 20,
       });
 
-      const name = toRef(state, 'name');
+      const { name, age } = toRefs(state);
 
       effect(() => {
-        console.log(name.value);
+        console.log(name.value, age.value);
       });
 
       setTimeout(() => {
-        state.name = 'Jane';
+        state.age++;
       }, 1000);
     </script>
   </body>
