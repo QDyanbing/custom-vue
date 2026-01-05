@@ -8,22 +8,26 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      import { reactive, effect, ref, toRefs } from '../dist/reactivity.esm.js';
+      import { reactive, effect, ref, toRefs, proxyRefs, unref } from '../dist/reactivity.esm.js';
 
       const state = reactive({
         name: 'John',
         age: 20,
       });
 
-      const { name, age } = toRefs(state);
+      const proxyState = proxyRefs(state);
 
       effect(() => {
-        console.log(name.value, age.value);
+        console.log(proxyState.name, proxyState.age);
       });
 
       setTimeout(() => {
-        state.age++;
+        proxyState.name = 'Jane';
       }, 1000);
+
+      setTimeout(() => {
+        proxyState.age++;
+      }, 2000);
     </script>
   </body>
 </html>

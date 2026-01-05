@@ -153,3 +153,27 @@ export function toRefs<T extends object>(target: T): ToRefs<T> {
   }
   return res;
 }
+
+export type MaybeRef<T = any> = T | Ref<T>;
+
+export function unref<T>(ref: MaybeRef<T>): T {
+  return isRef(ref) ? (ref as Ref<T>).value : (ref as T);
+}
+
+export function proxyRefs<T extends object>(target: T): T {
+  return new Proxy(target, {
+    get(target, key, receiver) {
+      return unref(Reflect.get(target, key, receiver));
+    },
+    set(target, key, newValue, receiver) {
+      const oldValue = target[key];
+
+      if (isRef(oldValue) && !isRef(newValue)) {
+        oldValue.value = newValue;
+        return true;
+      }
+
+      return Reflect.set(target, key, newValue, receiver);
+    },
+  });
+}
