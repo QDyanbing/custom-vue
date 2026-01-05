@@ -93,6 +93,10 @@ export function triggerRef(dep: RefImpl) {
   }
 }
 
+/**
+ * ObjectRefImpl 用于创建一个指向对象属性的 ref
+ * 当访问或修改 ref.value 时，实际上是在访问或修改原始对象的对应属性
+ */
 class ObjectRefImpl<T extends object, K extends keyof T> {
   [ReactiveFlags.IS_REF]: true = true;
 
@@ -110,10 +114,36 @@ class ObjectRefImpl<T extends object, K extends keyof T> {
   }
 }
 
+/**
+ * 为响应式对象的某个属性创建一个 ref
+ * 创建的 ref 与源属性保持同步：修改源属性会更新 ref，反之亦然
+ *
+ * **使用场景：**
+ * - 当你需要将响应式对象的某个属性单独提取出来作为 ref 使用时
+ * - 在组合式函数中，需要返回对象的某个属性但保持响应性时
+ * - 将对象的某个属性传递给需要 ref 类型的函数或组件时
+ *
+ * @param target - 响应式对象
+ * @param key - 对象的属性名
+ * @returns 指向对象属性的 ref
+ */
 export function toRef<T extends object, K extends keyof T>(target: T, key: K): ToRef<T[K]> {
   return new ObjectRefImpl<T, K>(target, key) as unknown as ToRef<T[K]>;
 }
 
+/**
+ * 将响应式对象转换为普通对象，其中每个属性都是指向原始对象对应属性的 ref
+ * 每个 ref 都是使用 toRef 创建的
+ *
+ * **使用场景：**
+ * - 当你需要解构响应式对象但保持响应性时使用
+ * - 在组合式函数中返回多个 ref，避免返回整个响应式对象
+ * - 需要将响应式对象的多个属性分别传递给不同的组件或函数时
+ * - 解构赋值后仍需要保持响应性，避免丢失响应式连接
+ *
+ * @param target - 响应式对象
+ * @returns 包含 ref 的对象，每个属性都是指向原始对象对应属性的 ref
+ */
 export function toRefs<T extends object>(target: T): ToRefs<T> {
   const res = {} as ToRefs<T>;
   for (const key in target) {
