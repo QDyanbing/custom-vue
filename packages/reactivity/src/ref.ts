@@ -154,12 +154,41 @@ export function toRefs<T extends object>(target: T): ToRefs<T> {
   return res;
 }
 
+/**
+ * 可能是 ref 或普通值的类型
+ * 用于表示一个值可以是普通值 T，也可以是一个 Ref<T>
+ */
 export type MaybeRef<T = any> = T | Ref<T>;
 
+/**
+ * 如果参数是 ref，则返回 ref 的内部值，否则返回参数本身
+ * 这是一个语法糖函数，等价于 `val = isRef(val) ? val.value : val`
+ *
+ * **使用场景：**
+ * - 在函数中需要处理可能是 ref 也可能是普通值的参数时
+ * - 需要统一处理 ref 和普通值，避免重复的类型判断代码
+ * - 在组合式函数中，需要从 ref 中提取值进行计算时
+ *
+ * @param ref - 可能是 ref 或普通值
+ * @returns 如果是 ref 则返回其内部值，否则返回原值
+ */
 export function unref<T>(ref: MaybeRef<T>): T {
   return isRef(ref) ? (ref as Ref<T>).value : (ref as T);
 }
 
+/**
+ * 返回一个代理对象，该代理会浅层解包属性中的 ref
+ * 访问代理对象的属性时，如果该属性是 ref，会自动返回 ref.value
+ * 设置代理对象的属性时，如果原属性是 ref 且新值不是 ref，会将新值赋给 ref.value
+ *
+ * **使用场景：**
+ * - 当你有一个包含多个 ref 的对象，希望访问时自动解包 ref 时
+ * - 在模板中使用包含 ref 的对象时，避免手动访问 .value
+ * - 需要将包含 ref 的对象传递给期望普通对象的函数时
+ *
+ * @param target - 包含 ref 属性的对象
+ * @returns 代理对象，访问属性时会自动解包 ref
+ */
 export function proxyRefs<T extends object>(target: T): T {
   return new Proxy(target, {
     get(target, key, receiver) {
