@@ -16,6 +16,12 @@ export enum ReactiveFlags {
   IS_REF = '__v_isRef',
 }
 
+export type ToRef<T> = [T] extends [Ref] ? T : Ref<T>;
+
+export type ToRefs<T = any> = {
+  [K in keyof T]: ToRef<T[K]>;
+};
+
 // Ref 的实现类
 class RefImpl implements Dependency {
   // 保存实际的值 ref(0) -> 0
@@ -87,31 +93,33 @@ export function triggerRef(dep: RefImpl) {
   }
 }
 
-class ObjectRefImpl {
+class ObjectRefImpl<T extends object, K extends keyof T> {
   [ReactiveFlags.IS_REF]: true = true;
 
   constructor(
-    public _object,
-    public _key,
+    public _object: T,
+    public _key: K,
   ) {}
 
-  get value() {
+  get value(): T[K] {
     return this._object[this._key];
   }
 
-  set value(newValue) {
+  set value(newValue: T[K]) {
     this._object[this._key] = newValue;
   }
 }
 
-export function toRef(target, key) {
-  return new ObjectRefImpl(target, key);
+export function toRef<T extends object, K extends keyof T>(target: T, key: K): ToRef<T[K]> {
+  return new ObjectRefImpl<T, K>(target, key) as unknown as ToRef<T[K]>;
 }
 
-export function toRefs(target) {
-  const res = {};
+export function toRefs<T extends object>(target: T): ToRefs<T> {
+  const res = {} as ToRefs<T>;
   for (const key in target) {
-    res[key] = new ObjectRefImpl(target, key);
+    res[key] = new ObjectRefImpl<T, keyof T>(target, key as keyof T) as unknown as ToRef<
+      T[Extract<keyof T, string>]
+    >;
   }
   return res;
 }
