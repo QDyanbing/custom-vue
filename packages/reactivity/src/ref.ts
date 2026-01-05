@@ -6,88 +6,132 @@ import { reactive } from './reactive';
 
 declare const RefSymbol: unique symbol;
 
+/**
+ * Ref 接口，表示一个响应式引用对象
+ * 通过 .value 属性访问和修改内部值
+ */
 export interface Ref<T = any, S = T> {
   get value(): T;
   set value(_: S);
   [RefSymbol]: true;
 }
 
+/**
+ * 响应式标志枚举
+ * 用于标记对象是否为响应式对象或 ref
+ */
 export enum ReactiveFlags {
   IS_REF = '__v_isRef',
 }
 
+/**
+ * 将类型 T 转换为 Ref 类型
+ * 如果 T 已经是 Ref 类型，则返回 T；否则返回 Ref<T>
+ */
 export type ToRef<T> = [T] extends [Ref] ? T : Ref<T>;
 
+/**
+ * 将对象类型 T 的所有属性转换为对应的 Ref 类型
+ * 用于 toRefs 函数的返回类型
+ */
 export type ToRefs<T = any> = {
   [K in keyof T]: ToRef<T[K]>;
 };
 
-// Ref 的实现类
+/**
+ * Ref 的实现类
+ * 用于创建响应式引用，当值发生变化时会触发相关的 effect 重新执行
+ */
 class RefImpl implements Dependency {
-  // 保存实际的值 ref(0) -> 0
+  // 保存实际的值，例如 ref(0) -> 0
   _value: any;
   // 标记为 Ref，主要用于判断是否是 Ref 对象
   [ReactiveFlags.IS_REF]: true = true;
 
   /**
-   * 订阅者链表的头节点，理解为我们将的 head effect1 -> effect2 -> effect3
+   * 订阅者链表的头节点
+   * 用于存储所有依赖此 ref 的 effect，形成链表结构：head -> effect1 -> effect2 -> effect3
    */
   subs: Link | undefined;
 
   /**
-   * 订阅者链表的尾节点，理解为我们讲的 tail
+   * 订阅者链表的尾节点
+   * 用于快速添加新的 effect 到链表末尾
    */
   subsTail: Link | undefined;
 
   constructor(value: any) {
-    // 如果 value 是对象，则转换为响应式对象；
+    // 如果 value 是对象，则转换为响应式对象；否则直接保存原值
     this._value = isObject(value) ? reactive(value) : value;
   }
 
   get value() {
-    // 当读取 value 时，收集依赖
+    // 当读取 value 时，收集依赖，建立 ref 和当前活跃的 effect 之间的关联
     trackRef(this);
     return this._value;
   }
 
   set value(newValue: any) {
+    // 只有当新值与旧值不同时才更新
     if (hasChanged(newValue, this._value)) {
+      // 如果新值是对象，则转换为响应式对象；否则直接保存
       this._value = isObject(newValue) ? reactive(newValue) : newValue;
 
-      // 当设置 value 时，触发更新，通知订阅者更新
+      // 当设置 value 时，触发更新，通知所有订阅者（effect）重新执行
       triggerRef(this);
     }
   }
 }
 
+/**
+ * 创建一个响应式引用
+ * 接受一个值并返回一个 ref 对象，可以通过 .value 属性访问和修改值
+ *
+ * **使用场景：**
+ * - 需要创建基本类型的响应式引用时
+ * - 需要将对象转换为响应式引用时
+ * - 在组合式函数中需要返回响应式状态时
+ *
+ * @param value - 要包装的值，可以是任意类型
+ * @returns RefImpl 实例，可以通过 .value 访问和修改值
+ */
 export const ref = (value: any): RefImpl => {
   return new RefImpl(value);
 };
 
 /**
- * 判断是否是 Ref 对象
+ * 判断一个值是否是 Ref 对象
+ * 通过检查值是否具有 IS_REF 标志来判断
+ *
  * @param value - 要判断的值
- * @returns {boolean} - 是否是 Ref 对象
+ * @returns 如果是 Ref 对象返回 true，否则返回 false
  */
 export function isRef(value: any): boolean {
+  // 检查值是否存在且具有 IS_REF 标志
   return !!(value && value[ReactiveFlags.IS_REF]);
 }
 
 /**
  * 收集依赖，建立 ref 和 effect 之间的链表关系
+ * 当 effect 读取 ref.value 时，会调用此函数建立依赖关系
+ *
  * @param dep - 要收集依赖的 ref 对象
  */
 export function trackRef(dep: RefImpl) {
+  // 如果当前有活跃的 effect，则将其添加到 ref 的订阅者链表中
   if (activeSub) {
     link(dep, activeSub);
   }
 }
 
 /**
- * 触发 ref 关联的 effect 重新执行
+ * 触发 ref 关联的所有 effect 重新执行
+ * 当 ref.value 被修改时，会调用此函数通知所有订阅者更新
+ *
  * @param dep - 要触发更新的 ref 对象
  */
 export function triggerRef(dep: RefImpl) {
+  // 如果存在订阅者，则遍历链表并触发所有 effect 重新执行
   if (dep.subs) {
     propagate(dep.subs);
   }
