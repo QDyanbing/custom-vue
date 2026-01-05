@@ -87,14 +87,24 @@ export function triggerRef(dep: RefImpl) {
   }
 }
 
+class ObjectRefImpl<T extends object, K extends keyof T> {
+  [ReactiveFlags.IS_REF]: true = true;
+  [RefSymbol]: true = true;
+
+  constructor(
+    public _object: T,
+    public _key: K,
+  ) {}
+
+  get value(): T[K] {
+    return this._object[this._key];
+  }
+
+  set value(newValue: T[K]) {
+    this._object[this._key] = newValue;
+  }
+}
+
 export function toRef<T extends object, K extends keyof T>(target: T, key: K): Ref<T[K]> {
-  return {
-    get value() {
-      return target[key];
-    },
-    set value(newValue: T[K]) {
-      target[key] = newValue;
-    },
-    [RefSymbol]: true as const,
-  };
+  return new ObjectRefImpl<T, K>(target, key);
 }
