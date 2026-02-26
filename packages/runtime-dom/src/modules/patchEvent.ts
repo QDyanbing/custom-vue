@@ -28,6 +28,7 @@ export function patchEvent(el: HTMLElement, key: string, prevValue: any, nextVal
   } else {
     if (existingInvoker) {
       el.removeEventListener(name, existingInvoker);
+      invokers[key] = undefined;
     }
   }
 }
