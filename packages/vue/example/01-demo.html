@@ -9,13 +9,23 @@
     <div id="app"></div>
     <script type="module">
       import { h, createRenderer } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { nodeOps } from '../dist/vue.esm.js';
+      import { renderOptions } from '../dist/vue.esm.js';
 
-      const renderer = createRenderer(nodeOps);
+      const renderer = createRenderer(renderOptions);
 
-      const vNode = h('div', 'Hello World');
+      const vNode = h('div', { class: 'container', style: { color: 'red' } }, 'Hello World');
+
+      const vNode2 = h(
+        'div',
+        { class: 'container', style: { background: 'blue', color: 'yellow' } },
+        'Hello World',
+      );
 
       renderer.render(vNode, document.getElementById('app'));
+
+      setTimeout(() => {
+        renderer.render(vNode2, document.getElementById('app'));
+      }, 1000);
     </script>
   </body>
 </html>
