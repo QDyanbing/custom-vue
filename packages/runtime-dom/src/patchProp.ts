@@ -2,6 +2,7 @@ import { isOn } from '@vue/shared';
 import { patchClass } from './modules/patchClass';
 import { patchStyle } from './modules/patchStyle';
 import { patchEvent } from './modules/patchEvent';
+import { patchAttr } from './modules/patchAttr';
 
 export function patchProp(el: HTMLElement, key: string, prevValue: any, nextValue: any) {
   /**
@@ -24,4 +25,6 @@ export function patchProp(el: HTMLElement, key: string, prevValue: any, nextValu
   if (isOn(key)) {
     return patchEvent(el, key, prevValue, nextValue);
   }
+
+  patchAttr(el, key, nextValue);
 }
