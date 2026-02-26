@@ -1,7 +1,7 @@
 export function patchClass(el: HTMLElement, value?: string) {
-  if (value) {
-    el.className = value;
-  } else {
+  if (value === undefined || value === null) {
     el.removeAttribute('class');
+  } else {
+    el.className = value;
   }
 }
