@@ -1,0 +1,20 @@
+{
+  "name": "@vue/runtime-dom",
+  "version": "1.0.0",
+  "description": "DOM 渲染器",
+  "main": "dist/runtime-dom.cjs.js",
+  "module": "dist/runtime-dom.esm.js",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "buildOptions": {
+    "name": "RuntimeDom",
+    "formats": [
+      "esm-bundler",
+      "esm-browser",
+      "cjs",
+      "global"
+    ]
+  }
+}
