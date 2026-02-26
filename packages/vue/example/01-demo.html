@@ -13,11 +13,27 @@
 
       const renderer = createRenderer(renderOptions);
 
-      const vNode = h('div', { class: 'container', style: { color: 'red' } }, 'Hello World');
+      const vNode = h(
+        'div',
+        {
+          class: 'container',
+          style: { color: 'red' },
+          onClick: () => {
+            console.log('click1');
+          },
+        },
+        'Hello World',
+      );
 
       const vNode2 = h(
         'div',
-        { class: 'container', style: { background: 'blue', color: 'yellow' } },
+        {
+          class: 'container',
+          style: { background: 'blue', color: 'yellow' },
+          onClick: () => {
+            console.log('click2');
+          },
+        },
         'Hello World',
       );
 
