@@ -37,6 +37,14 @@ export function h(type: string, propsOrChildren?: any, children?: any) {
       // 对应的代码是：使用情况 4. h('div', { class: 'container' })
       return createVNode(type, propsOrChildren, children);
     }
+
+    // 对应的代码是：使用情况 1. h('div', 'hello world')
+    return createVNode(type, null, propsOrChildren);
+  } else {
+    if (l > 3) {
+      // 对应的代码是：使用情况 8. h('div', { class: 'container' },[h('span', 'hello'), h('span', 'world')]) 和 7 一个意思
+      children = [...arguments].slice(2);
+    }
   }
 }
 
