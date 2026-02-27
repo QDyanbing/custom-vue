@@ -1,5 +1,11 @@
 import { isArray, isObject } from '@vue/shared';
 
+/**
+ * 判断一个值是否为 VNode。
+ *
+ * @param value 任意值
+ * @returns 是否为 VNode
+ */
 function isVNode(value: any): boolean {
   return value?.__v_isVNode;
 }
@@ -15,6 +21,17 @@ function isVNode(value: any): boolean {
  * 6. h('div', { class: 'container' }, h('span', 'hello world'))
  * 7. h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'))
  * 8. h('div', { class: 'container' },[h('span', 'hello'), h('span', 'world')]) 和 7 一个意思
+ *
+ * @param type 元素类型（例如 'div'）
+ * @param propsOrChildren 第二个参数：可能是 props，也可能是 children
+ * @param children 第三个参数：children（当第二个参数是 props 时才使用）
+ * @returns 创建出的 VNode
+ *
+ * @example
+ * h('div', 'hello world')
+ *
+ * @example
+ * h('div', { class: 'container' }, [h('span', 'hello'), h('span', 'world')])
  */
 export function h(type: string, propsOrChildren?: any, children?: any) {
   /**
@@ -53,6 +70,9 @@ export function h(type: string, propsOrChildren?: any, children?: any) {
   }
 }
 
+/**
+ * 运行时使用的虚拟节点结构（VNode）。
+ */
 export interface VNode {
   __v_isVNode: true; // 标识这是一个虚拟节点
   type: string;
