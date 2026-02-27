@@ -8,3 +8,5 @@ export const hasChanged = (value: any, oldValue: any): boolean => !Object.is(val
 export const isFunction = (val: unknown): val is Function => typeof val === 'function';
 
 export const isOn = (key: string): boolean => /^on[A-Z]/.test(key);
+
+export const isArray = (val: unknown): boolean => Array.isArray(val);
