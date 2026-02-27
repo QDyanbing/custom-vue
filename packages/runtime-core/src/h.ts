@@ -60,6 +60,7 @@ export interface VNode {
   children?: any;
   key?: string | number;
   el?: Element | null;
+  shapeFlag: number;
 }
 
 /**
@@ -79,5 +80,6 @@ export function createVNode(type: string, props?: any, children?: any): VNode {
     children,
     key: props?.key, // 虚拟节点的 key 属性,作用是用于优化 diff 算法
     el: null, // 虚拟节点对应的 DOM 元素
+    shapeFlag: 9,
   };
 }
