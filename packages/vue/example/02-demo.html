@@ -5,7 +5,16 @@
     <title>Title</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div id="case1"></div>
+      <div id="case2"></div>
+      <div id="case3"></div>
+      <div id="case4"></div>
+      <div id="case5"></div>
+      <div id="case6"></div>
+      <div id="case7"></div>
+      <div id="case8"></div>
+    </div>
     <script type="module">
       import {
         // h,
@@ -24,10 +33,54 @@
        * 7. h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'))
        * 8. h('div', { class: 'container' },[h('span', 'hello'), h('span', 'world')]) 和 7 一个意思
        */
-      const vnode = h('div', 'hello world');
-      console.log('vnode ==> ', vnode);
+      const case1 = document.querySelector('#case1');
+      const case2 = document.querySelector('#case2');
+      const case3 = document.querySelector('#case3');
+      const case4 = document.querySelector('#case4');
+      const case5 = document.querySelector('#case5');
+      const case6 = document.querySelector('#case6');
+      const case7 = document.querySelector('#case7');
+      const case8 = document.querySelector('#case8');
 
-      render(vnode, app);
+      // 1. h('div', 'hello world')
+      const vnode1 = h('div', 'hello world');
+      console.log('case1 vnode ==> ', vnode1);
+      render(vnode1, case1);
+
+      // 2. h('div', [h('span', 'hello'), h('span', ' world')])
+      const vnode2 = h('div', [h('span', 'hello'), h('span', ' world')]);
+      console.log('case2 vnode ==> ', vnode2);
+      render(vnode2, case2);
+
+      // 3. h('div', h('span', 'hello'))
+      const vnode3 = h('div', h('span', 'hello'));
+      console.log('case3 vnode ==> ', vnode3);
+      render(vnode3, case3);
+
+      // 4. h('div', { class: 'container' })
+      const vnode4 = h('div', { class: 'container' });
+      console.log('case4 vnode ==> ', vnode4);
+      render(vnode4, case4);
+
+      // 5. h('div', { class: 'container' }, 'hello world')
+      const vnode5 = h('div', { class: 'container' }, 'hello world');
+      console.log('case5 vnode ==> ', vnode5);
+      render(vnode5, case5);
+
+      // 6. h('div', { class: 'container' }, h('span', 'hello world'))
+      const vnode6 = h('div', { class: 'container' }, h('span', 'hello world'));
+      console.log('case6 vnode ==> ', vnode6);
+      render(vnode6, case6);
+
+      // 7. h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'))
+      const vnode7 = h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'));
+      console.log('case7 vnode ==> ', vnode7);
+      render(vnode7, case7);
+
+      // 8. h('div', { class: 'container' }, [h('span', 'hello'), h('span', 'world')])
+      const vnode8 = h('div', { class: 'container' }, [h('span', 'hello'), h('span', 'world')]);
+      console.log('case8 vnode ==> ', vnode8);
+      render(vnode8, case8);
     </script>
   </body>
 </html>
