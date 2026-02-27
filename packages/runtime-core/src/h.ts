@@ -1,6 +1,19 @@
 import { isArray, isObject } from '@vue/shared';
 
 /**
+ * 运行时使用的虚拟节点结构（VNode）。
+ */
+export interface VNode {
+  __v_isVNode: true; // 标识这是一个虚拟节点
+  type: string;
+  props?: any;
+  children?: any;
+  key?: string | number;
+  el?: Element | null;
+  shapeFlag: number;
+}
+
+/**
  * 判断一个值是否为 VNode。
  *
  * @param value 任意值
@@ -8,6 +21,26 @@ import { isArray, isObject } from '@vue/shared';
  */
 function isVNode(value: any): boolean {
   return value?.__v_isVNode;
+}
+
+/**
+ * createVNode 函数主要做的是创建虚拟节点
+ *
+ * @param type 类型
+ * @param props 属性
+ * @param children 子节点
+ * @returns 虚拟节点
+ */
+export function createVNode(type: string, props?: any, children?: any): VNode {
+  return {
+    __v_isVNode: true,
+    type,
+    props,
+    children,
+    key: props?.key, // 虚拟节点的 key 属性,作用是用于优化 diff 算法
+    el: null, // 虚拟节点对应的 DOM 元素
+    shapeFlag: 9,
+  };
 }
 
 /**
@@ -68,38 +101,4 @@ export function h(type: string, propsOrChildren?: any, children?: any) {
 
     return createVNode(type, propsOrChildren, children);
   }
-}
-
-/**
- * 运行时使用的虚拟节点结构（VNode）。
- */
-export interface VNode {
-  __v_isVNode: true; // 标识这是一个虚拟节点
-  type: string;
-  props?: any;
-  children?: any;
-  key?: string | number;
-  el?: Element | null;
-  shapeFlag: number;
-}
-
-/**
- * createVNode 函数主要做的是创建虚拟节点
- *
- * @param type 类型
- * @param props 属性
- * @param children 子节点
- * @returns 虚拟节点
- */
-
-export function createVNode(type: string, props?: any, children?: any): VNode {
-  return {
-    __v_isVNode: true,
-    type,
-    props,
-    children,
-    key: props?.key, // 虚拟节点的 key 属性,作用是用于优化 diff 算法
-    el: null, // 虚拟节点对应的 DOM 元素
-    shapeFlag: 9,
-  };
 }
