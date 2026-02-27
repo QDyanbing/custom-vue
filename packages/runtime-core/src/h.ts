@@ -1,4 +1,8 @@
-import { isArray } from '@vue/shared';
+import { isArray, isObject } from '@vue/shared';
+
+function isVNode(value: any): boolean {
+  return value?.__v_isVNode;
+}
 
 /**
  * h 函数的使用方法：
@@ -22,6 +26,16 @@ export function h(type: string, propsOrChildren?: any, children?: any) {
     if (isArray(propsOrChildren)) {
       // 对应的代码是：使用情况 2. h('div', [h('span', 'hello'), h('span', ' world')])
       return createVNode(type, null, propsOrChildren);
+    }
+
+    if (isObject(propsOrChildren)) {
+      if (isVNode(propsOrChildren)) {
+        // 对应的代码是：使用情况 3. h('div', h('span', 'hello')) 中的 h('span', 'hello') 是 VNode 类型
+        return createVNode(type, null, [propsOrChildren]);
+      }
+
+      // 对应的代码是：使用情况 4. h('div', { class: 'container' })
+      return createVNode(type, propsOrChildren, children);
     }
   }
 }
