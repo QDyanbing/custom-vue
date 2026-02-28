@@ -1,12 +1,12 @@
-# Computed 功能说明
+# Computed 说明
 
 ## 概述
 
-`computed` 是 Vue 3 响应式系统提供的计算属性 API，用于创建基于其他响应式数据的派生值。计算属性具有缓存机制，只有依赖的数据变化时才会重新计算。
+`computed` 用于创建基于响应式数据的派生值。计算属性带缓存，依赖变化时才会重新计算。
 
 ## 主要功能
 
-### 1. 创建计算属性
+### 1. 创建计算属性实例
 
 `computed()` 函数用于创建计算属性。
 
@@ -31,7 +31,7 @@ const doubleCount = computed({
 });
 ```
 
-### 2. 缓存机制
+### 2. 缓存行为
 
 计算属性具有缓存机制，只有依赖的数据变化时才会重新计算。
 
@@ -52,7 +52,7 @@ console.log(doubleCount.value); // 2，依赖变化，重新计算
 - `dirty: true` 表示需要重新计算
 - `dirty: false` 表示可以使用缓存值
 
-### 3. 双重身份
+### 3. 双重角色
 
 计算属性既是依赖项（Dependency），也是订阅者（Sub）。
 
@@ -100,7 +100,7 @@ count.value = 1; // 值变化，通知订阅者
 
 ## 核心实现
 
-### ComputedRefImpl 类
+### `ComputedRefImpl` 类
 
 `ComputedRefImpl` 是计算属性的实现类，同时实现了 `Dependency` 和 `Sub` 接口。
 
@@ -119,7 +119,7 @@ count.value = 1; // 值变化，通知订阅者
 - `set value()`: 设置计算属性的值（仅可写计算属性）
 - `update()`: 更新计算属性的值
 
-### get value()
+### `get value()`
 
 读取计算属性的值。
 
@@ -129,7 +129,7 @@ count.value = 1; // 值变化，通知订阅者
 2. **收集依赖**：如果有活跃的 effect，建立计算属性与 effect 的依赖关系
 3. **返回值**：返回 `_value`
 
-### update()
+### `update()`
 
 更新计算属性的值。
 
@@ -144,7 +144,7 @@ count.value = 1; // 值变化，通知订阅者
 7. **恢复 effect**：恢复之前的 `activeSub`
 8. **返回结果**：返回是否值发生变化
 
-### set value()
+### `set value()`
 
 设置计算属性的值（仅可写计算属性）。
 
