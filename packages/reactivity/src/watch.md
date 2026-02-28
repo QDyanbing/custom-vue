@@ -1,8 +1,8 @@
-# Watch 功能说明
+# Watch 说明
 
 ## 概述
 
-`watch` 是 Vue 3 响应式系统提供的监听 API，用于监听响应式数据的变化并执行回调函数。它基于 `effect` 的 `scheduler` 机制实现。
+`watch` 用于监听响应式数据变化并执行回调。它基于 `effect` 的 `scheduler` 机制实现。
 
 **设计思路：**
 
@@ -13,7 +13,7 @@
 
 ## 主要功能
 
-### 1. 监听响应式数据
+### 1. 监听响应式数据源
 
 `watch()` 函数可以监听多种类型的响应式数据源。
 
@@ -23,7 +23,7 @@
 - **Reactive 对象**：`watch(reactive({ count: 0 }), callback)`
 - **Getter 函数**：`watch(() => state.count, callback)`
 
-### 2. 立即执行（immediate）
+### 2. 立即执行（`immediate`）
 
 `immediate` 选项控制是否在创建时立即执行一次回调。
 
@@ -36,7 +36,7 @@ watch(source, callback, { immediate: true });
 - `immediate: true`：创建时立即执行一次回调
 - `immediate: false`（默认）：只在数据变化时执行回调
 
-### 3. 只执行一次（once）
+### 3. 只执行一次（`once`）
 
 `once` 选项控制回调是否只执行一次。
 
@@ -49,7 +49,7 @@ watch(source, callback, { once: true });
 - `once: true`：回调执行一次后自动停止监听
 - `once: false`（默认）：每次变化都会执行回调
 
-### 4. 深度监听（deep）
+### 4. 深度监听（`deep`）
 
 `deep` 选项控制是否深度监听对象的变化。
 
@@ -68,7 +68,7 @@ watch(source, callback, { deep: true });
 - 当数据源是 `reactive` 对象时，`deep` 默认为 `true`
 - 当数据源是 `ref` 或函数时，`deep` 默认为 `false`
 
-### 5. 清理副作用（onCleanup）
+### 5. 清理副作用（`onCleanup`）
 
 回调函数可以接收 `onCleanup` 参数，用于注册清理函数。
 
@@ -91,7 +91,7 @@ watch(source, (newValue, oldValue, onCleanup) => {
 
 ## 核心实现
 
-### watch 函数
+### `watch` 函数
 
 **核心实现：**
 
@@ -121,7 +121,7 @@ effect.scheduler = job;  // 关键：使用 scheduler 而不是直接 run
    - `immediate: true`：立即执行 `job()`
    - `immediate: false`：执行 `effect.run()` 收集依赖并获取初始值
 
-### job 函数
+### `job` 函数
 
 `job` 是 watch 的调度函数，在数据变化时执行。
 
@@ -145,7 +145,7 @@ effect.scheduler = job;  // 关键：使用 scheduler 而不是直接 run
 4. **更新旧值**：将新值保存为下次的旧值
    - `oldValue = newValue`，为下次比较做准备
 
-### traverse 函数
+### `traverse` 函数
 
 `traverse()` 函数用于深度遍历对象，触发所有属性的访问，从而收集依赖。
 
