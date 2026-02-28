@@ -1,8 +1,8 @@
-# Index 功能说明
+# reactivity/index 导出说明
 
 ## 概述
 
-`index.ts` 是 `reactivity` 包的入口文件，负责统一导出所有公共 API。所有模块的功能都通过此文件对外暴露。
+`index.ts` 是 `reactivity` 的统一入口，负责导出公共 API，供外部直接使用。
 
 ## 导出内容
 
@@ -52,13 +52,13 @@
 
 ## 使用示例
 
-### 导入所有 API
+### 导入常用 API
 
 ```typescript
 import { ref, reactive, computed, watch, effect } from '@vue/reactivity';
 ```
 
-### 按需导入
+### 按需导入示例
 
 ```typescript
 import { ref } from '@vue/reactivity';
@@ -83,6 +83,6 @@ reactivity/
 
 ## 注意事项
 
-1. **统一导出**：所有公共 API 都通过 `index.ts` 导出
-2. **类型导出**：相关的类型定义也会一并导出
-3. **内部实现**：`system.ts`、`dep.ts` 等内部模块不直接导出，通过其他模块间接使用
+1. **统一导出**：公共 API 都通过 `index.ts` 透出
+2. **类型导出**：相关类型会随实现一起导出
+3. **内部实现**：`system.ts`、`dep.ts` 等模块主要作为内部能力使用
