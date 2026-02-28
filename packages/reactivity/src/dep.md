@@ -147,19 +147,19 @@ state2.count = 1; // 不触发更新（不同的对象）
 | 触发方式 | trigger(target, key) | triggerRef(ref)   |
 | 适用场景 | reactive 对象的属性  | ref 的 value 属性 |
 
-## 关键特性
+## 设计点
 
-### 1. WeakMap 的使用
+### 1. `WeakMap` 的使用
 
 使用 `WeakMap` 存储 `targetMap`，具有以下优势：
 
-**为什么使用 WeakMap？**
+**为什么使用 `WeakMap`？**
 
 - **自动垃圾回收**：当对象被回收时，对应的映射关系也会自动回收
 - **内存安全**：不会阻止对象被垃圾回收，避免内存泄漏
 - **性能优化**：减少内存占用，提高性能
 
-**WeakMap vs Map：**
+**`WeakMap` vs `Map`：**
 
 ```typescript
 // 使用 WeakMap（推荐）

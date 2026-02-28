@@ -66,7 +66,7 @@ interface Link {
 - **依赖项 → 订阅者**：`dep.subs` → `effect1` → `effect2` → `effect3`
 - **订阅者 → 依赖项**：`effect.deps` → `ref1` → `ref2` → `ref3`
 
-## 主要功能
+## 核心流程
 
 ### 1. 建立依赖关系（`link`）
 
@@ -78,7 +78,7 @@ interface Link {
 - 节点复用机制，避免频繁创建和销毁节点，提高性能
 - 空间换时间策略，建立双向引用，方便后续清理
 
-**功能：**
+**作用：**
 
 - 在依赖项的订阅者链表中添加订阅者（`dep.subs` → `effect1` → `effect2`）
 - 在订阅者的依赖项链表中添加依赖项（`effect.deps` → `ref1` → `ref2`）
@@ -137,7 +137,7 @@ if (linkPool) {
 - 区分 effect 和 computed，分别处理
 - 避免重复执行（通过 `tracking` 和 `dirty` 标志）
 
-**处理流程：**
+**执行流程：**
 
 1. 遍历订阅者链表
 2. 检查订阅者是否正在追踪或已脏，避免重复执行
@@ -225,7 +225,7 @@ if (depsTail) {
 - 如果不清理，会导致内存泄漏和无效的更新通知
 - 清理机制保证依赖关系的准确性
 
-### 5. 清理依赖（`clearTracking`）
+### 5. 清理链表节点（`clearTracking`）
 
 `clearTracking()` 函数用于清理双向链表中的节点。
 
