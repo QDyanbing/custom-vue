@@ -14,7 +14,7 @@ class Dep {
 }
 
 /**
- * 绑定 target 和 key 关联的所有 Dep
+ * 保存 target 与 key 对应的 Dep。
  * targetMap 的结构：
  * target = { a: 1, b: 2 }
  * targetMap = {
@@ -45,7 +45,7 @@ export const track = (target: object, key: string | number | symbol) => {
     depsMap.set(key, dep);
   }
 
-  // 绑定dep和sub的关联关系
+  // 建立 dep 和 sub 的关联关系。
   link(dep, activeSub);
 };
 
@@ -58,12 +58,11 @@ export const trigger = (target: object, key: string | number | symbol) => {
   const targetIsArray = Array.isArray(target);
 
   if (targetIsArray && key === 'length') {
-    // 如果target是数组，并且key是length，则需要通知所有访问了大于等于 length 的索引的 effect 重新执行；
+    // 数组 length 变化时，需要通知越界索引和 length 依赖重新执行。
 
     depsMap.forEach((dep, depKey) => {
       if ((depKey as unknown as number) >= target.length || depKey === 'length') {
-        // 通知所有访问了大于等于 length 的索引的 effect 重新执行；
-        // 和访问了 length 的 effect 也要重新执行；
+        // 访问越界索引或 length 的 effect 都需要重新执行。
         propagate(dep.subs);
       }
     });

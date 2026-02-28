@@ -40,7 +40,7 @@ export interface Link {
 let linkPool: Link;
 
 /**
- * 链接链表关系
+ * 建立 dep 与 sub 的双向链表关系。
  * @param dep - 依赖项 ref
  * @param sub - 订阅者 effect
  */
@@ -72,7 +72,7 @@ export function link(dep: Dependency, sub: Sub) {
    */
 
   let newLink: Link;
-  // 查看 linkPool 是否有可用的节点
+  // 查看 linkPool 是否有可复用节点。
   if (linkPool) {
     // 如果有就取一个节点复用
     newLink = linkPool;
@@ -224,7 +224,7 @@ function clearTracking(link: Link) {
       // 当前节点删除后，把当前节点的上一个节点指向 undefined
       link.prevSub = undefined;
     } else {
-      // 当前节点没有下一个节点，那就是尾节点，那就把 dep.subsTail 只想上一个节点
+      // 当前节点没有下一个节点，说明它是尾节点，此时把 dep.subsTail 指向上一个节点
       dep.subsTail = prevSub;
     }
 
@@ -233,11 +233,11 @@ function clearTracking(link: Link) {
     // 当前节点删除后，把当前节点的订阅者指向 undefined
     link.sub = undefined;
 
-    // 把不要的节点保存在  linkPool 中，留着复用；这样可以避免每次都创建新的节点，提高性能；
+  // 回收节点到 linkPool，减少重复创建带来的开销。
     link.nextDep = linkPool;
     linkPool = link;
 
-    // 当前节点删除后，把当前节点的下一个节点指向当前节点的下一个节点
+    // 继续处理 nextDep 节点。
     link = nextDep;
   }
 }
