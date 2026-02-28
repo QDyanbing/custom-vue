@@ -1,13 +1,13 @@
 /**
- * 渲染器在 DOM 平台上需要的一组节点操作。
+ * DOM 平台下的宿主节点操作集合。
  *
  * @remarks
  * 这些方法会被运行时在挂载、更新、卸载过程中调用。
- * 调用方负责传入正确的节点类型，这里只做最小封装。
+ * 调用方需保证节点类型正确，这里保持轻量封装。
  */
 export const nodeOps = {
   /**
-   * 将 `el` 插入到 `parent` 下，放在 `anchor` 之前；`anchor` 为空时追加到末尾。
+   * 将 `el` 插入到 `parent` 下，默认插入到末尾。
    */
   insert(el: Node, parent: Node, anchor: Node | null = null) {
     parent.insertBefore(el, anchor);
@@ -59,7 +59,7 @@ export const nodeOps = {
   },
 
   /**
-   * 获取下一个兄弟节点。
+   * 获取 `node` 的下一个兄弟节点。
    */
   nextSibling(node: Node) {
     return node.nextSibling;

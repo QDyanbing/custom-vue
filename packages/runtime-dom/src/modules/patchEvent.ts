@@ -2,10 +2,10 @@ type EventValue = (e: Event) => any;
 type Invoker = ((e: Event) => void) & { value: EventValue };
 
 /**
- * 创建一个可复用的事件调用器（invoker）。
+ * 创建可复用的事件调用器（invoker）。
  *
  * @remarks
- * 事件更新时，不需要反复 `remove/addEventListener`：
+ * 事件更新时不必反复 `remove/addEventListener`：
  * 只要复用同一个 invoker，并替换 `invoker.value` 即可。
  */
 function createInvoker(fn: EventValue): Invoker {
@@ -26,7 +26,7 @@ function createInvoker(fn: EventValue): Invoker {
 const veiKey = Symbol('_vei');
 
 /**
- * 更新元素事件监听。
+ * 更新元素事件监听关系。
  *
  * @param el 目标元素
  * @param key 事件 key（例如 `onClick`）
@@ -36,7 +36,7 @@ const veiKey = Symbol('_vei');
  * @remarks
  * - 首次绑定：创建 invoker，缓存到元素上，并 `addEventListener`
  * - 更新回调：复用 invoker，仅替换 `invoker.value`
- * - 移除：`removeEventListener`，并清掉缓存
+ * - 移除：`removeEventListener`，并清理缓存
  */
 export function patchEvent(el: HTMLElement, key: string, prevValue: any, nextValue: any) {
   const name = key.slice(2).toLowerCase();

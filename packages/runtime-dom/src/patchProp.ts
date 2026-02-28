@@ -5,7 +5,7 @@ import { patchEvent } from './modules/patchEvent';
 import { patchAttr } from './modules/patchAttr';
 
 /**
- * 更新单个元素上的属性/特性/事件等。
+ * 更新单个元素上的 class/style/事件/attribute。
  *
  * @param el 目标元素
  * @param key 属性名（如 `class`、`style`、`onClick`、`id` 等）
@@ -13,11 +13,11 @@ import { patchAttr } from './modules/patchAttr';
  * @param nextValue 这一次的值
  *
  * @remarks
- * 目前分支规则：
+ * 当前分派规则：
  * - `class`：使用 `patchClass`
  * - `style`：使用 `patchStyle`
  * - 事件：`isOn(key)` 为真时，交给 `patchEvent`（例如 `onClick`）
- * - 兜底：当作 attribute 处理（`patchAttr`）
+ * - 其他：按 attribute 处理（`patchAttr`）
  */
 export function patchProp(el: HTMLElement, key: string, prevValue: any, nextValue: any) {
   if (key === 'class') {
