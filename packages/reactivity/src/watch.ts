@@ -5,20 +5,20 @@ import { isFunction, isObject } from '@vue/shared';
 import { isReactive } from './reactive';
 
 /**
- * watch 的监听源类型
- * 可以是 ref、computed ref 或返回值的函数
+ * watch 的监听源类型。
+ * 可为 ref、computed ref 或 getter 函数。
  */
 export type WatchSource<T = any> = Ref<T, any> | ComputedRef<T> | (() => T);
 
 /**
- * 清理函数类型
- * 用于注册清理函数，在 watch 回调执行前或停止时调用
+ * 清理函数注册器类型。
+ * 用于注册在下次回调前执行的清理逻辑。
  */
 export type OnCleanup = (cleanupFn: () => void) => void;
 
 /**
- * watchEffect 的回调函数类型
- * 接收一个 onCleanup 函数用于注册清理函数
+ * watchEffect 回调类型。
+ * 接收 onCleanup 用于注册清理函数。
  */
 export type WatchEffect = (onCleanup: OnCleanup) => void;
 
@@ -68,7 +68,7 @@ export interface WatchHandle extends WatchStopHandle {
 export function watch(source: any, cb?: any, options: any = {}) {
   let { immediate, once, deep } = options;
 
-  // 如果 once 为 true，则需要包装一下回调函数，在回调函数执行后，自动调用 cleanup
+  // once 为 true 时，包装回调并在首次执行后自动 stop。
   if (once) {
     let _cb = cb;
     cb = (...args) => {
@@ -79,25 +79,25 @@ export function watch(source: any, cb?: any, options: any = {}) {
 
   let getter: () => any;
 
-  // 根据 source 的类型创建对应的 getter 函数
+  // 根据 source 类型创建对应 getter。
   if (isRef(source)) {
     // 如果是 ref，getter 返回 ref.value
     getter = () => source.value;
   } else if (isReactive(source)) {
     // 如果是 reactive 对象，getter 返回对象本身
     getter = () => source;
-    // 如果 deep 没传，则默认深度为 true；如果传了，则深度为传入的值
+    // reactive 数据源默认深度监听；若显式传 deep，则以用户值为准。
     deep = !deep ? true : deep;
   } else if (isFunction(source)) {
     // 如果是函数，直接作为 getter
     getter = source;
   }
 
-  // 如果需要深度监听，包装 getter 函数
+  // 深度监听时，包装 getter 并触发递归访问。
   if (deep) {
     const baseGetter = getter;
 
-    // 处理 deep 是数字的情况，如果是 true，则深度为 Infinity，如果是数字，则深度为数字
+    // `deep: true` 视为无限层；数字则按指定层数遍历。
     const depth = deep === true ? Infinity : deep;
 
     // 包装 getter，在获取值时遍历对象的所有属性
@@ -140,7 +140,7 @@ export function watch(source: any, cb?: any, options: any = {}) {
     oldValue = newValue;
   }
 
-  // 创建 effect，使用 getter 作为依赖收集函数
+  // 创建 effect，并让 getter 负责依赖收集。
   const effect = new ReactiveEffect(getter);
 
   // 设置 scheduler，当依赖变化时调用 job 而不是直接执行 getter

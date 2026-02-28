@@ -15,22 +15,22 @@ export interface ReactiveEffectOptions extends DebuggerOptions {
   onStop?: () => void;
 }
 
-// 用来保存当前正在执行的 effect
+// 当前正在执行的 effect（用于依赖收集）
 export let activeSub = null;
 
 export function setActiveSub(sub: any) {
   activeSub = sub;
 }
 
-// Effect 的实现类
+// effect 实现类
 export class ReactiveEffect implements Sub {
-  // 表示这个 effect 是否激活；
+  // 表示当前 effect 是否处于激活状态。
   active: boolean = true;
-  // 依赖项链表的头节点 ref1 -> ref2 -> ref3
+  // 依赖项链表头节点：ref1 -> ref2 -> ref3
   deps: Link | undefined;
-  // 依赖项链表的尾节点
+  // 依赖项链表尾节点
   depsTail: Link | undefined;
-  // 是否正在追踪依赖,解决循环依赖问题
+  // 是否处于依赖追踪阶段，用于避免重复传播。
   tracking: boolean = false;
 
   dirty: boolean = false;
@@ -64,7 +64,7 @@ export class ReactiveEffect implements Sub {
     try {
       return this.fn();
     } finally {
-      // 结束追踪依赖
+      // 结束本轮依赖追踪
       endTrack(this);
 
       // 执行完成后，恢复之前的 effect，这样就可以处理嵌套的逻辑了
@@ -80,7 +80,8 @@ export class ReactiveEffect implements Sub {
   }
 
   /**
-   * 默认调用 run，如果用户传了，那以用户的为主，实例属性的优先级，由于原型属性
+   * 默认调度逻辑：直接执行 run。
+   * 若用户传入 scheduler，会以实例上的 scheduler 为准。
    */
   scheduler() {
     this.run();

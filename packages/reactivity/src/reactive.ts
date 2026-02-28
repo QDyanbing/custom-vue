@@ -18,8 +18,8 @@ const reactiveSet = new WeakSet<object>();
 const reactiveMap = new WeakMap<object, object>();
 
 /**
- * 创建一个响应式对象
- * 使用 Proxy 代理对象，拦截属性的读取和设置操作，实现响应式
+ * 创建响应式对象。
+ * 使用 Proxy 拦截对象的读取和写入操作。
  *
  * **使用场景：**
  * - 需要创建响应式对象时
@@ -34,8 +34,8 @@ export function reactive(target: object) {
 }
 
 /**
- * 创建响应式对象的内部实现函数
- * 处理对象检查、缓存查找和代理对象创建
+ * 创建响应式对象的内部实现。
+ * 负责对象检查、缓存命中与代理创建。
  *
  * @param target - 要转换为响应式的对象
  * @returns 响应式代理对象，如果 target 已经是响应式则直接返回
@@ -44,19 +44,19 @@ export function createReactiveObject(target: object) {
   // 如果 target 不是对象，则直接返回
   if (!isObject(target)) return target;
 
-  // 判断 target 是不是在 reactiveSet 里，在则直接返回
+  // 如果传入值本身已经是代理对象，直接返回。
   if (reactiveSet.has(target)) return target;
 
-  // 从缓存中查找是否已经为这个 target 创建过代理对象
+  // 查找是否已经为该 target 创建过代理。
   const existingProxy = reactiveMap.get(target);
   if (existingProxy) return existingProxy;
 
   // 创建新的代理对象，使用 mutableHandlers 处理属性的读取和设置
   const proxy = new Proxy(target, mutableHandlers);
 
-  // 保存代理对象到 reactiveSet，避免重复创建代理对象
+  // 记录代理对象，避免重复包装。
   reactiveSet.add(proxy);
-  // 缓存代理对象，建立 target 和 proxy 的映射关系，避免重复创建代理对象
+  // 建立 target -> proxy 映射，后续可直接复用。
   reactiveMap.set(target, proxy);
 
   // 返回代理对象
