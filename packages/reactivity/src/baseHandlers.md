@@ -1,12 +1,12 @@
-# BaseHandlers 功能说明
+# BaseHandlers 说明
 
 ## 概述
 
-`baseHandlers` 模块定义了 `Proxy` 的处理器对象，用于拦截 `reactive` 对象的属性访问和设置操作。它是 `reactive` 实现响应式的核心。
+`baseHandlers` 模块定义了 `Proxy` 处理器，用于拦截 `reactive` 对象的读取与写入。
 
 ## 主要功能
 
-### 1. 属性访问拦截（get）
+### 1. 属性读取拦截（get）
 
 `get` 处理器拦截对象属性的读取操作。
 
@@ -24,7 +24,7 @@
 4. **处理对象**：如果值是对象，调用 `reactive(res)` 转换为响应式对象
 5. **返回结果**：返回处理后的值
 
-### 2. 属性设置拦截（set）
+### 2. 属性写入拦截（set）
 
 `set` 处理器拦截对象属性的设置操作。
 
@@ -141,7 +141,7 @@ state.count = 1; // 触发更新，值发生变化
 const res = Reflect.get(target, key, receiver);
 ```
 
-- `receiver` 是 Proxy 的 `get` 拦截器的第三个参数
+- `receiver` 是 Proxy `get` 拦截器的第三个参数
 - 表示属性访问的接收者（通常是代理对象本身）
 - 传递给 `Reflect.get`，确保访问器属性中的 `this` 指向代理对象
 
@@ -160,7 +160,7 @@ console.log(proxy.value);  // 如果不用 receiver，this 指向原始对象
 ```
 
 - 如果不用 `receiver`，访问器中的 `this` 会指向原始对象
-- 使用 `receiver`，`this` 指向代理对象，保证响应式行为一致
+- 使用 `receiver` 后，`this` 指向代理对象，行为更符合预期
 - 这是 Proxy 和 Reflect 配合使用的标准做法
 
 ### 2. 自动解包 ref

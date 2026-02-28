@@ -1,8 +1,8 @@
-# Reactive 功能说明
+# Reactive 说明
 
 ## 概述
 
-`reactive` 是 Vue 3 响应式系统的核心 API，用于将普通对象转换为响应式对象。它使用 ES6 的 `Proxy` 来实现对象的响应式代理。
+`reactive` 用于将普通对象转换为响应式对象，底层依赖 ES6 `Proxy`。
 
 ## 主要功能
 
@@ -20,7 +20,7 @@ const state = reactive({ count: 0, name: 'Vue' });
 - 返回一个 Proxy 代理对象
 - 对象的属性访问和修改都会被拦截
 
-### 2. 响应式对象缓存
+### 2. 响应式对象缓存机制
 
 为了避免重复创建代理对象，`reactive` 实现了两层缓存机制。
 
@@ -30,7 +30,7 @@ const state = reactive({ count: 0, name: 'Vue' });
 - 避免重复代理导致的性能问题和内存浪费
 - 保证响应式对象的一致性
 
-**第一层：reactiveSet**
+**第一层：`reactiveSet`**
 
 ```typescript
 const reactiveSet = new WeakSet<object>();
@@ -40,7 +40,7 @@ const reactiveSet = new WeakSet<object>();
 - 如果传入的对象已经是响应式对象，直接返回
 - `WeakSet` 的优势：不阻止对象被垃圾回收，避免内存泄漏
 
-**第二层：reactiveMap**
+**第二层：`reactiveMap`**
 
 ```typescript
 const reactiveMap = new WeakMap<object, object>();
@@ -83,9 +83,9 @@ isReactive({ count: 0 }); // false
 
 ## 核心实现
 
-### createReactiveObject 函数
+### `createReactiveObject` 函数
 
-这是创建响应式对象的核心函数。
+这是创建响应式对象的内部函数。
 
 **处理流程：**
 
