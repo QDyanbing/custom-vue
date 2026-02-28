@@ -1,12 +1,12 @@
-# System 功能说明
+# System 说明
 
 ## 概述
 
-`system` 模块是 Vue 3 响应式系统的核心，负责管理依赖项（Dependency）和订阅者（Sub）之间的双向链表关系。它实现了依赖收集、更新传播、依赖追踪和清理等核心功能。
+`system` 模块负责维护依赖项（Dependency）和订阅者（Sub）之间的双向链表关系，承载依赖收集、更新传播与清理。
 
 ## 核心数据结构
 
-### Dependency 接口
+### `Dependency` 接口
 
 依赖项接口，表示可以被订阅的响应式数据（如 ref、reactive 对象的属性等）。
 
@@ -29,7 +29,7 @@ interface Dependency {
 - 当值变化时，可以通知所有订阅者更新
 - 支持多个订阅者订阅同一个依赖项
 
-### Sub 接口
+### `Sub` 接口
 
 订阅者接口，表示订阅依赖项的副作用（如 effect、computed 等）。
 
@@ -47,7 +47,7 @@ interface Sub {
 - 维护一个依赖项链表，记录所有它依赖的响应式数据
 - 当依赖的数据变化时，会被通知重新执行
 
-### Link 接口
+### `Link` 接口
 
 链表节点接口，用于建立双向链表关系。
 
@@ -68,7 +68,7 @@ interface Link {
 
 ## 主要功能
 
-### 1. 建立依赖关系（link）
+### 1. 建立依赖关系（`link`）
 
 `link()` 函数用于建立依赖项和订阅者之间的双向链表关系。
 
@@ -126,7 +126,7 @@ if (linkPool) {
 - 节点复用可以减少 GC 压力，提高性能
 - 这是 Vue 3 响应式系统性能优化的关键点之一
 
-### 2. 传播更新（propagate）
+### 2. 传播更新（`propagate`）
 
 `propagate()` 函数用于通知所有订阅者更新。
 
@@ -145,7 +145,7 @@ if (linkPool) {
 4. 如果是 computed，调用 `processComputedUpdate`
 5. 如果是 effect，加入队列后统一执行
 
-### 3. 开始追踪（startTrack）
+### 3. 开始追踪（`startTrack`）
 
 `startTrack()` 函数用于开始追踪依赖。
 
@@ -178,7 +178,7 @@ sub.depsTail = undefined;
 - 通过重置尾节点，可以区分新旧依赖
 - 旧的依赖（尾节点之后）需要清理，避免内存泄漏
 
-### 4. 结束追踪（endTrack）
+### 4. 结束追踪（`endTrack`）
 
 `endTrack()` 函数用于结束追踪依赖，并清理不再使用的依赖关系。
 
@@ -225,7 +225,7 @@ if (depsTail) {
 - 如果不清理，会导致内存泄漏和无效的更新通知
 - 清理机制保证依赖关系的准确性
 
-### 5. 清理依赖（clearTracking）
+### 5. 清理依赖（`clearTracking`）
 
 `clearTracking()` 函数用于清理双向链表中的节点。
 
