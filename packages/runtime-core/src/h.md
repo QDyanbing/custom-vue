@@ -1,12 +1,12 @@
-# h / VNode 功能说明
+# h 与 VNode 说明
 
 ## 概述
 
-`h.ts` 负责提供创建 VNode 的能力：
+`h.ts` 负责创建 VNode，并把多形态参数整理成统一输入：
 
 - `VNode`：虚拟节点的数据结构
 - `createVNode`：创建 VNode
-- `h`：对外使用的创建入口，负责参数整理（把不同调用方式整理成统一形态）
+- `h`：对外创建入口，负责参数标准化（把不同调用方式整理成统一形态）
 
 ## VNode 结构
 
@@ -26,9 +26,9 @@
 const vnode = createVNode('div', { class: 'box', key: 1 }, 'hello');
 ```
 
-## h 的 8 种调用方式
+## h 的 8 种常见调用方式
 
-`h` 的目标是“参数标准化”。你在示例里能看到 8 种常见写法：
+`h` 的目标是“参数标准化”，下面列出常见写法：
 
 ### 1) 第二个参数是文本子节点
 
@@ -74,7 +74,7 @@ h('div', { class: 'container' }, h('span', 'hello world'));
 h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'));
 ```
 
-### 8) props + 数组子节点（与 7 表达相同）
+### 8) props + 数组子节点（和 7 等价）
 
 ```typescript
 h('div', { class: 'container' }, [h('span', 'hello'), h('span', 'world')]);
