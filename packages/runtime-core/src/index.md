@@ -2,7 +2,7 @@
 
 ## 概述
 
-`index.ts` 是 `runtime-core` 的统一出口，负责把公开 API 暴露给上层包。
+`index.ts` 是 `runtime-core` 的统一入口，负责把公开 API 暴露给上层包。
 
 ## 导出内容
 
@@ -27,6 +27,12 @@ import { h, createRenderer } from '@vue/runtime-core';
 ```
 
 在浏览器里渲染 DOM 时，通常会由 `@vue/runtime-dom` 提供宿主操作（`nodeOps`、`patchProp`），再交给 `createRenderer` 组装渲染流程。
+
+从本包也可直接使用响应式 API（透传自 `@vue/reactivity`）：
+
+```typescript
+import { ref, reactive, h, createRenderer } from '@vue/runtime-core';
+```
 
 ## 模块结构
 
