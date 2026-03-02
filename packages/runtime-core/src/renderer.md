@@ -19,5 +19,5 @@ renderer.render(vnode, container);
 
 `render` 的职责是把 VNode 渲染到 `container`。
 
-> 说明：当前实现是最小版本，函数体只做了 `console.log`，目的是先跑通调用链；后续可在这里补 `patch`、挂载、更新、卸载流程。
+> **当前实现**：`createRenderer` 返回的 `render` 在 runtime-core 内仅为占位（内部仅 `console.log`），用于先跑通调用链。实际 DOM 的创建、挂载、更新、卸载由 `@vue/runtime-dom` 传入的 `options`（如 `nodeOps`、`patchProp`）在后续 patch 流程中实现。
 
