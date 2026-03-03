@@ -1,12 +1,2 @@
-export const isObject = (val: unknown): boolean => {
-  return val !== null && typeof val === 'object';
-};
-
-// Compare value changes with Object.is semantics (including NaN).
-export const hasChanged = (value: any, oldValue: any): boolean => !Object.is(value, oldValue);
-
-export const isFunction = (val: unknown): val is Function => typeof val === 'function';
-
-export const isOn = (key: string): boolean => /^on[A-Z]/.test(key);
-
-export const isArray = (val: unknown): boolean => Array.isArray(val);
+export * from './utils';
+export * from './shapeFlags';
