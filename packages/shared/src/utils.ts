@@ -10,3 +10,5 @@ export const isFunction = (val: unknown): val is Function => typeof val === 'fun
 export const isOn = (key: string): boolean => /^on[A-Z]/.test(key);
 
 export const isArray = (val: unknown): boolean => Array.isArray(val);
+
+export const isString = (val: unknown): boolean => typeof val === 'string';
