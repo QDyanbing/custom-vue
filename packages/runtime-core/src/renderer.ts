@@ -24,7 +24,22 @@ export function createRenderer(options) {
     }
   };
 
+  // 卸载子节点
+  const unmountChildren = children => {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      unmount(child);
+    }
+  };
+
+  // 卸载节点
   const unmount = vnode => {
+    const { type, shapeFlag, children } = vnode;
+
+    if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      unmountChildren(children);
+    }
+
     hostRemove(vnode.el);
   };
 
