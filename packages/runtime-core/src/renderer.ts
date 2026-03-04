@@ -89,6 +89,41 @@ export function createRenderer(options) {
     }
   };
 
+  const patchChildren = (n1, n2) => {
+    const el = n2.el;
+    /**
+     * 1. 新节点他的子节点是 文本
+     *  1.1 老的是数组
+     *  1.2 老的也是文本
+     * 2. 新节点他的子节点是 数组
+     *  2.1 老的是文本
+     *  2.2 老的也是数组
+     */
+
+    const prevShapeFlag = n1.shapeFlag;
+    const shapeFlag = n2.shapeFlag;
+
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(n1.children);
+      }
+
+      if (n1.children !== n2.children) {
+        // 设置文本,如果n1和n2的children不一样
+        hostSetElementText(el, n2.children);
+      }
+    } else {
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 把老的文本清空
+        hostSetElementText(el, '');
+        // 挂载新的子节点
+        mountChildren(n2.children, el);
+      } else {
+        // 新的是数组，老的也是数组；全量diff
+      }
+    }
+  };
+
   const patchElement = (n1, n2) => {
     /*
      * 1. 复用dom元素
@@ -103,6 +138,9 @@ export function createRenderer(options) {
     const newProps = n2.props;
 
     patchProps(el, oldProps, newProps);
+
+    // 更新 children
+    patchChildren(n1, n2);
   };
 
   /**
