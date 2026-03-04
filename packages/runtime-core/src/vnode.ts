@@ -13,6 +13,10 @@ export interface VNode {
   shapeFlag: number;
 }
 
+export function isSameVNode(v1: VNode, v2: VNode): boolean {
+  return v1.type === v2.type && v1.key === v2.key;
+}
+
 /**
  * 判断一个值是否为 VNode。
  *

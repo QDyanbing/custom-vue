@@ -9,6 +9,7 @@
       <div id="case1"></div>
       <div id="case2"></div>
       <div id="case3"></div>
+      <div id="case4"></div>
     </div>
     <script type="module">
       // import {
@@ -36,6 +37,15 @@
       render(vnode3, case3);
       setTimeout(() => {
         render(null, case3);
+      }, 1000);
+
+      // 更新
+      const case4 = document.querySelector('#case4');
+      const vnode4 = h('div', { style: { color: 'red' } }, 'hello world');
+      const vnode4_change = h('div', { style: { color: 'blue' } }, 'hello world change');
+      render(vnode4, case4);
+      setTimeout(() => {
+        render(vnode4_change, case4);
       }, 1000);
     </script>
   </body>
