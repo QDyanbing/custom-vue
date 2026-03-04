@@ -1,3 +1,5 @@
+import { ShapeFlags } from '@vue/shared';
+
 /**
  * 创建一个渲染器。
  *
@@ -5,8 +7,52 @@
  * @returns 包含 render 方法的渲染器对象
  */
 export function createRenderer(options) {
+  const {
+    createElement: hostCreateElement,
+    insert: hostInsert,
+    setElementText: hostSetElementText,
+    setAttribute: hostSetAttribute,
+    patchProp: hostPatchProp,
+  } = options;
+
+  const mountChildren = (children, el) => {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      // 递归挂载子节点
+      patch(null, child, el);
+    }
+  };
+
   const unmount = vnode => {
     console.log(vnode);
+  };
+
+  const mountElement = (vNode, container) => {
+    console.log(vNode, container);
+    /*
+     * 1. 创建一个 dom 节点
+     * 2. 设置它的 props
+     * 3. 挂载它的子节点
+     */
+    const { type, props, children, shapeFlag } = vNode;
+
+    const el = hostCreateElement(type);
+
+    if (props) {
+      for (const key in props) {
+        hostPatchProp(el, key, null, props[key]);
+      }
+    }
+
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 子节点是文本
+      hostSetElementText(el, children);
+    } else {
+      // 子节点是数组
+      mountChildren(children, el);
+    }
+
+    hostInsert(el, container);
   };
 
   /**
@@ -18,6 +64,13 @@ export function createRenderer(options) {
   const patch = (n1, n2, container) => {
     // 如果老节点和新节点是同一个节点，则直接返回
     if (n1 === n2) return;
+
+    if (n1 === null) {
+      // 挂载新节点
+      mountElement(n2, container);
+    } else {
+      // 更新老节点
+    }
   };
 
   /**

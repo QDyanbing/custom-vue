@@ -5,7 +5,10 @@
     <title>Title</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div id="case1"></div>
+      <div id="case2"></div>
+    </div>
     <script type="module">
       // import {
       //   h,
@@ -13,11 +16,18 @@
       // } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, render } from '../dist/vue.esm.js';
 
-      const app = document.querySelector('#app');
+      const case1 = document.querySelector('#case1');
+      const vnode1 = h('div', 'hello world');
+      const vnode1_change = h('div', { style: { color: 'red' } }, 'hello world change');
 
-      const vnode = h('div', 'hello world');
+      render(vnode1, case1);
+      setTimeout(() => {
+        render(vnode1_change, case1);
+      }, 1000);
 
-      render(vnode, app);
+      const case2 = document.querySelector('#case2');
+      const vnode2 = h('div', [h('span', 'hello'), h('span', 'world')]);
+      render(vnode2, case2);
     </script>
   </body>
 </html>
