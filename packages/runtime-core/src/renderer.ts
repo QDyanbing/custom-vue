@@ -13,6 +13,7 @@ export function createRenderer(options) {
     setElementText: hostSetElementText,
     setAttribute: hostSetAttribute,
     patchProp: hostPatchProp,
+    remove: hostRemove,
   } = options;
 
   const mountChildren = (children, el) => {
@@ -24,7 +25,7 @@ export function createRenderer(options) {
   };
 
   const unmount = vnode => {
-    console.log(vnode);
+    hostRemove(vnode.el);
   };
 
   const mountElement = (vNode, container) => {
@@ -37,6 +38,7 @@ export function createRenderer(options) {
     const { type, props, children, shapeFlag } = vNode;
 
     const el = hostCreateElement(type);
+    vNode.el = el;
 
     if (props) {
       for (const key in props) {

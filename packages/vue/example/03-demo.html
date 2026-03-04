@@ -8,6 +8,7 @@
     <div id="app">
       <div id="case1"></div>
       <div id="case2"></div>
+      <div id="case3"></div>
     </div>
     <script type="module">
       // import {
@@ -28,6 +29,14 @@
       const case2 = document.querySelector('#case2');
       const vnode2 = h('div', [h('span', 'hello'), h('span', 'world')]);
       render(vnode2, case2);
+
+      // 卸载
+      const case3 = document.querySelector('#case3');
+      const vnode3 = h('div', 'hello world');
+      render(vnode3, case3);
+      setTimeout(() => {
+        render(null, case3);
+      }, 1000);
     </script>
   </body>
 </html>
