@@ -17,6 +17,10 @@ export function createRenderer(options) {
     remove: hostRemove,
   } = options;
 
+  /**
+   * 按顺序挂载一组子 VNode 到指定元素下。
+   * 这里假定 children 已经是标准化后的 VNode 数组。
+   */
   const mountChildren = (children, el) => {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -25,7 +29,9 @@ export function createRenderer(options) {
     }
   };
 
-  // 卸载子节点
+  /**
+   * 卸载一组子 VNode，对应从父容器中移除一整套子树。
+   */
   const unmountChildren = children => {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -33,7 +39,11 @@ export function createRenderer(options) {
     }
   };
 
-  // 卸载节点
+  /**
+   * 卸载单个 VNode。
+   * 1. 若有子节点，先递归卸载子树
+   * 2. 再调用宿主的 remove 把自身对应的 DOM 节点移除
+   */
   const unmount = vnode => {
     const { type, shapeFlag, children } = vnode;
 
@@ -54,6 +64,7 @@ export function createRenderer(options) {
     const { type, props, children, shapeFlag } = vNode;
 
     const el = hostCreateElement(type);
+    // 在 VNode 上记录对应的 DOM 元素，后续更新 / 卸载时会用到
     vNode.el = el;
 
     if (props) {
@@ -73,15 +84,19 @@ export function createRenderer(options) {
     hostInsert(el, container);
   };
 
+  /**
+   * 最简单的 props diff 策略：先把旧的全部移除，再把新的全部设置上去。
+   * 真实 Vue 会在这里做更细粒度的比较，这里先用“全量替换”便于理解整体流程。
+   */
   const patchProps = (el, oldProps, newProps) => {
-    // 把老的全部移除，新的全部添加
+    // 先移除旧 props
     if (oldProps) {
       for (const key in oldProps) {
         hostPatchProp(el, key, oldProps[key], null);
       }
     }
 
-    // 把新的全部添加
+    // 再设置新 props
     if (newProps) {
       for (const key in newProps) {
         hostPatchProp(el, key, oldProps?.[key], newProps[key]);
@@ -89,6 +104,10 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * children 更新逻辑。
+   * 通过 shapeFlag 判断“文本 vs 数组”的 4 种组合情况。
+   */
   const patchChildren = (n1, n2) => {
     const el = n2.el;
     /**
@@ -119,19 +138,19 @@ export function createRenderer(options) {
         // 挂载新的子节点
         mountChildren(n2.children, el);
       } else {
-        // 新的是数组，老的也是数组；全量diff
+        // 新的是数组，老的也是数组；全量 diff（这里暂未实现具体算法）
       }
     }
   };
 
+  /**
+   * 同类型元素的更新逻辑：
+   * 1. 复用 DOM
+   * 2. 对比并更新 props
+   * 3. 对比并更新 children
+   */
   const patchElement = (n1, n2) => {
-    /*
-     * 1. 复用dom元素
-     * 2. 更新props
-     * 3. 更新 children
-     */
-
-    // 复用dom元素
+    // 复用 dom 元素
     const el = (n2.el = n1.el);
 
     const oldProps = n1.props;
@@ -150,7 +169,7 @@ export function createRenderer(options) {
    * @param container 要挂载的容器
    */
   const patch = (n1, n2, container) => {
-    // 如果老节点和新节点是同一个节点，则直接返回
+    // 如果老节点和新节点引用相同，说明完全没变，直接返回
     if (n1 === n2) return;
 
     if (n1 && !isSameVNode(n1, n2)) {
