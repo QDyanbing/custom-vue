@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="case1"></div>
+    </div>
+    <script type="module">
+      // import { h, render } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, render } from '../dist/vue.esm.js';
+
+      const case1 = document.querySelector('#case1');
+      const vNode1 = h('div', [h('p', { key: 'a' }, 'a'), h('p', { key: 'b' }, 'b')]);
+      const vNode1_change = h('div', [
+        h('p', { key: 'a', style: { color: 'red' } }, 'a'),
+        h('p', { key: 'b' }, 'b'),
+        h('p', { key: 'c' }, 'c'),
+      ]);
+      render(vNode1, case1);
+      setTimeout(() => {
+        render(vNode1_change, case1);
+      }, 1000);
+    </script>
+  </body>
+</html>

@@ -55,7 +55,6 @@ export function createRenderer(options) {
   };
 
   const mountElement = (vNode, container) => {
-    console.log(vNode, container);
     /*
      * 1. 创建一个 dom 节点
      * 2. 设置它的 props
@@ -150,6 +149,7 @@ export function createRenderer(options) {
           if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
             // 新的是数组
             // TODO: 全量 diff
+            patchKeyedChildren(n1.children, n2.children, el);
           } else {
             // 新的不是数组，把老的数组卸载
             unmountChildren(n1.children);
@@ -163,6 +163,14 @@ export function createRenderer(options) {
         }
       }
     }
+  };
+
+  const patchKeyedChildren = (c1, c2, container) => {
+    /**
+     * 全量 diff
+     *
+     * 1. 双端 diff
+     */
   };
 
   /**
