@@ -123,7 +123,15 @@ export function createRenderer(options) {
 
   /**
    * children 更新逻辑。
-   * 通过 shapeFlag 判断“文本 vs 数组”的 4 种组合情况。
+   * 通过 shapeFlag 判断“文本 vs 数组”的四种组合情况，并在不同分支中完成：
+   *
+   * - 文本 → 文本：必要时直接更新文本
+   * - 数组 → 文本：卸载旧数组，再设置新文本
+   * - 文本 → 数组：清空文本，再挂载新数组
+   * - 数组 / null 之间互相转换：卸载或挂载整组子节点
+   *
+   * @param n1 旧 VNode
+   * @param n2 新 VNode
    */
   const patchChildren = (n1, n2) => {
     const el = n2.el;
@@ -183,23 +191,18 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * 带 key 的 children diff，当前实现的是“全量 diff” 的双端比较版本。
+   *
+   * - 先从头部开始同步对比（前缀对齐）
+   * - 再从尾部开始同步对比（后缀对齐）
+   * - 最后根据 i、e1、e2 的关系判断是“只多了新节点”还是“只多了旧节点”
+   *
+   * @param c1 旧 children 列表
+   * @param c2 新 children 列表
+   * @param container 容器元素
+   */
   const patchKeyedChildren = (c1, c2, container) => {
-    /**
-     * 全量 diff
-     *
-     * 1. 双端 diff
-     * 1.1 头部对比
-     * c1 => [a,b];c2 => [a,b,c]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     *
-     * 1.2 尾部对比
-     * c1 => [a,b];c2 => [c,a,b]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 0;e1 = -1;e2 = 0;
-     *
-     *
-     *
-     */
 
     // 开始对比的索引
     let i = 0;
@@ -208,13 +211,7 @@ export function createRenderer(options) {
     // 新的结束索引
     let e2 = c2.length - 1;
 
-    /**
-     * 1.1 头部对比
-     * c1 => [a,b];c2 => [a,b,c]；
-     *
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 2;e1 = 1;e2 = 2;
-     */
+    // 1.1 头部对比：从左到右同步比较，直到遇到第一个不相等的节点
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
       const n2 = c2[i];
@@ -228,13 +225,7 @@ export function createRenderer(options) {
       i++;
     }
 
-    /**
-     * 1.2 尾部对比
-     * c1 => [a,b];c2 => [c,a,b]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 0;e1 = -1;e2 = 0;
-     */
-
+    // 1.2 尾部对比：从右到左同步比较，直到遇到第一个不相等的节点
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
       const n2 = c2[e2];
@@ -249,6 +240,7 @@ export function createRenderer(options) {
       e2--;
     }
 
+    // 2. 处理“只多了新节点”的情况：老的已经遍历完，但新的还有剩余
     if (i > e1) {
       const nextPos = e2 + 1;
       const anchor = nextPos < c2.length ? c2[nextPos].el : null;
@@ -260,7 +252,7 @@ export function createRenderer(options) {
         i++;
       }
     } else if (i > e2) {
-      // 如果i大于e2，则说明老的节点比新的节点多，需要卸载老的节点
+      // 3. 处理“只多了老节点”的情况：新的已经遍历完，但老的还有剩余，需要卸载
       while (i <= e1) {
         const n1 = c1[i];
         unmount(n1);
