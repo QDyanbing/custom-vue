@@ -242,6 +242,12 @@ export function createRenderer(options) {
         i++;
       }
     } else if (i > e2) {
+      // 如果i大于e2，则说明老的节点比新的节点多，需要卸载老的节点
+      while (i <= e1) {
+        const n1 = c1[i];
+        unmount(n1);
+        i++;
+      }
     }
   };
 
