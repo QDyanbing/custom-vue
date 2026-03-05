@@ -2,7 +2,7 @@ import { ShapeFlags, isArray, isString } from '@vue/shared';
 
 /**
  * 运行时使用的虚拟节点结构（VNode）。
- * 这里的结构是 runtime 自己使用的内部格式，会由 h / 渲染器统一创建。
+ * 这里的结构是 runtime 自己使用的内部格式，会由 `h` / 渲染器统一创建。
  */
 export interface VNode {
   __v_isVNode: true; // 标识这是一个虚拟节点
@@ -14,6 +14,13 @@ export interface VNode {
   shapeFlag: number; // 使用位运算标记当前 VNode 的“形状”（元素 / 文本子节点 / 数组子节点）
 }
 
+/**
+ * 判断两个 VNode 是否可以复用同一个 DOM 元素。
+ *
+ * @param v1 旧的 VNode
+ * @param v2 新的 VNode
+ * @returns 是否为“同一个” VNode
+ */
 export function isSameVNode(v1: VNode, v2: VNode): boolean {
   return v1.type === v2.type && v1.key === v2.key;
 }
@@ -22,7 +29,7 @@ export function isSameVNode(v1: VNode, v2: VNode): boolean {
  * 判断一个值是否为 VNode。
  *
  * @param value 任意值
- * @returns 是否为 VNode
+ * @returns `true` 表示是 VNode，`false` 表示不是
  */
 export function isVNode(value: any): boolean {
   return value?.__v_isVNode;
@@ -31,10 +38,10 @@ export function isVNode(value: any): boolean {
 /**
  * 创建一个虚拟节点（VNode）。
  *
- * @param type 类型
- * @param props 属性
- * @param children 子节点
- * @returns 虚拟节点
+ * @param type 节点类型，如 `'div'`
+ * @param props 传入的属性对象
+ * @param children 子节点，可以是文本 / 数组 / 单个 VNode
+ * @returns 创建好的虚拟节点
  */
 export function createVNode(type: string, props?: any, children: any = null): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息

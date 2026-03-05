@@ -13,7 +13,7 @@ import { createVNode, isVNode } from './vnode';
  * 7. h('div', { class: 'container' }, h('span', 'hello'), h('span', 'world'))
  * 8. h('div', { class: 'container' },[h('span', 'hello'), h('span', 'world')]) 和 7 等价
  *
- * @param type 元素类型（例如 'div'）
+ * @param type 元素或组件类型（例如 `'div'`）
  * @param propsOrChildren 第二个参数：可能是 props，也可能是 children
  * @param children 第三个参数：children（当第二个参数是 props 时才使用）
  * @returns 创建出的 VNode
