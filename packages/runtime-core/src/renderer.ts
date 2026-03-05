@@ -54,7 +54,7 @@ export function createRenderer(options) {
     hostRemove(vnode.el);
   };
 
-  const mountElement = (vNode, container) => {
+  const mountElement = (vNode, container, anchor = null) => {
     /*
      * 1. 创建一个 dom 节点
      * 2. 设置它的 props
@@ -80,7 +80,7 @@ export function createRenderer(options) {
       mountChildren(children, el);
     }
 
-    hostInsert(el, container);
+    hostInsert(el, container, anchor);
   };
 
   /**
@@ -230,6 +230,19 @@ export function createRenderer(options) {
       e1--;
       e2--;
     }
+
+    if (i > e1) {
+      const nextPos = e2 + 1;
+      const anchor = nextPos < c2.length ? c2[nextPos].el : null;
+
+      // 如果i大于e1，则说明新的节点比老的节点多，需要挂载新的节点
+      while (i <= e2) {
+        const n2 = c2[i];
+        patch(null, n2, container, anchor);
+        i++;
+      }
+    } else if (i > e2) {
+    }
   };
 
   /**
@@ -257,7 +270,7 @@ export function createRenderer(options) {
    * @param n2 新节点
    * @param container 要挂载的容器
    */
-  const patch = (n1, n2, container) => {
+  const patch = (n1, n2, container, anchor = null) => {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
     if (n1 === n2) return;
 
@@ -270,7 +283,7 @@ export function createRenderer(options) {
 
     if (n1 === null) {
       // 挂载新节点
-      mountElement(n2, container);
+      mountElement(n2, container, anchor);
     } else {
       // 更新老节点
       patchElement(n1, n2);
