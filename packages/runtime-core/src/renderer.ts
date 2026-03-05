@@ -281,10 +281,17 @@ export function createRenderer(options) {
   };
 
   /**
-   * 更新和挂载的入口
-   * @param n1 老节点，如果有则需要和n2做diff；如果没有则直接挂载n2
+   * 更新和挂载的统一入口。
+   *
+   * - 当 n1 === n2 时，表示完全复用，直接返回
+   * - 当 n1 存在且与 n2 不是同一个 VNode 时，先卸载再按新节点重新挂载
+   * - 当 n1 为空但 n2 存在时，执行初次挂载
+   * - 当 n1、n2 均存在且为同一类型时，走元素更新逻辑
+   *
+   * @param n1 老节点，如果有则需要和 n2 做 diff；如果没有则直接挂载 n2
    * @param n2 新节点
    * @param container 要挂载的容器
+   * @param anchor 锚点，用于控制插入位置
    */
   const patch = (n1, n2, container, anchor = null) => {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
@@ -309,7 +316,7 @@ export function createRenderer(options) {
   /**
    * 把 VNode 渲染到容器中。
    *
-   * @param vNode 虚拟节点
+   * @param vNode 虚拟节点，传入 `null` 表示卸载
    * @param container 挂载容器
    */
   const render = (vNode: any, container: any) => {
