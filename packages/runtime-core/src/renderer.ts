@@ -20,6 +20,9 @@ export function createRenderer(options) {
   /**
    * 按顺序挂载一组子 VNode 到指定元素下。
    * 这里假定 children 已经是标准化后的 VNode 数组。
+   *
+   * @param children 子 VNode 列表
+   * @param el 挂载到的父容器
    */
   const mountChildren = (children, el) => {
     for (let i = 0; i < children.length; i++) {
@@ -31,6 +34,8 @@ export function createRenderer(options) {
 
   /**
    * 卸载一组子 VNode，对应从父容器中移除一整套子树。
+   *
+   * @param children 要卸载的子 VNode 列表
    */
   const unmountChildren = children => {
     for (let i = 0; i < children.length; i++) {
@@ -41,8 +46,11 @@ export function createRenderer(options) {
 
   /**
    * 卸载单个 VNode。
+   *
    * 1. 若有子节点，先递归卸载子树
    * 2. 再调用宿主的 remove 把自身对应的 DOM 节点移除
+   *
+   * @param vnode 要卸载的虚拟节点
    */
   const unmount = vnode => {
     const { type, shapeFlag, children } = vnode;
@@ -54,12 +62,18 @@ export function createRenderer(options) {
     hostRemove(vnode.el);
   };
 
+  /**
+   * 初次挂载元素类型的 VNode。
+   *
+   * 1. 创建一个 DOM 元素
+   * 2. 设置它的 props
+   * 3. 挂载它的子节点
+   *
+   * @param vNode 要挂载的元素 VNode
+   * @param container 挂载到的父容器
+   * @param anchor 锚点，用于控制插入位置
+   */
   const mountElement = (vNode, container, anchor = null) => {
-    /*
-     * 1. 创建一个 dom 节点
-     * 2. 设置它的 props
-     * 3. 挂载它的子节点
-     */
     const { type, props, children, shapeFlag } = vNode;
 
     const el = hostCreateElement(type);
@@ -86,6 +100,10 @@ export function createRenderer(options) {
   /**
    * 最简单的 props diff 策略：先把旧的全部移除，再把新的全部设置上去。
    * 真实 Vue 会在这里做更细粒度的比较，这里先用“全量替换”便于理解整体流程。
+   *
+   * @param el 关联的宿主元素
+   * @param oldProps 旧的属性对象
+   * @param newProps 新的属性对象
    */
   const patchProps = (el, oldProps, newProps) => {
     // 先移除旧 props
