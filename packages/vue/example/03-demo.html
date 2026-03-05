@@ -49,10 +49,14 @@
         render(vnode4_change, case4);
       }, 1000);
 
-      // bug复现不传children，传props的情况
+      // children 为 null 的情况
       const case5 = document.querySelector('#case5');
-      const vnode5 = h('div', { style: { color: 'red' } });
+      const vnode5 = h('div', { style: { color: 'red' } }, 'hello world');
+      const vnode5_change = h('div', { style: { height: '100px', backgroundColor: 'red' } });
       render(vnode5, case5);
+      setTimeout(() => {
+        render(vnode5_change, case5);
+      }, 1000);
     </script>
   </body>
 </html>

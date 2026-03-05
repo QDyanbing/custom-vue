@@ -36,7 +36,7 @@ export function isVNode(value: any): boolean {
  * @param children 子节点
  * @returns 虚拟节点
  */
-export function createVNode(type: string, props?: any, children?: any): VNode {
+export function createVNode(type: string, props?: any, children: any = null): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
 

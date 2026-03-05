@@ -76,7 +76,7 @@ export function createRenderer(options) {
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       // 子节点是文本
       hostSetElementText(el, children);
-    } else {
+    } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       // 子节点是数组
       mountChildren(children, el);
     }
@@ -114,9 +114,10 @@ export function createRenderer(options) {
      * 1. 新节点他的子节点是 文本
      *  1.1 老的是数组
      *  1.2 老的也是文本
-     * 2. 新节点他的子节点是 数组
+     * 2. 新节点他的子节点是 数组 或者 null
      *  2.1 老的是文本
      *  2.2 老的也是数组
+     *  2.3 老的也是 null
      */
 
     const prevShapeFlag = n1.shapeFlag;
@@ -132,13 +133,34 @@ export function createRenderer(options) {
         hostSetElementText(el, n2.children);
       }
     } else {
+      // 老的可能是数组 或 null 或文本
+      // 新的可能是数组 或 null
       if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
-        // 把老的文本清空
+        // 老的是文本，把老的文本清空
         hostSetElementText(el, '');
-        // 挂载新的子节点
-        mountChildren(n2.children, el);
+
+        if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 挂载新的子节点
+          mountChildren(n2.children, el);
+        }
       } else {
-        // 新的是数组，老的也是数组；全量 diff（这里暂未实现具体算法）
+        // 老的数组或null
+        if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 老的是数组
+          if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+            // 新的是数组
+            // TODO: 全量 diff
+          } else {
+            // 新的不是数组，把老的数组卸载
+            unmountChildren(n1.children);
+          }
+        } else {
+          // 老的是 null
+          if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+            // 新的是数组，挂载新的子节点
+            mountChildren(n2.children, el);
+          }
+        }
       }
     }
   };
