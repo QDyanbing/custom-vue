@@ -170,7 +170,66 @@ export function createRenderer(options) {
      * 全量 diff
      *
      * 1. 双端 diff
+     * 1.1 头部对比
+     * c1 => [a,b];c2 => [a,b,c]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     *
+     * 1.2 尾部对比
+     * c1 => [a,b];c2 => [c,a,b]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 0;e1 = -1;e2 = 0;
+     *
+     *
+     *
      */
+
+    // 开始对比的索引
+    let i = 0;
+    // 老的结束索引
+    let e1 = c1.length - 1;
+    // 新的结束索引
+    let e2 = c2.length - 1;
+
+    /**
+     * 1.1 头部对比
+     * c1 => [a,b];c2 => [a,b,c]；
+     *
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 2;e1 = 1;e2 = 2;
+     */
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i];
+      const n2 = c2[i];
+      if (isSameVNode(n1, n2)) {
+        // 如果n1和n2是同一个节点，则进行patch，patch完成后对比下一个节点
+        patch(n1, n2, container);
+      } else {
+        // 如果n1和n2不是同一个节点，则直接break
+        break;
+      }
+      i++;
+    }
+
+    /**
+     * 1.2 尾部对比
+     * c1 => [a,b];c2 => [c,a,b]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 0;e1 = -1;e2 = 0;
+     */
+
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1];
+      const n2 = c2[e2];
+      if (isSameVNode(n1, n2)) {
+        // 如果n1和n2是同一个节点，则进行patch，patch完成后对比上一个节点
+        patch(n1, n2, container);
+      } else {
+        // 如果n1和n2不是同一个节点，则直接break
+        break;
+      }
+      e1--;
+      e2--;
+    }
   };
 
   /**
