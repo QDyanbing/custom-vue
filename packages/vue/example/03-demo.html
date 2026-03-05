@@ -10,6 +10,7 @@
       <div id="case2"></div>
       <div id="case3"></div>
       <div id="case4"></div>
+      <div id="case5"></div>
     </div>
     <script type="module">
       // import {
@@ -47,6 +48,11 @@
       setTimeout(() => {
         render(vnode4_change, case4);
       }, 1000);
+
+      // bug复现不传children，传props的情况
+      const case5 = document.querySelector('#case5');
+      const vnode5 = h('div', { style: { color: 'red' } });
+      render(vnode5, case5);
     </script>
   </body>
 </html>
