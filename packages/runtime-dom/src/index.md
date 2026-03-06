@@ -4,6 +4,12 @@
 
 `index.ts` 是 DOM 运行时的入口文件，负责把平台无关的渲染逻辑（`@vue/runtime-core`）和浏览器 DOM 平台绑定在一起。
 
+## 目录
+
+- [renderOptions](#renderoptions)
+- [renderer 与 render](#renderer-与-render)
+- [运行时导出](#运行时导出)
+
 核心思路：
 
 - 使用 `nodeOps` 提供一组宿主 DOM 操作（创建元素、插入、删除等）
