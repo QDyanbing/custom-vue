@@ -4,6 +4,14 @@
 
 `renderer.ts` 提供 `createRenderer`，用于创建“平台无关”的渲染入口。
 
+### 目录
+
+- [createRenderer(options)](#createrendereroptions)
+- [render(vNode, container)](#rendervnode-container)
+- [patch(n1, n2, container, anchor?)](#patchn1-n2-container-anchor)
+- [patchElement 与 children 处理](#patchelement-与-children-处理)
+- [keyed children 与双端 diff](#keyed-children-与双端-diff)
+
 在 DOM 场景里，`@vue/runtime-dom` 会准备宿主操作（创建元素、插入、设置属性等），再把这些能力通过 `options` 传给 `createRenderer`。
 
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
