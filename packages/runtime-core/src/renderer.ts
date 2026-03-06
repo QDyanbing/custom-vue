@@ -210,36 +210,18 @@ export function createRenderer(options) {
   const patchKeyedChildren = (c1, c2, container) => {
     /**
      * 全量 diff
-     *
      * 1. 双端 diff
      *  1.1 头部对比
-     *  c1 => [a,b];c2 => [a,b,c]；
-     *  开始时：i = 0;e1 = 1;e2 = 2;
-     *
+     *   c1 => [a,b]; c2 => [a,b,c]
+     *   开始时：i = 0; e1 = 1; e2 = 2
      *  1.2 尾部对比
-     *  c1 => [a,b];c2 => [c,a,b]；
-     *  开始时：i = 0;e1 = 1;e2 = 2;
-     *  结束时：i = 0;e1 = -1;e2 = 0;
-     *
+     *   c1 => [a,b]; c2 => [c,a,b]
+     *   开始时：i = 0; e1 = 1; e2 = 2
+     *   结束时：i = 0; e1 = -1; e2 = 0
      * 2. 乱序对比
-     *
-     * c1 => [a,b,c,d,e];c2 => [a,c,d,b,e]；
-     * 开始时：i = 0;e1 = 4;e2 = 4;
-     * 双端对比完成后：i = 1;e1 = 3;e2 = 3;
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
+     *   c1 => [a,b,c,d,e]; c2 => [a,c,d,b,e]
+     *   开始时：i = 0; e1 = 4; e2 = 4
+     *   双端对比完成后：i = 1; e1 = 3; e2 = 3
      */
 
     // 开始对比的索引
@@ -251,10 +233,9 @@ export function createRenderer(options) {
 
     /**
      * 1.1 头部对比
-     * c1 => [a,b];c2 => [a,b,c]；
-     *
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 2;e1 = 1;e2 = 2;
+     * case: c1 => [a,b]; c2 => [a,b,c]
+     * 开始时：i = 0; e1 = 1; e2 = 2
+     * 结束时：i = 2; e1 = 1; e2 = 2
      */
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
@@ -271,9 +252,9 @@ export function createRenderer(options) {
 
     /**
      * 1.2 尾部对比
-     * c1 => [a,b];c2 => [c,a,b]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 0;e1 = -1;e2 = 0;
+     * case: c1 => [a,b]; c2 => [c,a,b]
+     * 开始时：i = 0; e1 = 1; e2 = 2
+     * 结束时：i = 0; e1 = -1; e2 = 0
      */
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
@@ -310,16 +291,10 @@ export function createRenderer(options) {
     } else {
       /**
        * 2. 乱序对比
-       * c1 => [a,b,c,d,e];c2 => [a,c,d,b,e]；
-       * 开始时：i = 0;e1 = 4;e2 = 4;
-       * 1.1 双端对比完成后：i = 1;e1 = 3;e2 = 3;
-       *
-       * 找到 key 相同的虚拟节点，然后进行patch
-       *
-       *
-       *
-       *
-       *
+       * case: c1 => [a,b,c,d,e]; c2 => [a,c,d,b,e]
+       * 开始时：i = 0; e1 = 4; e2 = 4
+       * 双端对比完成后：i = 1; e1 = 3; e2 = 3
+       * 思路：在剩余段里按 key 找到可复用的节点做 patch，再按新列表顺序做 insert
        */
 
       // 老的开始索引
@@ -327,12 +302,8 @@ export function createRenderer(options) {
       // 新的开始索引
       const s2 = i;
       /**
-       * 做一份新的虚拟节点 key 到索引的映射
-       * map = {
-       *  'c': 1,
-       *  'd': 2,
-       *  'b': 3,
-       * }
+       * 新列表剩余段的 key -> index 映射（学习用示例）
+       * 如 c2[s2..e2] = [c,d,b] => { 'c': 1, 'd': 2, 'b': 3 }
        */
       const keyToNewIndexMap = new Map();
       for (let j = s2; j <= e2; j++) {
@@ -344,32 +315,29 @@ export function createRenderer(options) {
         const n1 = c1[j];
         const newIndex = keyToNewIndexMap.get(n1.key);
         if (newIndex !== undefined) {
-          // 如果找到相同的虚拟节点，则进行patch
+          // 找到 key 相同的则 patch
           patch(n1, c2[newIndex], container);
         } else {
-          // 如果没找到相同的虚拟节点，则卸载老的虚拟节点
+          // 没找到则卸载旧节点
           unmount(n1);
         }
       }
       /**
-       * 遍历新的虚拟节点，调整顺序
+       * 按新列表顺序做 insert。没有 insertAfter，所以倒序插入，每次的 anchor 是下一个节点
        */
       for (let j = e2; j >= s2; j--) {
-        // 倒叙插入，原因是：没有insetAfter方法，所以需要倒叙插入
         const n2 = c2[j];
         const anchor = c2[j + 1]?.el || null;
 
         if (n2.el) {
-          // 如果有el则移动到新位置
+          // 有 el 则移动到新位置
           hostInsert(n2.el, container, anchor);
         } else {
-          // 如果没有el则挂载新的虚拟节点
+          // 没有 el 则挂载新节点（新列表里多出来的）
           patch(null, n2, container, anchor);
         }
       }
     }
-
-    console.log('乱序对比完成后：i =', i, ';e1 =', e1, ';e2 =', e2);
   };
 
   /**
