@@ -358,7 +358,14 @@ export function createRenderer(options) {
         // 倒叙插入，原因是：没有insetAfter方法，所以需要倒叙插入
         const n2 = c2[j];
         const anchor = c2[j + 1]?.el || null;
-        hostInsert(n2.el, container, anchor);
+
+        if (n2.el) {
+          // 如果有el则移动到新位置
+          hostInsert(n2.el, container, anchor);
+        } else {
+          // 如果没有el则挂载新的虚拟节点
+          patch(null, n2, container, anchor);
+        }
       }
     }
 
