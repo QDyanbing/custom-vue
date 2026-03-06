@@ -2,6 +2,11 @@
 
 `@vue/shared` 包中存放的是在运行时多个子包都会用到的「共享工具」，主要包括：
 
+### 目录
+
+- [工具函数概览（`src/utils.ts`）](#工具函数概览srcutilsts)
+- [形状标记概览（`src/shapeFlags.ts`）](#形状标记概览srcshapeflagsts)
+
 - **工具函数（`src/utils.ts`）**：对常见类型判断、变更判断等逻辑做了抽象，避免在各个包里重复实现。
 - **形状标记 `ShapeFlags`（`src/shapeFlags.ts`）**：为 vnode 的类型和子节点形态打标，在渲染与 diff 过程中做快速分支判断。
 
