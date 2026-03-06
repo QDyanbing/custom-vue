@@ -212,14 +212,34 @@ export function createRenderer(options) {
      * 全量 diff
      *
      * 1. 双端 diff
-     * 1.1 头部对比
-     * c1 => [a,b];c2 => [a,b,c]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
+     *  1.1 头部对比
+     *  c1 => [a,b];c2 => [a,b,c]；
+     *  开始时：i = 0;e1 = 1;e2 = 2;
      *
-     * 1.2 尾部对比
-     * c1 => [a,b];c2 => [c,a,b]；
-     * 开始时：i = 0;e1 = 1;e2 = 2;
-     * 结束时：i = 0;e1 = -1;e2 = 0;
+     *  1.2 尾部对比
+     *  c1 => [a,b];c2 => [c,a,b]；
+     *  开始时：i = 0;e1 = 1;e2 = 2;
+     *  结束时：i = 0;e1 = -1;e2 = 0;
+     *
+     * 2. 乱序对比
+     *
+     * c1 => [a,b,c,d,e];c2 => [a,c,d,b,e]；
+     * 开始时：i = 0;e1 = 4;e2 = 4;
+     * 双端对比完成后：i = 1;e1 = 3;e2 = 3;
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      */
 
     // 开始对比的索引
@@ -287,7 +307,62 @@ export function createRenderer(options) {
         unmount(n1);
         i++;
       }
+    } else {
+      /**
+       * 2. 乱序对比
+       * c1 => [a,b,c,d,e];c2 => [a,c,d,b,e]；
+       * 开始时：i = 0;e1 = 4;e2 = 4;
+       * 1.1 双端对比完成后：i = 1;e1 = 3;e2 = 3;
+       *
+       * 找到 key 相同的虚拟节点，然后进行patch
+       *
+       *
+       *
+       *
+       *
+       */
+
+      // 老的开始索引
+      const s1 = i;
+      // 新的开始索引
+      const s2 = i;
+      /**
+       * 做一份新的虚拟节点 key 到索引的映射
+       * map = {
+       *  'c': 1,
+       *  'd': 2,
+       *  'b': 3,
+       * }
+       */
+      const keyToNewIndexMap = new Map();
+      for (let j = s2; j <= e2; j++) {
+        const n2 = c2[j];
+        keyToNewIndexMap.set(n2.key, j);
+      }
+
+      for (let j = s1; j <= e1; j++) {
+        const n1 = c1[j];
+        const newIndex = keyToNewIndexMap.get(n1.key);
+        if (newIndex !== undefined) {
+          // 如果找到相同的虚拟节点，则进行patch
+          patch(n1, c2[newIndex], container);
+        } else {
+          // 如果没找到相同的虚拟节点，则卸载老的虚拟节点
+          unmount(n1);
+        }
+      }
+      /**
+       * 遍历新的虚拟节点，调整顺序
+       */
+      for (let j = e2; j >= s2; j--) {
+        // 倒叙插入，原因是：没有insetAfter方法，所以需要倒叙插入
+        const n2 = c2[j];
+        const anchor = c2[j + 1]?.el || null;
+        hostInsert(n2.el, container, anchor);
+      }
     }
+
+    console.log('乱序对比完成后：i =', i, ';e1 =', e1, ';e2 =', e2);
   };
 
   /**

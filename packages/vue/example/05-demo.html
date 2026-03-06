@@ -17,18 +17,19 @@
       // 双端对比完成后：i = 1; e1 = 3; e2 = 3（中间 b,c,d 与 c,d,b 为乱序）
       const case1 = document.querySelector('#case1');
       const vNode1 = h('div', [
-        h('p', { key: 'a' }, 'a'),
-        h('p', { key: 'b' }, 'b'),
-        h('p', { key: 'c' }, 'c'),
-        h('p', { key: 'd' }, 'd'),
-        h('p', { key: 'e' }, 'e'),
+        h('p', { key: 'a', style: { color: 'red' } }, 'a'),
+        h('p', { key: 'b', style: { color: 'red' } }, 'b'),
+        h('p', { key: 'c', style: { color: 'red' } }, 'c'),
+        h('p', { key: 'g', style: { color: 'red' } }, 'g'),
+        h('p', { key: 'd', style: { color: 'red' } }, 'd'),
+        h('p', { key: 'e', style: { color: 'red' } }, 'e'),
       ]);
       const vNode1_change = h('div', [
-        h('p', { key: 'a' }, 'a'),
-        h('p', { key: 'c' }, 'c'),
-        h('p', { key: 'd' }, 'd'),
-        h('p', { key: 'b' }, 'b'),
-        h('p', { key: 'e' }, 'e'),
+        h('p', { key: 'a', style: { color: 'blue' } }, 'a'),
+        h('p', { key: 'c', style: { color: 'blue' } }, 'c'),
+        h('p', { key: 'd', style: { color: 'blue' } }, 'd'),
+        h('p', { key: 'b', style: { color: 'blue' } }, 'b'),
+        h('p', { key: 'e', style: { color: 'blue' } }, 'e'),
       ]);
       render(vNode1, case1);
       setTimeout(() => {
