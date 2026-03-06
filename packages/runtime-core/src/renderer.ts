@@ -74,6 +74,11 @@ export function createRenderer(options) {
    * @param anchor 锚点，用于控制插入位置
    */
   const mountElement = (vNode, container, anchor = null) => {
+    /*
+     * 1. 创建一个 dom 节点
+     * 2. 设置它的 props
+     * 3. 挂载它的子节点
+     */
     const { type, props, children, shapeFlag } = vNode;
 
     const el = hostCreateElement(type);
@@ -203,6 +208,19 @@ export function createRenderer(options) {
    * @param container 容器元素
    */
   const patchKeyedChildren = (c1, c2, container) => {
+    /**
+     * 全量 diff
+     *
+     * 1. 双端 diff
+     * 1.1 头部对比
+     * c1 => [a,b];c2 => [a,b,c]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     *
+     * 1.2 尾部对比
+     * c1 => [a,b];c2 => [c,a,b]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 0;e1 = -1;e2 = 0;
+     */
 
     // 开始对比的索引
     let i = 0;
@@ -211,7 +229,13 @@ export function createRenderer(options) {
     // 新的结束索引
     let e2 = c2.length - 1;
 
-    // 1.1 头部对比：从左到右同步比较，直到遇到第一个不相等的节点
+    /**
+     * 1.1 头部对比
+     * c1 => [a,b];c2 => [a,b,c]；
+     *
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 2;e1 = 1;e2 = 2;
+     */
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
       const n2 = c2[i];
@@ -225,7 +249,12 @@ export function createRenderer(options) {
       i++;
     }
 
-    // 1.2 尾部对比：从右到左同步比较，直到遇到第一个不相等的节点
+    /**
+     * 1.2 尾部对比
+     * c1 => [a,b];c2 => [c,a,b]；
+     * 开始时：i = 0;e1 = 1;e2 = 2;
+     * 结束时：i = 0;e1 = -1;e2 = 0;
+     */
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
       const n2 = c2[e2];
@@ -252,7 +281,7 @@ export function createRenderer(options) {
         i++;
       }
     } else if (i > e2) {
-      // 3. 处理“只多了老节点”的情况：新的已经遍历完，但老的还有剩余，需要卸载
+      // 如果i大于e2，则说明老的节点比新的节点多，需要卸载老的节点
       while (i <= e1) {
         const n1 = c1[i];
         unmount(n1);
