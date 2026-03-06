@@ -2,7 +2,14 @@
 
 ## 概述
 
-`vnode.ts` 定义了运行时内部使用的虚拟节点结构 `VNode`，并提供相关的工具函数：
+`vnode.ts` 定义了运行时内部使用的虚拟节点结构 `VNode`，并提供相关的工具函数。
+
+## 目录
+
+- [VNode 结构](#vnode-结构)
+- [createVNode(type, props?, children?)](#createvnodetype-props-children)
+- [isVNode(value)](#isvnodevalue)
+- [isSameVNode(v1, v2)](#issamevnodev1-v2)
 
 - `VNode`：虚拟节点的数据结构
 - `createVNode`：创建 VNode 的工厂函数
