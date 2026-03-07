@@ -1,5 +1,5 @@
 import { ShapeFlags } from '@vue/shared';
-import { isSameVNode } from './vnode';
+import { isSameVNode, Text } from './vnode';
 
 /**
  * 创建一个渲染器。
@@ -13,6 +13,7 @@ export function createRenderer(options) {
     insert: hostInsert,
     setElementText: hostSetElementText,
     setAttribute: hostSetAttribute,
+    createText: hostCreateText,
     patchProp: hostPatchProp,
     remove: hostRemove,
   } = options;
@@ -388,6 +389,38 @@ export function createRenderer(options) {
   };
 
   /**
+   * 处理元素 div，p，span，等
+   *
+   * @param n1 老节点，如果有则需要和 n2 做 diff；如果没有则直接挂载 n2
+   * @param n2 新节点
+   * @param container 要挂载的容器
+   * @param anchor 锚点，用于控制插入位置
+   */
+  const processElement = (n1, n2, container, anchor = null) => {
+    if (n1 == null) {
+      // 挂载新节点
+      mountElement(n2, container, anchor);
+    } else {
+      // 更新老节点
+      patchElement(n1, n2);
+    }
+  };
+
+  /**
+   * 处理文本节点的挂载和更新
+   */
+  const processText = (n1, n2, container, anchor = null) => {
+    if (n1 == null) {
+      // 挂载
+      const el = hostCreateText(n2.children);
+      n2.el = el;
+      hostInsert(el, container, anchor);
+    } else {
+      // 更新
+    }
+  };
+
+  /**
    * 更新和挂载的统一入口。
    *
    * - 当 n1 === n2 时，表示完全复用，直接返回
@@ -411,12 +444,19 @@ export function createRenderer(options) {
       mountElement(n2, container);
     }
 
-    if (n1 === null) {
-      // 挂载新节点
-      mountElement(n2, container, anchor);
-    } else {
-      // 更新老节点
-      patchElement(n1, n2);
+    const { shapeFlag, type } = n2;
+
+    switch (type) {
+      case Text:
+        processText(n1, n2, container, anchor);
+        break;
+      default:
+        if (shapeFlag & ShapeFlags.ELEMENT) {
+          // 处理 dom 元素；div，p，span，等
+          processElement(n1, n2, container, anchor);
+        } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // TODO: 处理组件
+        }
     }
   };
 
@@ -515,7 +555,7 @@ function getSequence(arr: number[]): number[] {
       if (midItem < item) {
         left = mid + 1; // 中间尾巴更小，说明「第一个 >= item」在右边
       } else {
-        right = mid;    // 中间尾巴已经 >= item，可能是替换点，但左边可能还有更前的，往左收
+        right = mid; // 中间尾巴已经 >= item，可能是替换点，但左边可能还有更前的，往左收
       }
     }
 
@@ -538,8 +578,8 @@ function getSequence(arr: number[]): number[] {
 
   while (l > 0) {
     l--;
-    result[l] = last;       // 当前长度 l+1 的链尾就是 last
-    last = map.get(last);   // 这条链里 last 的前一个节点，继续往前
+    result[l] = last; // 当前长度 l+1 的链尾就是 last
+    last = map.get(last); // 这条链里 last 的前一个节点，继续往前
   }
 
   return result;

@@ -1,6 +1,11 @@
 import { ShapeFlags, isArray, isString } from '@vue/shared';
 
 /**
+ * 文本节点标记
+ */
+export const Text = Symbol('v-txt');
+
+/**
  * 运行时使用的虚拟节点结构（VNode）。
  * 这里的结构是 runtime 自己使用的内部格式，会由 `h` / 渲染器统一创建。
  */
