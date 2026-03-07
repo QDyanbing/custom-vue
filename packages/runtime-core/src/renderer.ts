@@ -240,7 +240,7 @@ export function createRenderer(options) {
      */
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
-      const n2 = c2[i];
+      const n2 = (c2[i] = normalizeVNode(c2[i]));
       if (isSameVNode(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比下一个节点
         patch(n1, n2, container);
@@ -259,7 +259,7 @@ export function createRenderer(options) {
      */
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
-      const n2 = c2[e2];
+      const n2 = (c2[e2] = normalizeVNode(c2[e2]));
       if (isSameVNode(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比上一个节点
         patch(n1, n2, container);
@@ -278,7 +278,7 @@ export function createRenderer(options) {
 
       // 如果i大于e1，则说明新的节点比老的节点多，需要挂载新的节点
       while (i <= e2) {
-        const n2 = c2[i];
+        const n2 = (c2[i] = normalizeVNode(c2[i]));
         patch(null, n2, container, anchor);
         i++;
       }
@@ -312,7 +312,7 @@ export function createRenderer(options) {
       newIndexToOldIndexMap.fill(-1);
 
       for (let j = s2; j <= e2; j++) {
-        const n2 = c2[j];
+        const n2 = (c2[j] = normalizeVNode(c2[j]));
         keyToNewIndexMap.set(n2.key, j);
       }
 

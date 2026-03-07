@@ -23,7 +23,11 @@
 
       const case2 = document.querySelector('#case2');
       const vnode2 = h('div', null, ['hello', 'world']);
+      const vnode2_change = h('div', null, ['hello', 'world', 'change']); 
       render(vnode2, case2);
+      setTimeout(() => {
+        render(vnode2_change, case2);
+      }, 1000);
     </script>
   </body>
 </html>
