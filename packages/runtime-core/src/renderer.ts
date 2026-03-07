@@ -1,5 +1,5 @@
 import { ShapeFlags } from '@vue/shared';
-import { isSameVNode, Text } from './vnode';
+import { isSameVNode, Text, normalizeVNode } from './vnode';
 
 /**
  * 创建一个渲染器。
@@ -27,7 +27,7 @@ export function createRenderer(options) {
    */
   const mountChildren = (children, el) => {
     for (let i = 0; i < children.length; i++) {
-      const child = children[i];
+      const child = (children[i] = normalizeVNode(children[i]));
       // 递归挂载子节点
       patch(null, child, el);
     }

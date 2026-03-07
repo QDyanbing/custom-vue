@@ -29,3 +29,8 @@ export const isArray = (val: unknown): boolean => Array.isArray(val);
  * 判断值是否为字符串。
  */
 export const isString = (val: unknown): boolean => typeof val === 'string';
+
+/**
+ * 判断值是否为数字。
+ */
+export const isNumber = (val: unknown): boolean => typeof val === 'number';

@@ -1,4 +1,4 @@
-import { ShapeFlags, isArray, isString } from '@vue/shared';
+import { ShapeFlags, isArray, isString, isNumber } from '@vue/shared';
 
 /**
  * 文本节点标记
@@ -11,7 +11,7 @@ export const Text = Symbol('v-txt');
  */
 export interface VNode {
   __v_isVNode: true; // 标识这是一个虚拟节点
-  type: string; // 元素类型，例如 'div'
+  type: string | typeof Text; // 元素类型，例如 'div'
   props?: any; // 传给元素 / 组件的属性
   children?: any; // 子节点，可以是文本或 VNode 数组
   key?: string | number; // 用于高效 diff 的标识
@@ -28,6 +28,21 @@ export interface VNode {
  */
 export function isSameVNode(v1: VNode, v2: VNode): boolean {
   return v1.type === v2.type && v1.key === v2.key;
+}
+
+/**
+ * 标准化 VNode。
+ *
+ * @param vnode 虚拟节点
+ * @returns 标准化后的虚拟节点
+ */
+export function normalizeVNode(vnode: any): VNode {
+  if (isString(vnode) || isNumber(vnode)) {
+    // 如果是string或number，则创建一个文本节点
+    return createVNode(Text, null, String(vnode));
+  }
+
+  return vnode;
 }
 
 /**
@@ -48,7 +63,7 @@ export function isVNode(value: any): boolean {
  * @param children 子节点，可以是文本 / 数组 / 单个 VNode
  * @returns 创建好的虚拟节点
  */
-export function createVNode(type: string, props?: any, children: any = null): VNode {
+export function createVNode(type: string | typeof Text, props?: any, children: any = null): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
 
