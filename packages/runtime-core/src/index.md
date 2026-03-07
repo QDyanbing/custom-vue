@@ -36,10 +36,13 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 #### 2. VNode 与 h 相关
 
 - `VNode`：虚拟节点的 TypeScript 类型
+- `Text`：文本类型 VNode 的 type 标记（Symbol），renderer 据此走 `processText`
 - `createVNode`：底层工厂函数，`h` 会调用它来真正创建 VNode
+- `normalizeVNode`：将 string/number 转为 Text 类型 VNode，renderer 在 children 处理时使用
+- `isVNode` / `isSameVNode`：判断是否为 VNode、两 VNode 是否可复用
 - `h`：推荐的对外创建入口，负责把“多种调用方式”标准化成统一的 VNode 结构
 
-建议在业务 / demo 代码里只使用 `h`，`createVNode` 和 `VNode` 更多是给内部实现和类型提示用的。
+建议在业务 / demo 代码里只使用 `h`，`createVNode`、`Text`、`normalizeVNode` 等更多是给内部实现和类型提示用的。
 
 #### 3. renderer 相关
 
@@ -74,7 +77,8 @@ render(vnode, document.getElementById('app')!);
 ```text
 runtime-core/src/
 ├── index.ts      # 入口文件，统一导出
-├── h.ts          # VNode / createVNode / h
-└── renderer.ts   # createRenderer 及内部挂载 / 更新 / 卸载逻辑
+├── vnode.ts      # VNode、Text、normalizeVNode、createVNode、isVNode、isSameVNode
+├── h.ts          # h（参数标准化，内部调用 createVNode）
+└── renderer.ts   # createRenderer 及内部挂载 / 更新 / 卸载 / keyed diff（含 LIS）
 ```
 
