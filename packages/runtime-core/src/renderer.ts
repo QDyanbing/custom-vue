@@ -315,10 +315,23 @@ export function createRenderer(options) {
         keyToNewIndexMap.set(n2.key, j);
       }
 
+      let pos = -1;
+      // 是否需要移动
+      let moved = false;
+
+      // 遍历老的节点，找到 key 相同的节点，并记录下标
       for (let j = s1; j <= e1; j++) {
         const n1 = c1[j];
         const newIndex = keyToNewIndexMap.get(n1.key);
         if (newIndex !== undefined) {
+          if (newIndex > pos) {
+            // 如果每一次都比上一次大，表示本来就是连续递增的，不需要计算最长递增子序列
+            pos = newIndex;
+          } else {
+            // 如果突然出现了一个比 pos 小的值，则需要计算最长递增子序列
+            moved = true;
+          }
+
           newIndexToOldIndexMap[newIndex] = j;
 
           // 找到 key 相同的则 patch
@@ -329,7 +342,9 @@ export function createRenderer(options) {
         }
       }
 
-      const newIndexSequence = getSequence(newIndexToOldIndexMap);
+      // 最长递增子序列
+      // 如果moved为true，则需要计算最长递增子序列
+      const newIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : [];
       const sequenceSet = new Set(newIndexSequence);
 
       /**
@@ -463,7 +478,7 @@ function getSequence(arr: number[]): number[] {
     const item = arr[i];
 
     // 如果节点不需要计算，则直接跳过
-    if (item === -1) continue;
+    if (item === -1 || item === undefined) continue;
 
     if (result.length === 0) {
       // 如果 result 为空，则将当前索引添加到 result 中
