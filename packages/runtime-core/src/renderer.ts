@@ -469,19 +469,23 @@ export function createRenderer(options) {
  * - 空间：O(n)。Map 和前驱追溯最多 O(n)，result 最多 n 个下标。
  */
 function getSequence(arr: number[]): number[] {
+  // result[j] = 当前「长度为 j+1 的递增链里，尾巴最小」的那个元素在 arr 中的下标
   const result = [];
 
-  // 记录前驱节点
+  // 前驱表：map.get(下标 i) = 在「某条递增链」里排在 i 前面的那个下标。
+  // 因为 result 会被反复覆盖，光看 result 不知道谁真的接在谁后面，所以用 map 记下「谁接在谁后面」。
+  // 最后反向追溯时，从 result 最后一个位置往前查 map，就能拼出真正的一条 LIS 下标序列。
   const map = new Map();
 
+  // 正向构建：从左到右扫 arr，维护 result 和 map
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i];
 
-    // 如果节点不需要计算，则直接跳过
+    // diff 场景里 -1 表示该位置不可复用，不参与 LIS 计算
     if (item === -1 || item === undefined) continue;
 
+    // 第一条链：当前是第一个有效元素，直接作为「长度为 1 的链」的尾巴
     if (result.length === 0) {
-      // 如果 result 为空，则将当前索引添加到 result 中
       result.push(i);
       continue;
     }
@@ -489,50 +493,44 @@ function getSequence(arr: number[]): number[] {
     const lastIndex = result[result.length - 1];
     const lastItem = arr[lastIndex];
 
+    // 当前值比「当前最长链」的尾巴还大 → 直接接在链尾，链长 +1
     if (item > lastItem) {
-      // 如果当前的大于上一个，就把索引push到result中，并记录前驱节点
       result.push(i);
-      map.set(i, lastIndex);
+      map.set(i, lastIndex); // 记：i 接在 lastIndex 后面
       continue;
     }
 
-    // item 小于 lastItem
-
+    // 当前值不比链尾大 → 二分找「第一个尾巴 >= item」的位置，用 i 替换该位置的尾巴（让该长度尾巴更小）
     let left = 0;
     let right = result.length - 1;
     while (left < right) {
       const mid = Math.floor((left + right) / 2);
-      // 获取中间索引的值
       const midItem = arr[result[mid]];
 
       if (midItem < item) {
-        left = mid + 1;
+        left = mid + 1; // 中间尾巴更小，往右找
       } else {
-        right = mid;
+        right = mid; // 中间尾巴 >= item，可能是替换点，往左收
       }
     }
 
+    // 只有「当前尾巴比 item 大」才替换，否则 item 接不上去也不值得替换
     if (arr[result[left]] > item) {
       if (left > 0) {
-        // 记录前驱节点
-        map.set(i, result[left - 1]);
+        map.set(i, result[left - 1]); // 记：i 接在「长度为 left 的链的尾巴」后面
       }
-
-      // 找到最合适的位置，把索引替换进去
-      result[left] = i;
+      result[left] = i; // 用 i 替换「长度为 left+1 的链」的尾巴
     }
   }
 
-  // 反向追溯
+  // 反向追溯：从 result 最后一个位置（最长链的尾巴）往前顺着 map 拼出整条链的下标序列
   let l = result.length;
   let last = result[l - 1];
 
   while (l > 0) {
     l--;
-    // 纠正顺序
-    result[l] = last;
-    // 获取前驱节点
-    last = map.get(last);
+    result[l] = last;       // 当前长度 l+1 的链尾就是 last
+    last = map.get(last);  // 前一个节点，继续往前
   }
 
   return result;
