@@ -469,22 +469,23 @@ export function createRenderer(options) {
  * - 空间：O(n)。Map 和前驱追溯最多 O(n)，result 最多 n 个下标。
  */
 function getSequence(arr: number[]): number[] {
-  // result[j] = 当前「长度为 j+1 的递增链里，尾巴最小」的那个元素在 arr 中的下标
+  // result[j] = 当前「长度为 j+1 的递增链里，尾巴最小」的那个元素在 arr 中的下标。
+  // 例：arr=[1,2,9,12] 扫完后 result=[0,1,2,3]，表示长度 1 尾巴在 0(1)，长度 2 尾巴在 1(2)，长度 3 尾巴在 2(9)，长度 4 尾巴在 3(12)。
   const result = [];
 
   // 前驱表：map.get(下标 i) = 在「某条递增链」里排在 i 前面的那个下标。
   // 因为 result 会被反复覆盖，光看 result 不知道谁真的接在谁后面，所以用 map 记下「谁接在谁后面」。
-  // 最后反向追溯时，从 result 最后一个位置往前查 map，就能拼出真正的一条 LIS 下标序列。
+  // 例：上面 arr=[1,2,9,12]，map 里 1→0, 2→1, 3→2，最后从 3 往前推得到 [0,1,2,3] 这条链。
   const map = new Map();
 
-  // 正向构建：从左到右扫 arr，维护 result 和 map
+  // 正向构建：从左到右扫 arr，每个数要么接在已有链后面（链变长），要么替换某条更短链的尾巴（该长度尾巴变小）
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i];
 
-    // diff 场景里 -1 表示该位置不可复用，不参与 LIS 计算
+    // diff 场景里 -1 表示该位置不可复用（对应节点被删或不可复用），不参与 LIS，跳过即可
     if (item === -1 || item === undefined) continue;
 
-    // 第一条链：当前是第一个有效元素，直接作为「长度为 1 的链」的尾巴
+    // 第一个有效元素：还没有任何链，它自己就是「长度为 1 的链」的尾巴。例：arr[0]=1 → result=[0]。
     if (result.length === 0) {
       result.push(i);
       continue;
@@ -493,14 +494,18 @@ function getSequence(arr: number[]): number[] {
     const lastIndex = result[result.length - 1];
     const lastItem = arr[lastIndex];
 
-    // 当前值比「当前最长链」的尾巴还大 → 直接接在链尾，链长 +1
+    // 当前值比「当前最长链」的尾巴还大 → 直接接在链尾，链长 +1，并记前驱。
+    // 例：已有 1,2,9（result 长度 3），来了 12，12>9，result.push(i)，map.set(12 的下标, 9 的下标)。
     if (item > lastItem) {
       result.push(i);
-      map.set(i, lastIndex); // 记：i 接在 lastIndex 后面
+      map.set(i, lastIndex);
       continue;
     }
 
-    // 当前值不比链尾大 → 二分找「第一个尾巴 >= item」的位置，用 i 替换该位置的尾巴（让该长度尾巴更小）
+    // 当前值不比链尾大，不能接在最长链后面。但要维护「每长度尾巴尽量小」，所以用 item 去替换「某条更短链」的尾巴。
+    // 例：已有 1,2,9,12（长度 4）。来一个 8：8 接 12 后面不对（8<12），所以不会动长度 4。
+    // 二分找的是「第一个尾巴 >= item」的位置：只有尾巴比 item 大，用 item 替换掉才能让该长度尾巴变小；若尾巴已经 <= item，替换没意义。
+    // 对 8 来说，result 里尾巴分别是 1,2,9,12，第一个 >=8 的是 9（长度 3 的尾巴），所以 left 会指向长度 3 那一格。
     let left = 0;
     let right = result.length - 1;
     while (left < right) {
@@ -508,29 +513,33 @@ function getSequence(arr: number[]): number[] {
       const midItem = arr[result[mid]];
 
       if (midItem < item) {
-        left = mid + 1; // 中间尾巴更小，往右找
+        left = mid + 1; // 中间尾巴更小，说明「第一个 >= item」在右边
       } else {
-        right = mid; // 中间尾巴 >= item，可能是替换点，往左收
+        right = mid;    // 中间尾巴已经 >= item，可能是替换点，但左边可能还有更前的，往左收
       }
     }
 
-    // 只有「当前尾巴比 item 大」才替换，否则 item 接不上去也不值得替换
+    // 只有「该位置当前尾巴比 item 大」才替换：替换后该长度尾巴变小。若相等则不替换（保持原下标顺序）。
     if (arr[result[left]] > item) {
+      // left=0 时表示 item 替换「长度为 1 的链」的尾巴，这条链只有它自己，没有前驱，不记。
+      // left>0 时 item 是接在「长度为 left 的链的尾巴」后面，形成长度为 left+1 的新链，所以要记 i 的前驱是 result[left-1]。
       if (left > 0) {
-        map.set(i, result[left - 1]); // 记：i 接在「长度为 left 的链的尾巴」后面
+        map.set(i, result[left - 1]);
       }
-      result[left] = i; // 用 i 替换「长度为 left+1 的链」的尾巴
+      result[left] = i; // 用 i 替换「长度为 left+1 的链」的尾巴（替换的是更短链，最长链不动）
     }
   }
 
-  // 反向追溯：从 result 最后一个位置（最长链的尾巴）往前顺着 map 拼出整条链的下标序列
+  // 反向追溯：result 里存的是「每长度尾巴最小的下标」，这些下标可能来自不同时刻的替换，不是同一条链。
+  // 所以从 result 最后一个（最长链的尾巴）开始，用 map 往前推「前一个是谁」，把整条链填回 result[0..l-1]，得到真正的 LIS 下标序列。
+  // 例：result 可能是 [2,1,4,5]，长度 4，从 last=5 开始，map.get(5)=4, map.get(4)=1, map.get(1)=2，填回后 result=[2,1,4,5] 即顺序正确。
   let l = result.length;
   let last = result[l - 1];
 
   while (l > 0) {
     l--;
     result[l] = last;       // 当前长度 l+1 的链尾就是 last
-    last = map.get(last);  // 前一个节点，继续往前
+    last = map.get(last);   // 这条链里 last 的前一个节点，继续往前
   }
 
   return result;
