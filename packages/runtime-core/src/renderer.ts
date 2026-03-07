@@ -306,6 +306,10 @@ export function createRenderer(options) {
        * 如 c2[s2..e2] = [c,d,b] => { 'c': 1, 'd': 2, 'b': 3 }
        */
       const keyToNewIndexMap = new Map();
+      const newIndexToOldIndexMap = new Array(e2 - s2 + 1);
+      //  -1 代表不需要计算的节点
+      newIndexToOldIndexMap.fill(-1);
+
       for (let j = s2; j <= e2; j++) {
         const n2 = c2[j];
         keyToNewIndexMap.set(n2.key, j);
@@ -315,6 +319,8 @@ export function createRenderer(options) {
         const n1 = c1[j];
         const newIndex = keyToNewIndexMap.get(n1.key);
         if (newIndex !== undefined) {
+          newIndexToOldIndexMap[newIndex] = j;
+
           // 找到 key 相同的则 patch
           patch(n1, c2[newIndex], container);
         } else {
@@ -322,6 +328,10 @@ export function createRenderer(options) {
           unmount(n1);
         }
       }
+
+      const newIndexSequence = getSequence(newIndexToOldIndexMap);
+      const sequenceSet = new Set(newIndexSequence);
+
       /**
        * 按新列表顺序做 insert。没有 insertAfter，所以倒序插入，每次的 anchor 是下一个节点
        */
@@ -330,8 +340,11 @@ export function createRenderer(options) {
         const anchor = c2[j + 1]?.el || null;
 
         if (n2.el) {
-          // 有 el 则移动到新位置
-          hostInsert(n2.el, container, anchor);
+          // 如果 j 的下标不在最长递增子序列中，则移动到新位置
+          if (!sequenceSet.has(j)) {
+            // 有 el 则移动到新位置
+            hostInsert(n2.el, container, anchor);
+          }
         } else {
           // 没有 el 则挂载新节点（新列表里多出来的）
           patch(null, n2, container, anchor);
@@ -448,6 +461,9 @@ function getSequence(arr: number[]): number[] {
 
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i];
+
+    // 如果节点不需要计算，则直接跳过
+    if (item === -1) continue;
 
     if (result.length === 0) {
       // 如果 result 为空，则将当前索引添加到 result 中
