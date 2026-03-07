@@ -26,7 +26,7 @@
 - `key`：用于列表场景下识别节点
 - `el`：挂载后的真实元素引用（初始为 `null`）
 
-更完整的说明见 `vnode.md`，这里只放常用字段，方便在阅读 `h.ts` 实现时快速对上号。
+更完整的说明见 `vnode.md`（含 `Text`、`normalizeVNode` 等），这里只放常用字段，方便在阅读 `h.ts` 实现时快速对上号。子节点中的 string/number 在 renderer 挂载或 diff 时会被 `normalizeVNode` 转成 `type === Text` 的 VNode。
 
 ### createVNode 简述
 
