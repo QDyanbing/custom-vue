@@ -419,3 +419,90 @@ export function createRenderer(options) {
     render,
   };
 }
+
+/**
+ * 求数组的一个最长递增子序列（LIS）对应的下标序列。
+ * 使用“耐心排序 + 二分”思路：维护“当前长度下的最小末尾”的索引数组，
+ * 并用 Map 记录每个位置的前驱，最后反向追溯得到下标序列。
+ *
+ * 为什么能求出 LIS：
+ * 1. result[j] 表示「长度为 j+1 的递增子序列中，末尾元素在 arr 里的下标」。
+ *    我们始终让同一长度的序列保留「末尾最小」的那条，这样后面才有更多数能接上，不会漏掉更长的 LIS。
+ * 2. 当 arr[i] 比 result 末尾小时，用二分找到「第一个末尾 ≥ arr[i]」的位置并替换。
+ *    替换后该长度的末尾变小，LIS 长度不变，但为后续元素留出空间，最终 result.length 就是 LIS 长度。
+ * 3. 因为 result 里的下标会被多次替换，不能直接当一条链用；所以用 map 记录每个位置的前驱，
+ *    最后从 result[result.length-1] 往前追溯，得到的就是一条真实的下标序列，且对应值递增。
+ *
+ * @param {number[]} arr - 输入数组
+ * @returns {number[]} 某个最长递增子序列在 arr 中的下标数组（顺序为在原序列中的出现顺序）
+ *
+ * 复杂度：
+ * - 时间：O(n log n)。遍历 n 个元素，每次可能做一次长度为 O(result.length) 的二分，result 长度不超过 n。
+ * - 空间：O(n)。Map 和前驱追溯最多 O(n)，result 最多 n 个下标。
+ */
+function getSequence(arr: number[]): number[] {
+  const result = [];
+
+  // 记录前驱节点
+  const map = new Map();
+
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+
+    if (result.length === 0) {
+      // 如果 result 为空，则将当前索引添加到 result 中
+      result.push(i);
+      continue;
+    }
+
+    const lastIndex = result[result.length - 1];
+    const lastItem = arr[lastIndex];
+
+    if (item > lastItem) {
+      // 如果当前的大于上一个，就把索引push到result中，并记录前驱节点
+      result.push(i);
+      map.set(i, lastIndex);
+      continue;
+    }
+
+    // item 小于 lastItem
+
+    let left = 0;
+    let right = result.length - 1;
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      // 获取中间索引的值
+      const midItem = arr[result[mid]];
+
+      if (midItem < item) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+
+    if (arr[result[left]] > item) {
+      if (left > 0) {
+        // 记录前驱节点
+        map.set(i, result[left - 1]);
+      }
+
+      // 找到最合适的位置，把索引替换进去
+      result[left] = i;
+    }
+  }
+
+  // 反向追溯
+  let l = result.length;
+  let last = result[l - 1];
+
+  while (l > 0) {
+    l--;
+    // 纠正顺序
+    result[l] = last;
+    // 获取前驱节点
+    last = map.get(last);
+  }
+
+  return result;
+}
