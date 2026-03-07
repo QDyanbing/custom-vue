@@ -12,7 +12,7 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     insert: hostInsert,
     setElementText: hostSetElementText,
-    setAttribute: hostSetAttribute,
+    setText: hostSetText,
     createText: hostCreateText,
     patchProp: hostPatchProp,
     remove: hostRemove,
@@ -417,6 +417,10 @@ export function createRenderer(options) {
       hostInsert(el, container, anchor);
     } else {
       // 更新
+      const el = (n2.el = n1.el);
+      if (n2.children !== n1.children) {
+        hostSetText(el, n2.children);
+      }
     }
   };
 

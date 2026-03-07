@@ -14,8 +14,12 @@
 
       const case1 = document.querySelector('#case1');
       const vnode1 = h(Text, null, 'hello world');
+      const vnode1_change = h(Text, null, 'hello world change');
 
       render(vnode1, case1);
+      setTimeout(() => {
+        render(vnode1_change, case1);
+      }, 1000);
     </script>
   </body>
 </html>
