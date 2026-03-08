@@ -46,7 +46,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 #### 3. renderer 相关
 
-- `createRenderer`：创建平台无关的渲染器实例
+- `createRenderer`：创建平台无关的渲染器实例，返回对象中包含 `render` 和 `createApp`。其中 `createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载（详见 [apiCreateApp.md](./src/apiCreateApp.md)）。
 
 它本身不关心“怎么操作 DOM”，只依赖一组由上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。  
 在浏览器环境下，这些能力由 `@vue/runtime-dom` 提供；在自定义渲染场景（例如 Canvas / 小程序）下，可以自己实现这套接口。
@@ -76,9 +76,10 @@ render(vnode, document.getElementById('app')!);
 
 ```text
 runtime-core/src/
-├── index.ts      # 入口文件，统一导出
-├── vnode.ts      # VNode、Text、normalizeVNode、createVNode、isVNode、isSameVNode
-├── h.ts          # h（参数标准化，内部调用 createVNode）
-└── renderer.ts   # createRenderer 及内部挂载 / 更新 / 卸载 / keyed diff（含 LIS）
+├── index.ts        # 入口文件，统一导出
+├── apiCreateApp.ts # createAppApi(render)，供 createRenderer 生成 createApp
+├── vnode.ts        # VNode、Text、normalizeVNode、createVNode、isVNode、isSameVNode
+├── h.ts            # h（参数标准化，内部调用 createVNode）
+└── renderer.ts     # createRenderer 及内部挂载 / 更新 / 卸载 / keyed diff（含 LIS）
 ```
 
