@@ -49,8 +49,8 @@ export * from '@vue/runtime-core';
 export { renderOptions };
 ```
 
-- 透传 `runtime-core` 的导出：例如 `createApp`、`h` 等。其中 `createApp` 由 runtime-core 的 `createAppApi(render)` 生成（renderer 创建时注入当前平台的 `render`），用于根组件挂载与卸载。
-- 额外导出 `renderOptions`，方便调试或在某些场景下自定义 / 复用配置
+- **透传 runtime-core**：如 `createApp`、`h`、`createRenderer` 等。`createApp` 由 runtime-core 的 `createAppApi(render)` 在创建 renderer 时注入当前平台 `render` 后生成，是根组件挂载/卸载的推荐入口。
+- **额外导出 renderOptions**：便于调试或自定义、复用配置。
 
-总结来说：`index.ts` 把“平台无关的核心逻辑”和“DOM 平台细节”粘合在一起，对外暴露一个可以直接把 VNode 渲染到浏览器 DOM 上的入口。
+总结：`index.ts` 将平台无关的运行时与 DOM 平台粘合，对外提供可直接把 VNode 渲染到浏览器 DOM 的入口（含 `render` 与 `createApp`）。
 
