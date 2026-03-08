@@ -2,7 +2,7 @@
 
 ### 概览
 
-`renderer.ts` 提供 `createRenderer`，用于创建“平台无关”的渲染入口。
+`renderer.ts` 提供 `createRenderer`，用于创建平台无关的渲染入口。返回对象包含 `render`（直接渲染 VNode 到容器）和 `createApp`（由 [apiCreateApp](./apiCreateApp.md) 提供，用于根组件挂载/卸载）。
 
 ### 目录
 
@@ -23,23 +23,23 @@
 - 更新：`patchElement`、`patchProps`、`patchChildren`
 - 卸载：`unmount`、`unmountChildren`
 
-最后通过 `render(vnode, container)` 暴露一个统一入口。
+最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
 
 ### createRenderer(options)
 
-`createRenderer` 接收一个 `options` 对象（宿主操作集合），并返回一个包含 `render` 和 `createApp` 的对象：
+接收宿主能力集合 `options`，返回带 `render` 和 `createApp` 的对象：
 
 ```ts
 const renderer = createRenderer(options);
-renderer.render(vnode, container);
+renderer.render(vnode, container);                    // 直接渲染
 const app = renderer.createApp(RootComponent, rootProps);
-app.mount(container);
+app.mount(container);                                // 根组件挂载
 ```
 
-- `render`：直接渲染 VNode 到容器。
-- `createApp`：由 `createAppApi(render)` 生成，用于创建应用实例并挂载根组件，详见 [apiCreateApp.md](./apiCreateApp.md)。
+- **render**：将 VNode 渲染到指定容器；传 `null` 表示卸载。
+- **createApp**：由 `createAppApi(render)` 生成，用于创建应用实例并挂载根组件，详见 [apiCreateApp.md](./apiCreateApp.md)。
 
-内部会把对象里的宿主方法重命名为 `hostCreateElement`、`hostInsert`、`hostRemove` 等，后续挂载/更新/卸载流程都只依赖这些“宿主钩子”，从而做到与具体平台解耦。
+内部将 options 中的宿主方法重命名为 `hostCreateElement`、`hostInsert`、`hostRemove` 等，挂载/更新/卸载流程仅依赖这些宿主钩子，与具体平台解耦。
 
 目前已经在 `renderer.ts` 源码里通过 JSDoc 把每个宿主钩子、每个内部 helper 的职责都标注清楚，这里的文档主要帮助理解整体调用关系。
 
