@@ -20,6 +20,12 @@ export function render(vNode: any, container: Element) {
   renderer.render(vNode, container);
 }
 
+export function createApp(rootComponent: any, rootProps: any) {
+  const app = renderer.createApp(rootComponent, rootProps);
+
+  return app;
+}
+
 export * from '@vue/runtime-core';
 
 export { renderOptions };

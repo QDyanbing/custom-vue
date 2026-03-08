@@ -1,5 +1,6 @@
 import { ShapeFlags } from '@vue/shared';
 import { isSameVNode, Text, normalizeVNode } from './vnode';
+import { createAppApi } from './apiCreateApp';
 
 /**
  * 创建一个渲染器。
@@ -489,6 +490,7 @@ export function createRenderer(options) {
 
   return {
     render,
+    createApp: createAppApi(render),
   };
 }
 
