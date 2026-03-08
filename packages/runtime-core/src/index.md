@@ -46,10 +46,9 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 #### 3. renderer 相关
 
-- `createRenderer`：创建平台无关的渲染器实例，返回对象中包含 `render` 和 `createApp`。其中 `createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载（详见 [apiCreateApp.md](./src/apiCreateApp.md)）。
+- `createRenderer`：创建平台无关的渲染器实例，返回对象包含 `render` 和 `createApp`。`createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载，详见 [apiCreateApp.md](./src/apiCreateApp.md)。
 
-它本身不关心“怎么操作 DOM”，只依赖一组由上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。  
-在浏览器环境下，这些能力由 `@vue/runtime-dom` 提供；在自定义渲染场景（例如 Canvas / 小程序）下，可以自己实现这套接口。
+它不关心“怎么操作 DOM”，只依赖上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。浏览器环境由 `@vue/runtime-dom` 提供；自定义渲染（如 Canvas / 小程序）可自行实现该接口。
 
 ### 使用示例
 
@@ -57,7 +56,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 import { ref, reactive, h, createRenderer } from '@vue/runtime-core';
 ```
 
-在 DOM 场景里，一般会由 `@vue/runtime-dom` 组装好 renderer 并导出 `createApp`，这里只展示最简版本的接线方式：
+DOM 场景下通常由 `@vue/runtime-dom` 组装 renderer 并导出 `createApp`；下面仅展示最简的“手写接线”方式（仅用 `render` 时）：
 
 ```ts
 import { createRenderer, h } from '@vue/runtime-core';
@@ -70,6 +69,7 @@ const { render } = createRenderer({
 
 const vnode = h('div', { id: 'app' }, 'hello');
 render(vnode, document.getElementById('app')!);
+// 若使用 createApp 挂载根组件，可直接从 @vue/runtime-dom 导入 createApp，见 runtime-dom 入口说明。
 ```
 
 ### 模块结构
