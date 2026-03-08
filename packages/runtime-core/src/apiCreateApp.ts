@@ -4,7 +4,7 @@ export function createAppApi(render: any) {
   return function createApp(rootComponent: any, rootProps: any) {
     const app = {
       _container: null,
-      mount(container: HTMLElement) {
+      mount(container: Element) {
         // 创建组件的虚拟节点
         const vnode = h(rootComponent, rootProps);
 

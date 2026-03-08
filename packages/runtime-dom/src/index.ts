@@ -1,6 +1,7 @@
 import { nodeOps } from './nodeOps';
 import { patchProp } from './patchProp';
 import { createRenderer } from '@vue/runtime-core';
+import { isString } from '@vue/shared';
 
 /**
  * `runtime-dom` 渲染器配置项。
@@ -22,6 +23,19 @@ export function render(vNode: any, container: Element) {
 
 export function createApp(rootComponent: any, rootProps: any) {
   const app = renderer.createApp(rootComponent, rootProps);
+  const _mount = app.mount.bind(app);
+
+  function mount(selector: string | Element) {
+    let el: Element;
+    if (isString(selector)) {
+      el = document.querySelector(selector as string);
+    } else {
+      el = selector as Element;
+    }
+    _mount(el);
+  }
+
+  app.mount = mount;
 
   return app;
 }
