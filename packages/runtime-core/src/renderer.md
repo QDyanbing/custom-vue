@@ -27,12 +27,17 @@
 
 ### createRenderer(options)
 
-`createRenderer` 接收一个 `options` 对象（宿主操作集合），并返回一个包含 `render` 方法的对象：
+`createRenderer` 接收一个 `options` 对象（宿主操作集合），并返回一个包含 `render` 和 `createApp` 的对象：
 
 ```ts
 const renderer = createRenderer(options);
 renderer.render(vnode, container);
+const app = renderer.createApp(RootComponent, rootProps);
+app.mount(container);
 ```
+
+- `render`：直接渲染 VNode 到容器。
+- `createApp`：由 `createAppApi(render)` 生成，用于创建应用实例并挂载根组件，详见 [apiCreateApp.md](./apiCreateApp.md)。
 
 内部会把对象里的宿主方法重命名为 `hostCreateElement`、`hostInsert`、`hostRemove` 等，后续挂载/更新/卸载流程都只依赖这些“宿主钩子”，从而做到与具体平台解耦。
 
