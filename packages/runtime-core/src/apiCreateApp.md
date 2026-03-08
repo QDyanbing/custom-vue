@@ -1,6 +1,7 @@
 # apiCreateApp.ts
 
-该文件提供应用创建入口：通过传入平台相关的 `render` 函数，得到可挂载/卸载的 `createApp` API。
+该文件提供应用创建入口：通过传入平台相关的 `render` 函数，得到可挂载/卸载的 `createApp` API。  
+与 `renderer.ts` 配合使用：渲染器在内部通过 `createAppApi(render)` 得到 `createApp` 并挂到返回对象上（见 [renderer.md](./renderer.md)）。
 
 ## 作用
 
@@ -41,3 +42,7 @@ createApp: createAppApi(render)
 ## 与 Vue 3 的对应关系
 
 思路与 Vue 3 的 `createAppAPI` 一致：在 `packages/runtime-core/src/apiCreateApp.ts` 中只关心「应用生命周期 + 根组件挂载」，具体渲染逻辑由各端的 render 实现（如 DOM 的 `render` 在 runtime-dom 中）。
+
+## 相关文档
+
+- [renderer.md](./renderer.md)：`createRenderer` 返回对象中的 `createApp` 即由 `createAppApi(render)` 得到。
