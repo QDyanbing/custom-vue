@@ -2,13 +2,16 @@ import { h } from './h';
 
 /**
  * 根据平台提供的 render 函数，生成 createApp 入口。
- * 渲染器（如 createRenderer 返回值）会调用 createAppApi(render) 得到 createApp，再对外暴露。
+ * 渲染器（createRenderer 的返回值）在内部调用 createAppApi(render) 得到 createApp 并挂到返回对象上。
+ * @param render 平台渲染函数，签名为 (vnode, container) => void，传 null 表示卸载
+ * @returns createApp(rootComponent, rootProps)，返回带 mount / unmount 的应用实例
  */
 export function createAppApi(render: any) {
   /**
-   * 创建应用实例；不立即挂载，需显式调用 app.mount(container)。
-   * @param rootComponent 根组件（一般为组件对象或函数）
+   * 创建应用实例；不会立即挂载，需显式调用 app.mount(container)。
+   * @param rootComponent 根组件（组件对象或函数）
    * @param rootProps 根组件的 props，可选
+   * @returns 应用实例 { mount, unmount }
    */
   return function createApp(rootComponent: any, rootProps: any) {
     const app = {
