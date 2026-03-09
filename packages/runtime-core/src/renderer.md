@@ -9,7 +9,8 @@
 - [createRenderer(options)](#createrendereroptions)
 - [render(vNode, container)](#rendervnode-container)
 - [patch(n1, n2, container, anchor?)](#patchn1-n2-container-anchor)
-- [patch 对类型的分发（Element / Text）](#patch-对类型的分发element--text)
+- [patch 对类型的分发（Element / Text / Component）](#patch-对类型的分发element--text--component)
+- [组件 processComponent 与 mountComponent](#组件-processcomponent-与-mountcomponent)
 - [patchElement 与 children 处理](#patchelement-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
 - [乱序 diff 与最长递增子序列（LIS）](#乱序-diff-与最长递增子序列lis)
@@ -19,8 +20,8 @@
 
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
-- 初次挂载：`mountElement`、`mountChildren`
-- 更新：`patchElement`、`patchProps`、`patchChildren`
+- 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
+- 更新：`patchElement`、`patchProps`、`patchChildren`；组件走 `processComponent`（更新逻辑可后续扩展）
 - 卸载：`unmount`、`unmountChildren`
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
@@ -77,6 +78,28 @@ container._vnode = vnode;
 
 这里的 `anchor` 由外层传入，用来控制元素插入的准确位置，当前 demo 里主要在 keyed diff 时使用。
 
+### patch 对类型的分发（Element / Text / Component）
+
+`patch` 在确定“同一节点需要更新”后，先根据 `n2.type` 判断是否为 `Text`，再根据 `n2.shapeFlag` 分发到元素或组件：
+
+- `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
+- `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
+- `n2.shapeFlag & COMPONENT`：走 `processComponent`（即 `mountComponent` 或后续的组件更新）。
+
+这样元素、文本、组件在挂载与更新时走各自分支。组件分支详见下一节。
+
+### 组件 processComponent 与 mountComponent
+
+- **processComponent(n1, n2, container, anchor)**：组件挂载与更新的统一入口。当 `n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；否则走组件更新（当前未实现 `patchComponent`，可后续扩展）。
+
+- **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode。步骤为：
+  1. 调用 `createComponentInstance(vnode)` 创建组件实例；
+  2. 调用 `setupComponent(instance)` 执行 `setup`、得到 `setupState` 与 `render`；
+  3. 使用 `instance.render.call(instance.setupState)` 得到子树 VNode（subTree）；
+  4. 对 subTree 执行 `patch(null, subTree, container, anchor)` 将子树挂载到页面。
+
+组件实例与 setup 的细节见 [component.md](./component.md)。
+
 ### patchElement 与 children 处理
 
 - `patchElement` 负责：
@@ -91,16 +114,6 @@ container._vnode = vnode;
   - 数组 / null 之间互相转换：根据场景挂载或卸载整组子节点。
 
 借助 `shapeFlag`，在 children 形态切换时不需要做复杂的类型判断，只要用按位与就能跳到正确分支。
-
-### patch 对类型的分发（Element / Text）
-
-`patch` 在确定“同一节点需要更新”后，会根据 `n2.type` 分发到不同处理逻辑：
-
-- `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
-- `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
-- 组件等其它类型在后续扩展。
-
-这样元素节点和文本节点在挂载、更新时走各自分支，互不干扰。
 
 ### keyed children 与双端 diff
 
