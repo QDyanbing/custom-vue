@@ -426,6 +426,12 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * 挂载组件类型 VNode：创建实例 → 执行 setup → 用 setupState 作为 this 调 render 得到子树 → patch 子树。
+   * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
+   * @param container 挂载到的父容器
+   * @param anchor 锚点，插入位置
+   */
   const mountComponent = (vnode: VNode, container: Element, anchor = null) => {
     /**
      * 1. 创建组件实例
@@ -446,7 +452,11 @@ export function createRenderer(options) {
   };
 
   /**
-   * 处理组件的挂载和更新
+   * 处理组件的挂载和更新。n1 为空时挂载（mountComponent）；否则为组件更新，当前未实现 patchComponent。
+   * @param n1 旧组件 VNode，null 表示挂载
+   * @param n2 新组件 VNode
+   * @param container 容器
+   * @param anchor 锚点
    */
   const processComponent = (n1, n2, container, anchor = null) => {
     if (n1 == null) {
