@@ -436,9 +436,9 @@ export function createRenderer(options) {
     const instance = createComponentInstance(vnode);
     // 初始化组件状态
     setupComponent(instance);
-    // 渲染组件
-    const subTree = instance.render();
-    // 挂载组件
+    // 调用render函数拿到subTree，并绑定this为setupState
+    const subTree = instance.render().call(instance.setupState);
+    // 将subTree挂载到页面上
     patch(null, subTree, container, anchor);
 
     // // 挂载组件

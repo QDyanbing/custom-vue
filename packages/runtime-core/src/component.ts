@@ -16,6 +16,7 @@ export function createComponentInstance(vnode: VNode) {
     subTree: null, // 子树，就是render的返回值
     isMounted: false, // 是否已挂载
     render: null, // 渲染函数
+    setupState: null, // setup返回的状态
   };
 
   return instance;
@@ -28,5 +29,11 @@ export function createComponentInstance(vnode: VNode) {
 export function setupComponent(instance) {
   const { type } = instance;
 
+  const setupResult = type.setup?.();
+
+  // 拿到setup返回的状态
+  instance.setupState = setupResult;
+
+  // 将render函数赋值给instance
   instance.render = type.render;
 }
