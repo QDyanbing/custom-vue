@@ -1,4 +1,4 @@
-import { ShapeFlags, isArray, isString, isNumber } from '@vue/shared';
+import { ShapeFlags, isArray, isString, isNumber, isObject } from '@vue/shared';
 
 /**
  * 文本节点标记
@@ -70,6 +70,9 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
   if (isString(type)) {
     // 当前只处理原生元素，后续可扩展到组件等类型
     shapeFlag = ShapeFlags.ELEMENT;
+  } else if (isObject(type)) {
+    // 有状态组件
+    shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
   }
 
   if (isString(children)) {
