@@ -26,6 +26,7 @@ export function createComponentInstance(vnode: VNode) {
 /**
  * 初始化组件状态
  * @param instance 组件实例
+ * @returns 无返回值，结果挂在 instance.setupState 与 instance.render 上
  */
 export function setupComponent(instance) {
   const { type } = instance;
