@@ -21,7 +21,7 @@
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
 - 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
-- 更新：`patchElement`、`patchProps`、`patchChildren`；组件走 `processComponent`（更新逻辑可后续扩展）
+- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `mountComponent` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff
 - 卸载：`unmount`、`unmountChildren`
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
@@ -84,19 +84,18 @@ container._vnode = vnode;
 
 - `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
 - `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
-- `n2.shapeFlag & COMPONENT`：走 `processComponent`（即 `mountComponent` 或后续的组件更新）。
+- `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；同一组件 VNode 的 props 等外部更新可后续做 `patchComponent`）。
 
 这样元素、文本、组件在挂载与更新时走各自分支。组件分支详见下一节。
 
 ### 组件 processComponent 与 mountComponent
 
-- **processComponent(n1, n2, container, anchor)**：组件挂载与更新的统一入口。当 `n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；否则走组件更新（当前未实现 `patchComponent`，可后续扩展）。
+- **processComponent(n1, n2, container, anchor)**：组件入口。`n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；`n1 != null` 时为“同一组件 VNode 的更新”（如父组件传入新 props），当前未实现 `patchComponent`，可后续扩展。
 
-- **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode。步骤为：
-  1. 调用 `createComponentInstance(vnode)` 创建组件实例；
-  2. 调用 `setupComponent(instance)` 执行 `setup`、得到 `setupState` 与 `render`；
-  3. 使用 `instance.render.call(instance.setupState)` 得到子树 VNode（subTree）；
-  4. 对 subTree 执行 `patch(null, subTree, container, anchor)` 将子树挂载到页面。
+- **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode，并建立响应式更新链路。步骤为：
+  1. 调用 `createComponentInstance(vnode)`、`setupComponent(instance)` 得到实例与 `setupState`、`render`。
+  2. 定义 `componentUpdateFn`：若 `!instance.isMounted` 则首渲，`render.call(setupState)` 得 subTree，`patch(null, subTree, container, anchor)`，并记 `instance.subTree`、`instance.isMounted = true`；否则为更新，取 `prevSubTree = instance.subTree`，再 render 得新 subTree，执行 `patch(prevSubTree, subTree, container, anchor)` 并更新 `instance.subTree`。
+  3. 使用 `new ReactiveEffect(componentUpdateFn)` 创建 effect，并 `effect.run()`。之后当 `setupState` 中响应式数据变化时，effect 会重新执行 `componentUpdateFn`，从而完成组件内更新（子树 diff）。
 
 组件实例与 setup 的细节见 [component.md](./component.md)。
 
