@@ -23,6 +23,7 @@
         },
       };
 
+      // 挂载带 setup + render 的根组件；render 内通过 this 访问 setup 返回的 ref（已自动解包）
       createApp(Comp, { msg: 'Hi' }).mount(document.getElementById('app'));
     </script>
   </body>
