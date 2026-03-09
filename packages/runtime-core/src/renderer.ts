@@ -2,6 +2,7 @@ import { ShapeFlags } from '@vue/shared';
 import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
+import { ReactiveEffect } from '@vue/reactivity';
 
 /**
  * 创建一个渲染器。
@@ -442,13 +443,38 @@ export function createRenderer(options) {
     const instance = createComponentInstance(vnode);
     // 初始化组件状态
     setupComponent(instance);
-    // 调用render函数拿到subTree，并绑定this为setupState
-    const subTree = instance.render.call(instance.setupState);
-    // 将subTree挂载到页面上
-    patch(null, subTree, container, anchor);
 
-    // // 挂载组件
-    // setupRenderEffect(instance, container, anchor);
+    const componentUpdateFn = () => {
+      /**
+       * 区分挂载和更新
+       */
+
+      if (!instance.isMounted) {
+        // 挂载
+        // 调用render函数拿到subTree，并绑定this为setupState
+        const subTree = instance.render.call(instance.setupState);
+        // 将subTree挂载到页面上
+        patch(null, subTree, container, anchor);
+        // 保存子树
+        instance.subTree = subTree;
+        // 已经挂载过了
+        instance.isMounted = true;
+      } else {
+        // 更新
+        const prevSubTree = instance.subTree;
+        // 调用render函数拿到subTree，并绑定this为setupState
+        const subTree = instance.render.call(instance.setupState);
+        // 将subTree挂载到页面上
+        patch(prevSubTree, subTree, container, anchor);
+        // 保存子树
+        instance.subTree = subTree;
+      }
+    };
+
+    // 创建一个响应式effect，当响应式数据变化时，会执行componentUpdateFn
+    const effect = new ReactiveEffect(componentUpdateFn);
+    // 执行effect
+    effect.run();
   };
 
   /**
