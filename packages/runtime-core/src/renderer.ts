@@ -1,5 +1,6 @@
 import { ShapeFlags } from '@vue/shared';
-import { isSameVNode, Text, normalizeVNode } from './vnode';
+import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
+import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
 
 /**
@@ -425,6 +426,38 @@ export function createRenderer(options) {
     }
   };
 
+  const mountComponent = (vnode: VNode, container: Element, anchor = null) => {
+    /**
+     * 1. 创建组件实例
+     * 2. 初始化组件状态
+     * 3. 挂载组件到页面
+     */
+    // 创建组件实例
+    const instance = createComponentInstance(vnode);
+    // 初始化组件状态
+    setupComponent(instance);
+    // 渲染组件
+    const subTree = instance.render();
+    // 挂载组件
+    patch(null, subTree, container, anchor);
+
+    // // 挂载组件
+    // setupRenderEffect(instance, container, anchor);
+  };
+
+  /**
+   * 处理组件的挂载和更新
+   */
+  const processComponent = (n1, n2, container, anchor = null) => {
+    if (n1 == null) {
+      // 挂载
+      mountComponent(n2, container, anchor);
+    } else {
+      // 更新
+      // patchComponent(n1, n2);
+    }
+  };
+
   /**
    * 更新和挂载的统一入口。
    *
@@ -460,7 +493,8 @@ export function createRenderer(options) {
           // 处理 dom 元素；div，p，span，等
           processElement(n1, n2, container, anchor);
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
-          // TODO: 处理组件
+          // 处理组件类型
+          processComponent(n1, n2, container, anchor);
         }
     }
   };
