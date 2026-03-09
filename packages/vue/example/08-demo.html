@@ -8,11 +8,18 @@
     <div id="app"></div>
     <script type="module">
       // import { h, Text, render } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { h, Text, render, createApp } from '../dist/vue.esm.js';
+      import { h, createApp, ref } from '../dist/vue.esm.js';
 
       const Comp = {
+        setup() {
+          const count = ref(0);
+          return {
+            count,
+          };
+        },
+
         render() {
-          return h('div', 'hello world');
+          return h('div', this.count.value);
         },
       };
 
