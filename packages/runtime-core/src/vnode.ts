@@ -46,6 +46,20 @@ export function normalizeVNode(vnode: any): VNode {
 }
 
 /**
+ * 将子节点标准化为VNode
+ * @param children 子节点
+ * @returns 标准化后的子节点
+ */
+export function normalizeChildren(children: any): any {
+  if (isNumber(children)) {
+    // 如果是number，则转换为string
+    children = String(children);
+  }
+
+  return children;
+}
+
+/**
  * 判断一个值是否为 VNode。
  *
  * @param value 任意值
@@ -66,6 +80,8 @@ export function isVNode(value: any): boolean {
 export function createVNode(type: string | typeof Text, props?: any, children: any = null): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
+
+  children = normalizeVNode(children);
 
   if (isString(type)) {
     // 当前只处理原生元素，后续可扩展到组件等类型
