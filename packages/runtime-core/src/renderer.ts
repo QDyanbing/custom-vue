@@ -437,7 +437,7 @@ export function createRenderer(options) {
     // 初始化组件状态
     setupComponent(instance);
     // 调用render函数拿到subTree，并绑定this为setupState
-    const subTree = instance.render().call(instance.setupState);
+    const subTree = instance.render.call(instance.setupState);
     // 将subTree挂载到页面上
     patch(null, subTree, container, anchor);
 

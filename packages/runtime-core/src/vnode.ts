@@ -81,7 +81,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
 
-  children = normalizeVNode(children);
+  children = normalizeChildren(children);
 
   if (isString(type)) {
     // 当前只处理原生元素，后续可扩展到组件等类型
