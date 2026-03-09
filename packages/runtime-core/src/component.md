@@ -2,7 +2,7 @@
 
 ## 概述
 
-`component.ts` 提供组件实例的创建与初始化，供 `renderer.ts` 在挂载组件类型 VNode 时使用。当前支持：创建实例、执行 `setup`、拿到 `render` 与 `setupState`，供渲染器生成子树并挂载。
+`component.ts` 提供组件实例的创建与初始化，供 `renderer.ts` 在挂载组件类型 VNode 时使用。当前支持：创建实例、执行 `setup`、拿到 `render` 与 `setupState`；渲染器用它们生成子树并挂载，并在 `setupState` 变化时通过 effect 驱动子树更新（见 [renderer](./renderer.md) 的 mountComponent）。
 
 ## 目录
 
@@ -37,8 +37,8 @@
 | `type` | 组件定义（即 vnode.type） |
 | `vnode` | 当前组件对应的 VNode |
 | `props` / `attrs` | 预留，用于区分 props 与普通 attribute |
-| `subTree` | 当前 render 的返回值（子树 VNode），由渲染器在挂载/更新时写入 |
-| `isMounted` | 是否已挂载，预留 |
+| `subTree` | 当前 render 的返回值（子树 VNode）；渲染器挂载时写入，更新时作为 prevSubTree 与新一轮 render 结果做 patch |
+| `isMounted` | 是否已完成首次挂载；渲染器在 componentUpdateFn 中用于区分首渲（patch(null, subTree)）与更新（patch(prevSubTree, subTree)） |
 | `render` | 组件的 render 函数，由 setupComponent 从 type 上赋值 |
 | `setupState` | setup 返回值的 proxyRefs 代理，作为 render 的 this 上下文 |
 
@@ -49,5 +49,5 @@
 
 ## 相关文档
 
-- [renderer.md](./renderer.md)：`mountComponent` 会调用 `createComponentInstance` 与 `setupComponent`，再用 `instance.render.call(instance.setupState)` 得到 subTree 并 `patch` 挂载。
+- [renderer.md](./renderer.md)：`mountComponent` 会调用 `createComponentInstance` 与 `setupComponent`，再用 `ReactiveEffect` 包装的 `componentUpdateFn` 做首渲与后续更新（render → patch 子树）。
 - [vnode.md](./vnode.md)：组件类型 VNode 的 `type` 为对象，`shapeFlag` 含 `STATEFUL_COMPONENT`。
