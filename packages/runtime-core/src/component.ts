@@ -1,4 +1,5 @@
 import { type VNode } from './vnode';
+import { proxyRefs } from '@vue/reactivity';
 
 /**
  * 创建组件实例
@@ -32,7 +33,7 @@ export function setupComponent(instance) {
   const setupResult = type.setup?.();
 
   // 拿到setup返回的状态
-  instance.setupState = setupResult;
+  instance.setupState = proxyRefs(setupResult);
 
   // 将render函数赋值给instance
   instance.render = type.render;
