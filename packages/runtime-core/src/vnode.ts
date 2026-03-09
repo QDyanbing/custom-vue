@@ -11,7 +11,7 @@ export const Text = Symbol('v-txt');
  */
 export interface VNode {
   __v_isVNode: true; // 标识这是一个虚拟节点
-  type: string | typeof Text; // 元素类型，例如 'div'
+  type: string | typeof Text | object; // 元素类型（如 'div'）、Text 或组件定义对象
   props?: any; // 传给元素 / 组件的属性
   children?: any; // 子节点，可以是文本或 VNode 数组
   key?: string | number; // 用于高效 diff 的标识
@@ -46,9 +46,9 @@ export function normalizeVNode(vnode: any): VNode {
 }
 
 /**
- * 将子节点标准化为VNode
- * @param children 子节点
- * @returns 标准化后的子节点
+ * 在 createVNode 内部使用：对 children 做标准化（如 number 转 string），便于后续写 shapeFlag 与存 children。
+ * @param children 子节点（可能为 string / number / 数组 / VNode 等）
+ * @returns 标准化后的 children，未必是 VNode（仅做 number→string 等基础处理）
  */
 export function normalizeChildren(children: any): any {
   if (isNumber(children)) {
@@ -72,7 +72,7 @@ export function isVNode(value: any): boolean {
 /**
  * 创建一个虚拟节点（VNode）。
  *
- * @param type 节点类型，如 `'div'`
+ * @param type 节点类型：字符串（如 'div'）、Text，或组件对象（含 setup/render）
  * @param props 传入的属性对象
  * @param children 子节点，可以是文本 / 数组 / 单个 VNode
  * @returns 创建好的虚拟节点
