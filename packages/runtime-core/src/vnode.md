@@ -9,6 +9,7 @@
 - [VNode 结构](#vnode-结构)
 - [Text 与文本节点](#text-与文本节点)
 - [normalizeVNode(vnode)](#normalizevnodevnode)
+- [normalizeChildren(children)](#normalizechildrenchildren)
 - [createVNode(type, props?, children?)](#createvnodetype-props-children)
 - [isVNode(value)](#isvnodevalue)
 - [isSameVNode(v1, v2)](#issamevnodev1-v2)
@@ -16,7 +17,8 @@
 - `VNode`：虚拟节点的数据结构
 - `Text`：文本类型 VNode 的 type 标记（Symbol），供 renderer 走 `processText`
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
-- `createVNode`：创建 VNode 的工厂函数
+- `normalizeChildren`：在创建 VNode 前将 children 标准化（如 number 转 string），供 `createVNode` 内部使用
+- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）或组件对象（有状态组件）
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为“同一个节点”
 
@@ -27,7 +29,7 @@
 
 `VNode` 里包含渲染所需的关键信息：
 
-- `type`：节点类型，例如 `'div'`
+- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）
 - `props`：传入的属性/事件（`class`、`style`、`onClick` 等）
 - `children`：子节点，可以是：
   - 文本（string）
@@ -51,12 +53,21 @@
 
 在 `mountChildren`、`patchKeyedChildren` 等逻辑里，会对 children 数组中的每一项调用 `normalizeVNode`，保证传给 `patch` 的始终是 VNode。
 
+## normalizeChildren(children)
+
+在 `createVNode` 内部使用，在写 `shapeFlag` 和存 `children` 之前对子节点做一次标准化：
+
+- 若 `children` 为 `number`，转为 `String(children)`
+- 其它情况原样返回（string、数组、VNode 等由后续逻辑处理）
+
+这样保证进入“子节点类型”判断时，数字已被统一成字符串，避免重复分支。
+
 ## createVNode(type, props?, children?)
 
-`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段就把“节点类型 / 子节点类型”编码进 `shapeFlag`：
+`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把“节点类型 / 子节点类型”编码进 `shapeFlag`。内部会先对 `children` 调用 `normalizeChildren(children)`。
 
-- 当 `type` 是字符串时：
-  - 记为普通的元素节点：`ShapeFlags.ELEMENT`
+- 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
+- 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
 - 根据 `children` 的类型追加子节点标记：
   - 文本：`ShapeFlags.TEXT_CHILDREN`
   - 数组：`ShapeFlags.ARRAY_CHILDREN`
@@ -64,10 +75,12 @@
 伪代码可以理解为：
 
 ```ts
-let shapeFlag = 0;
+children = normalizeChildren(children);
 
 if (isString(type)) {
   shapeFlag = ShapeFlags.ELEMENT;
+} else if (isObject(type)) {
+  shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
 }
 
 if (isString(children)) {
