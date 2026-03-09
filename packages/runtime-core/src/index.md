@@ -78,8 +78,9 @@ render(vnode, document.getElementById('app')!);
 runtime-core/src/
 ├── index.ts        # 入口文件，统一导出
 ├── apiCreateApp.ts # createAppApi(render)，供 createRenderer 生成 createApp
-├── vnode.ts        # VNode、Text、normalizeVNode、createVNode、isVNode、isSameVNode
+├── component.ts    # 组件实例 createComponentInstance、setupComponent（供 renderer 挂载组件）
+├── vnode.ts        # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
 ├── h.ts            # h（参数标准化，内部调用 createVNode）
-└── renderer.ts     # createRenderer 及内部挂载 / 更新 / 卸载 / keyed diff（含 LIS）
+└── renderer.ts     # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）
 ```
 
