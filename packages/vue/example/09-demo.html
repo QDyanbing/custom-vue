@@ -12,10 +12,7 @@
       import { h, createApp, ref } from '../dist/vue.esm.js';
 
       const Comp = {
-        props: {
-          msg: String,
-        },
-
+        props: ['msg'],
         setup(props, { attrs }) {
           console.log(props, attrs);
           return {};

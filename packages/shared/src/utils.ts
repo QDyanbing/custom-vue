@@ -34,3 +34,8 @@ export const isString = (val: unknown): boolean => typeof val === 'string';
  * 判断值是否为数字。
  */
 export const isNumber = (val: unknown): boolean => typeof val === 'number';
+
+/**
+ * 判断对象是否拥有某个属性。
+ */
+export const hasOwn = (obj: any, key: string): boolean => Object.hasOwn(obj, key);

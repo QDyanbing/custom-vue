@@ -1,6 +1,7 @@
 import { type VNode } from './vnode';
 import { proxyRefs } from '@vue/reactivity';
-import { normalizePropsOptions } from './componentProps';
+import { normalizePropsOptions, initProps } from './componentProps';
+import { isFunction } from '@vue/shared';
 
 /**
  * 创建组件实例
@@ -9,6 +10,8 @@ import { normalizePropsOptions } from './componentProps';
  */
 export function createComponentInstance(vnode) {
   const { type } = vnode;
+
+  debugger;
 
   const instance = {
     type,
@@ -33,11 +36,24 @@ export function createComponentInstance(vnode) {
 export function setupComponent(instance) {
   const { type } = instance;
 
-  const setupResult = type.setup?.();
+  initProps(instance);
 
-  // 拿到setup返回的状态
-  instance.setupState = proxyRefs(setupResult);
+  const setupContext = createSetupContext(instance);
+
+  if (isFunction(type.setup)) {
+    const setupResult = proxyRefs(type.setup(instance.props, setupContext));
+    // 拿到setup返回的状态
+    instance.setupState = setupResult;
+  }
 
   // 将render函数赋值给instance
   instance.render = type.render;
+}
+
+function createSetupContext(instance) {
+  return {
+    get attrs() {
+      return instance.attrs;
+    },
+  };
 }
