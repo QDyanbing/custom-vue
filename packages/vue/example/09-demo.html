@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <button id="btn">count++</button>
+    <script type="module">
+      import { h, createApp, ref } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, createApp, ref } from '../dist/vue.esm.js';
+
+      const Comp = {
+        props: {
+          msg: String,
+        },
+
+        setup(props, { attrs }) {
+          console.log(props, attrs);
+          return {};
+        },
+
+        render() {
+          return h('div', 'hello world');
+        },
+      };
+
+      // 挂载带 setup + render 的根组件；render 内通过 this 访问 setup 返回的 ref（已自动解包）
+      createApp(Comp, { msg: 'Hi', count: 0 }).mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
