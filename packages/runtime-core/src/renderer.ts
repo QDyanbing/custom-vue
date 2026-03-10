@@ -410,7 +410,10 @@ export function createRenderer(options) {
   };
 
   /**
-   * 处理文本节点的挂载和更新
+   * 处理文本节点的挂载和更新。
+   *
+   * 文本节点在 VNode 层使用统一的 `Text` 标记（见 `vnode.ts`），
+   * 这里对应的宿主操作是 `hostCreateText` 与 `hostSetText`。
    */
   const processText = (n1, n2, container, anchor = null) => {
     if (n1 == null) {
@@ -429,6 +432,10 @@ export function createRenderer(options) {
 
   /**
    * 挂载组件类型 VNode：创建实例 → 执行 setup → 用 setupState 作为 this 调 render 得到子树 → patch 子树。
+   *
+   * - 组件实例的创建与 props/attrs 解析由 `createComponentInstance` + `setupComponent` 完成
+   * - `componentUpdateFn` 被包装进 `ReactiveEffect`，从而在响应式数据变化时重新执行 render 并 diff 子树
+   *
    * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
    * @param container 挂载到的父容器
    * @param anchor 锚点，插入位置

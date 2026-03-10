@@ -11,6 +11,9 @@
       // import { h, Text, render } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, createApp, ref } from '../dist/vue.esm.js';
 
+      // 最简单的 setup+render 计数器组件：
+      // - setup 里通过 ref 声明响应式的 count
+      // - render 里通过 this.count 访问（runtime-core 内部对 ref 做了自动解包）
       const Comp = {
         setup() {
           const count = ref(0);
