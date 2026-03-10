@@ -1,12 +1,13 @@
 import { type VNode } from './vnode';
 import { proxyRefs } from '@vue/reactivity';
+import { normalizePropsOptions } from './componentProps';
 
 /**
  * 创建组件实例
  * @param vnode 虚拟节点
  * @returns 组件实例
  */
-export function createComponentInstance(vnode: VNode) {
+export function createComponentInstance(vnode) {
   const { type } = vnode;
 
   const instance = {
@@ -18,6 +19,7 @@ export function createComponentInstance(vnode: VNode) {
     isMounted: false, // 是否已挂载
     render: null, // 渲染函数
     setupState: null, // setup返回的状态
+    propsOptions: normalizePropsOptions(type.props), // 用户声明的props选项
   };
 
   return instance;
