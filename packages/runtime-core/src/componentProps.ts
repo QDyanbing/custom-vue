@@ -1,6 +1,19 @@
 import { reactive } from '@vue/reactivity';
 import { isArray, hasOwn } from '@vue/shared';
 
+/**
+ * 标准化组件定义上的 props 选项。
+ *
+ * 支持两种写法：
+ * - 对象写法：`props: { msg: String }`
+ * - 数组写法：`props: ['msg']`
+ *
+ * 这里会把数组写法转换成对象形式，方便后续统一通过 `hasOwn(propsOptions, key)` 判断
+ * 某个属性是否是组件显式声明的 props。
+ *
+ * @param props 组件定义时传入的 props 配置
+ * @returns 标准化后的 props 配置（对象形式）
+ */
 export function normalizePropsOptions(props: any = {}) {
   /**
    * 要把数组处理成对象
@@ -16,6 +29,18 @@ export function normalizePropsOptions(props: any = {}) {
   return props;
 }
 
+/**
+ * 根据组件 props 选项，把原始 vnode.props 拆分到 props / attrs。
+ *
+ * 规则：
+ * - 在 `instance.propsOptions` 中声明过的 key，归类到 `props`
+ * - 其余 key 归类到 `attrs`
+ *
+ * @param instance 组件实例（需要使用其中的 propsOptions）
+ * @param rawProps VNode 上的原始 props
+ * @param props 本次解析得到的 props 容器对象
+ * @param attrs 本次解析得到的 attrs 容器对象
+ */
 function setFullProps(instance: any, rawProps: any, props: any, attrs: any) {
   const propsOptions = instance.propsOptions;
 
@@ -32,6 +57,19 @@ function setFullProps(instance: any, rawProps: any, props: any, attrs: any) {
   }
 }
 
+/**
+ * 初始化组件实例上的 props / attrs。
+ *
+ * - 从 `instance.vnode.props` 读取调用方传入的属性
+ * - 调用 `setFullProps` 按 `instance.propsOptions` 完成 props / attrs 拆分
+ * - 使用 `reactive` 包装 props，挂到 `instance.props`
+ * - 直接把 attrs 赋值给 `instance.attrs`
+ *
+ * 该函数会在 `setupComponent` 中被调用，确保组件的 `setup(props, { attrs })`
+ * 在执行时能够拿到已经解析好的 props / attrs。
+ *
+ * @param instance 组件实例
+ */
 export function initProps(instance) {
   const { vnode } = instance;
 
