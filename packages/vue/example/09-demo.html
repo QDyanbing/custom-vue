@@ -11,6 +11,12 @@
       // import { h, createApp, ref } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, createApp, ref } from '../dist/vue.esm.js';
 
+      // 演示组件 props / attrs 的拆分：
+      // - 组件只在 props 选项里声明了 msg
+      // - 调用 createApp 时额外传入 count
+      // 结果：
+      // - setup 第一个参数 props 里只有 msg
+      // - 第二个参数的 attrs 中可以拿到 count
       const Comp = {
         props: ['msg'],
         setup(props, { attrs }) {
