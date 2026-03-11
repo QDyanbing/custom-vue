@@ -50,13 +50,18 @@ export function createComponentInstance(vnode) {
  * @returns 无返回值，结果挂在 `instance.setupState` 与 `instance.render` 上
  */
 export function setupComponent(instance) {
-  const { type } = instance;
-
   initProps(instance);
 
-  const setupContext = createSetupContext(instance);
+  setupStatefulComponent(instance);
+}
+
+function setupStatefulComponent(instance) {
+  const { type } = instance;
 
   if (isFunction(type.setup)) {
+    const setupContext = createSetupContext(instance);
+    // 保存 setupContext
+    instance.setupState = setupContext;
     const setupResult = proxyRefs(type.setup(instance.props, setupContext));
     // 拿到setup返回的状态
     instance.setupState = setupResult;
