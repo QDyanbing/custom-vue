@@ -521,6 +521,7 @@ export function createRenderer(options) {
 
     if (n1 && !isSameVNode(n1, n2)) {
       // 如果老节点和新节点不是同一个节点，则直接卸载老节点，挂载新节点
+      // 这里是学习用的简化处理：直接按“卸载旧 → 重新挂载新”走，不做更细的分支判断
       unmount(n1);
       n1 = null;
       mountElement(n2, container);
