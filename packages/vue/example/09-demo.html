@@ -20,12 +20,24 @@
       const Comp = {
         props: ['msg'],
         setup(props, { attrs }) {
-          console.log(props, attrs);
-          return {};
+          const count = ref(0);
+
+          return {
+            count,
+          };
         },
 
         render() {
-          return h('div', this.msg);
+          return h(
+            'div',
+            {
+              onClick: () => {
+                console.log('click');
+                this.count++;
+              },
+            },
+            this.count,
+          );
         },
       };
 
