@@ -32,6 +32,8 @@ export function createComponentInstance(vnode) {
     propsOptions: normalizePropsOptions(type.props), // 用户声明的props选项
   };
 
+  instance.ctx = { _: instance };
+
   return instance;
 }
 
@@ -55,8 +57,16 @@ export function setupComponent(instance) {
   setupStatefulComponent(instance);
 }
 
+const publicInstanceProxyHandlers = {
+  get(target, key, receiver) {
+    debugger;
+  },
+};
+
 function setupStatefulComponent(instance) {
   const { type } = instance;
+
+  instance.proxy = new Proxy(instance.ctx, publicInstanceProxyHandlers);
 
   if (isFunction(type.setup)) {
     const setupContext = createSetupContext(instance);
