@@ -20,9 +20,7 @@ import { isFunction } from '@vue/shared';
 export function createComponentInstance(vnode) {
   const { type } = vnode;
 
-  debugger;
-
-  const instance = {
+  const instance: any = {
     type,
     vnode,
     props: {},
