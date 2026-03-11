@@ -108,7 +108,7 @@ const publicInstanceProxyHandlers = {
     const { _: instance } = target;
     const { setupState } = instance;
     if (hasOwn(setupState, key)) {
-      // 修改setupState
+      // 当前最小实现：只允许写入 setupState 的同名字段
       setupState[key] = value;
     }
 
