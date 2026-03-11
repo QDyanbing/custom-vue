@@ -33,6 +33,7 @@
 3. 创建组件代理 `instance.proxy`（`Proxy(instance.ctx, handlers)`），渲染时会作为 `render` 的 this：
    - 读取属性时先查 `setupState`，再查 `props`，最后支持 `$attrs/$slots/$refs` 等公共属性
    - 命名冲突时：`setupState` 的同名字段会覆盖 `props` 的同名字段（因为访问顺序是 setupState → props）
+   - `$attrs/$slots/$refs` 的取值来自 `publicPropertiesMap`（本文件内的映射表）
 4. 若组件定义了 `setup` 且为函数，则调用：
    - `const setupResult = type.setup(instance.props, setupContext)`
    - 当 `setupResult` 为对象：`instance.setupState = proxyRefs(setupResult)`，render 中访问 ref 时无需 `.value`
@@ -53,6 +54,10 @@
 | `render` | 组件的 render 函数，由 setupComponent 从 type 上赋值 |
 | `setupState` | setup 返回值为对象时的 proxyRefs 代理；渲染时会优先从这里取同名属性 |
 | `proxy` | 公共实例代理：render 的 this（`instance.proxy`），负责把 `setupState/props/$attrs...` 暴露到同一访问入口 |
+
+补充说明：
+
+- 通过 `instance.proxy` 写入属性时，目前只处理写入 `setupState` 的同名字段（仅最小实现）。
 
 ## 依赖
 
