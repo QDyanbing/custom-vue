@@ -459,7 +459,7 @@ export function createRenderer(options) {
       if (!instance.isMounted) {
         // 挂载
         // 调用render函数拿到subTree，并绑定this为setupState
-        const subTree = instance.render.call(instance.setupState);
+        const subTree = instance.render.call(instance.proxy);
         // 将subTree挂载到页面上
         patch(null, subTree, container, anchor);
         // 保存子树
@@ -470,7 +470,7 @@ export function createRenderer(options) {
         // 更新
         const prevSubTree = instance.subTree;
         // 调用render函数拿到subTree，并绑定this为setupState
-        const subTree = instance.render.call(instance.setupState);
+        const subTree = instance.render.call(instance.proxy);
         // 将subTree挂载到页面上
         patch(prevSubTree, subTree, container, anchor);
         // 保存子树
