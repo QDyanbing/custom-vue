@@ -14,7 +14,7 @@
       // 演示两个点：
       // 1. props / attrs 的拆分
       //   - 组件只在 props 选项里声明了 msg
-      //   - createApp 传入 { msg, count } 时：props 里只有 msg；count 会落到 setupContext.attrs
+      //   - createApp 传入 { msg, count } 时：props 里只有 msg；count 会出现在 setupContext.attrs（getter 返回 instance.attrs）
       // 2. `setup` 返回“渲染函数”的情况
       //   - setupResult 为函数时，运行时会把它当作 render 使用
       const Comp = {
