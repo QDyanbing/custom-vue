@@ -98,6 +98,16 @@ const publicInstanceProxyHandlers = {
 
     return instance[key];
   },
+  set(target, key, value, receiver) {
+    const { _: instance } = target;
+    const { setupState } = instance;
+    if (hasOwn(setupState, key)) {
+      // 修改setupState
+      setupState[key] = value;
+    }
+
+    return true;
+  },
 };
 
 function setupStatefulComponent(instance) {
