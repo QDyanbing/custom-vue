@@ -27,11 +27,11 @@ export function createComponentInstance(vnode) {
     attrs: {},
     slots: {},
     refs: {},
-    subTree: null, // 子树，就是render的返回值
+    subTree: null, // 子树（render 返回的 VNode）
     isMounted: false, // 是否已挂载
     render: null, // 渲染函数
-    setupState: {}, // setup返回的状态
-    propsOptions: normalizePropsOptions(type.props), // 用户声明的props选项
+    setupState: {}, // setup 返回的状态
+    propsOptions: normalizePropsOptions(type.props), // 用户声明的 props 选项
   };
 
   instance.ctx = { _: instance };
@@ -45,10 +45,13 @@ export function createComponentInstance(vnode) {
  * 职责：
  * - 调用 `initProps` 按组件 `props` 选项解析出响应式的 `instance.props` 与普通 `instance.attrs`
  * - 创建 `setupContext`，目前暴露只读的 `attrs`
- * - 若组件实现了 `setup`，则以 `(props, context)` 形式调用，并对返回值做 `proxyRefs` 处理后挂到 `instance.setupState`
- * - 将组件定义上的 `render` 函数赋值给 `instance.render`
+ * - 创建组件代理 `instance.proxy`（用于 render 的 this）
+ * - 若组件实现了 `setup`，则以 `(props, context)` 形式调用：
+ *   - 返回对象：对返回值做 `proxyRefs` 后挂到 `instance.setupState`
+ *   - 返回函数：认为它就是渲染函数，赋给 `instance.render`
+ * - 若 `setup` 没有提供渲染函数，则兜底使用组件定义上的 `type.render`
  *
- * 渲染器在 `mountComponent` 中调用本函数，之后通过 `instance.render.call(instance.setupState)` 渲染子树。
+ * 渲染器在 `mountComponent` 中调用本函数，之后通过 `instance.render.call(instance.proxy)` 渲染子树。
  *
  * @param instance 组件实例
  * @returns 无返回值，结果挂在 `instance.setupState` 与 `instance.render` 上
@@ -71,9 +74,12 @@ const publicPropertiesMap = {
 const publicInstanceProxyHandlers = {
   get(target, key, receiver) {
     const { _: instance } = target;
-    const { setupState, props, attrs } = instance;
+    const { setupState, props } = instance;
     /**
-     * 如果访问了某个属性，先去setupState中查找，如果找不到，再去props中查找
+     * 属性访问顺序：
+     * 1. 先从 setupState 中取（setup 返回的状态）
+     * 2. 再从 props 中取（声明为 props 的输入）
+     * 3. 最后支持 $attrs/$slots/$refs 等公共属性
      */
 
     // 去setupState中查找
@@ -132,10 +138,10 @@ function setupStatefulComponent(instance) {
 
 function handleSetupResult(instance, setupResult) {
   if (isFunction(setupResult)) {
-    // 如果setup返回的是一个函数，则认定为是一个render函数
+    // 如果 setup 返回的是一个函数，则认为它就是渲染函数
     instance.render = setupResult;
   } else if (isObject(setupResult)) {
-    // 拿到setup返回的状态
+    // 拿到 setup 返回的状态
     instance.setupState = proxyRefs(setupResult);
   }
 }
