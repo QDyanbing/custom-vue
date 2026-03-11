@@ -22,22 +22,9 @@
         setup(props, { attrs }) {
           const count = ref(0);
 
-          return {
-            count,
+          return () => {
+            return h('div', count.value);
           };
-        },
-
-        render() {
-          return h(
-            'div',
-            {
-              onClick: () => {
-                console.log('click');
-                this.count++;
-              },
-            },
-            this.count,
-          );
         },
       };
 

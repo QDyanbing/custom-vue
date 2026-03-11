@@ -1,7 +1,7 @@
 import { type VNode } from './vnode';
 import { proxyRefs } from '@vue/reactivity';
 import { normalizePropsOptions, initProps } from './componentProps';
-import { hasOwn, isFunction } from '@vue/shared';
+import { hasOwn, isFunction, isObject } from '@vue/shared';
 
 /**
  * 创建组件实例。
@@ -119,13 +119,25 @@ function setupStatefulComponent(instance) {
     const setupContext = createSetupContext(instance);
     // 保存 setupContext
     instance.setupContext = setupContext;
-    const setupResult = proxyRefs(type.setup(instance.props, setupContext));
-    // 拿到setup返回的状态
-    instance.setupState = setupResult;
+    const setupResult = type.setup(instance.props, setupContext);
+
+    handleSetupResult(instance, setupResult);
   }
 
-  // 将render函数赋值给instance
-  instance.render = type.render;
+  if (!instance.render) {
+    // 如果上面的都处理完了还是没有返回值，则使用组件定义上的render函数
+    instance.render = type.render;
+  }
+}
+
+function handleSetupResult(instance, setupResult) {
+  if (isFunction(setupResult)) {
+    // 如果setup返回的是一个函数，则认定为是一个render函数
+    instance.render = setupResult;
+  } else if (isObject(setupResult)) {
+    // 拿到setup返回的状态
+    instance.setupState = proxyRefs(setupResult);
+  }
 }
 
 /**
