@@ -29,11 +29,15 @@
    - 解析 `instance.vnode.props`，根据 `instance.propsOptions` 把属性分到 `instance.props` 与 `instance.attrs`
    - 对 `props` 使用 `reactive` 包装，供 `setup(props)` 与后续渲染使用
 2. 创建 `setupContext`，当前仅暴露只读的 `attrs`：
-   - `setup(props, { attrs })` 中访问到的 `attrs` 实际上是对 `instance.attrs` 的 getter
-3. 若组件定义了 `setup` 且为函数，则调用：
+   - `setup(props, { attrs })` 中访问到的 `attrs` 是一个 getter，每次读取都会返回当前的 `instance.attrs`
+3. 创建组件代理 `instance.proxy`（`Proxy(instance.ctx, handlers)`），渲染时会作为 `render` 的 this：
+   - 读取属性时先查 `setupState`，再查 `props`，最后支持 `$attrs/$slots/$refs` 等公共属性
+   - 命名冲突时：`setupState` 的同名字段会覆盖 `props` 的同名字段（因为访问顺序是 setupState → props）
+4. 若组件定义了 `setup` 且为函数，则调用：
    - `const setupResult = type.setup(instance.props, setupContext)`
-   - 使用 `proxyRefs(setupResult)` 得到代理对象，赋给 `instance.setupState`（模板或 render 中访问 ref 时无需 `.value`）
-4. 将 `instance.type.render` 赋给 `instance.render`，供渲染器在挂载/更新时调用
+   - 当 `setupResult` 为对象：`instance.setupState = proxyRefs(setupResult)`，render 中访问 ref 时无需 `.value`
+   - 当 `setupResult` 为函数：认为它就是渲染函数，直接赋给 `instance.render`
+5. 若 `setup` 没有提供渲染函数，则兜底使用组件定义上的 `type.render`
 
 依赖 `@vue/reactivity` 的 `proxyRefs`，用于在暴露给 render 的上下文中自动解包 ref。
 
@@ -47,7 +51,8 @@
 | `subTree` | 当前 render 的返回值（子树 VNode）；渲染器挂载时写入，更新时作为 prevSubTree 与新一轮 render 结果做 patch |
 | `isMounted` | 是否已完成首次挂载；渲染器在 componentUpdateFn 中用于区分首渲（patch(null, subTree)）与更新（patch(prevSubTree, subTree)） |
 | `render` | 组件的 render 函数，由 setupComponent 从 type 上赋值 |
-| `setupState` | setup 返回值的 proxyRefs 代理，作为 render 的 this 上下文 |
+| `setupState` | setup 返回值为对象时的 proxyRefs 代理；渲染时会优先从这里取同名属性 |
+| `proxy` | 公共实例代理：render 的 this（`instance.proxy`），负责把 `setupState/props/$attrs...` 暴露到同一访问入口 |
 
 ## 依赖
 
