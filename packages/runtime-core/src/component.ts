@@ -1,7 +1,7 @@
 import { type VNode } from './vnode';
 import { proxyRefs } from '@vue/reactivity';
 import { normalizePropsOptions, initProps } from './componentProps';
-import { isFunction } from '@vue/shared';
+import { hasOwn, isFunction } from '@vue/shared';
 
 /**
  * 创建组件实例。
@@ -25,10 +25,12 @@ export function createComponentInstance(vnode) {
     vnode,
     props: {},
     attrs: {},
+    slots: {},
+    refs: {},
     subTree: null, // 子树，就是render的返回值
     isMounted: false, // 是否已挂载
     render: null, // 渲染函数
-    setupState: null, // setup返回的状态
+    setupState: {}, // setup返回的状态
     propsOptions: normalizePropsOptions(type.props), // 用户声明的props选项
   };
 
@@ -57,9 +59,44 @@ export function setupComponent(instance) {
   setupStatefulComponent(instance);
 }
 
+const publicPropertiesMap = {
+  $attrs: i => i.attrs,
+  $slots: i => i.slots,
+  $refs: i => i.refs,
+  $nextTick: i => {
+    // TODO
+  },
+};
+
 const publicInstanceProxyHandlers = {
   get(target, key, receiver) {
-    debugger;
+    const { _: instance } = target;
+    const { setupState, props, attrs } = instance;
+    /**
+     * 如果访问了某个属性，先去setupState中查找，如果找不到，再去props中查找
+     */
+
+    // 去setupState中查找
+    if (hasOwn(setupState, key)) {
+      return setupState[key];
+    }
+
+    // 去props中查找
+    if (hasOwn(props, key)) {
+      return props[key];
+    }
+
+    /**
+     * $attrs
+     * $slots
+     * $refs
+     */
+    if (hasOwn(publicPropertiesMap, key)) {
+      const publicGetter = publicPropertiesMap[key];
+      return publicGetter(instance);
+    }
+
+    return instance[key];
   },
 };
 
@@ -71,7 +108,7 @@ function setupStatefulComponent(instance) {
   if (isFunction(type.setup)) {
     const setupContext = createSetupContext(instance);
     // 保存 setupContext
-    instance.setupState = setupContext;
+    instance.setupContext = setupContext;
     const setupResult = proxyRefs(type.setup(instance.props, setupContext));
     // 拿到setup返回的状态
     instance.setupState = setupResult;
