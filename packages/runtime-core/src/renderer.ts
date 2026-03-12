@@ -3,6 +3,7 @@ import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
+import { queueJob } from './scheduler';
 
 /**
  * 创建一个渲染器。
@@ -487,7 +488,7 @@ export function createRenderer(options) {
     instance.update = update;
 
     effect.scheduler = () => {
-      update();
+      queueJob(update);
     };
 
     update();
