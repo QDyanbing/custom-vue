@@ -94,8 +94,8 @@ container._vnode = vnode;
 
 - **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode，并建立响应式更新链路。步骤为：
   1. 调用 `createComponentInstance(vnode)`、`setupComponent(instance)` 得到实例与 `setupState`、`render`。
-  2. 定义 `componentUpdateFn`：若 `!instance.isMounted` 则首渲，`render.call(setupState)` 得 subTree，`patch(null, subTree, container, anchor)`，并记 `instance.subTree`、`instance.isMounted = true`；否则为更新，取 `prevSubTree = instance.subTree`，再 render 得新 subTree，执行 `patch(prevSubTree, subTree, container, anchor)` 并更新 `instance.subTree`。
-  3. 使用 `new ReactiveEffect(componentUpdateFn)` 创建 effect，并 `effect.run()`。之后当 `setupState` 中响应式数据变化时，effect 会重新执行 `componentUpdateFn`，从而完成组件内更新（子树 diff）。
+  2. 定义 `componentUpdateFn`：若 `!instance.isMounted` 则首渲，`render.call(instance.proxy)` 得 subTree，`patch(null, subTree, container, anchor)`，并记 `instance.subTree`、`instance.isMounted = true`；否则为更新，取 `prevSubTree = instance.subTree`，再 render 得新 subTree，执行 `patch(prevSubTree, subTree, container, anchor)` 并更新 `instance.subTree`。
+  3. 使用 `new ReactiveEffect(componentUpdateFn)` 创建 effect，并把 `effect.run` 绑定为 `instance.update`。当响应式数据变化时，effect 会通过 `effect.scheduler` 把更新函数交给 `queueJob`（微任务）执行，从而完成组件内的异步更新（子树 diff）。
 
 组件实例与 setup 的细节见 [component.md](./component.md)。
 
