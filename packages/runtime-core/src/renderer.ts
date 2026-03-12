@@ -478,7 +478,7 @@ export function createRenderer(options) {
    *
    * - 组件实例的创建与 props/attrs 解析由 `createComponentInstance` + `setupComponent` 完成
    * - `componentUpdateFn` 被包装进 `ReactiveEffect`，从而在响应式数据变化时重新执行 render 并 diff 子树
-   * - 当前是最小实现：没有 scheduler / job 队列，effect 触发后会同步重新执行 `componentUpdateFn`
+   * - 当前是最小实现：通过 `effect.scheduler` 把更新函数交给 `queueJob`，在微任务中批量执行（未做去重/合并）
    *
    * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
    * @param container 挂载到的父容器
