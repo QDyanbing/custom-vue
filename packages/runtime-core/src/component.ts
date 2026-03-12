@@ -69,6 +69,9 @@ const publicPropertiesMap = {
   $nextTick: i => {
     return nextTick.bind(i);
   },
+  $forceUpdate: i => {
+    return () => i.update();
+  },
 };
 
 const publicInstanceProxyHandlers = {
