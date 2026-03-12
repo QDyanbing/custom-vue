@@ -23,10 +23,12 @@
           const count = ref(0);
 
           btn.onclick = () => {
+            // 连续同步修改多次：渲染更新会通过 scheduler 在微任务中调度（不会在这段同步代码里立刻渲染）
             count.value++;
             count.value++;
             count.value++;
 
+            // nextTick：等待本轮调度的渲染完成后再读 DOM
             nextTick(() => {
               const box = document.getElementById('box');
               console.log('box.textContent ==> ', box.textContent);
@@ -36,6 +38,7 @@
           return function render() {
             console.count('render');
 
+            // $nextTick：与 nextTick 相同的“等待渲染后回调”语义，但 this 绑定为组件实例（便于写成实例方法）
             this.$nextTick(() => {
               const box = document.getElementById('box');
               console.log('box.textContent ==> ', box.textContent);
