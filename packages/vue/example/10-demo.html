@@ -9,7 +9,7 @@
     <button id="btn">count++</button>
     <script type="module">
       // import { h, createApp, ref } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { h, createApp, ref } from '../dist/vue.esm.js';
+      import { h, createApp, ref, nextTick } from '../dist/vue.esm.js';
 
       // 演示两个点：
       // 1. props / attrs 的拆分
@@ -26,12 +26,17 @@
             count.value++;
             count.value++;
             count.value++;
+
+            nextTick(() => {
+              const box = document.getElementById('box');
+              console.log('box.textContent ==> ', box.textContent);
+            });
           };
 
           return () => {
             console.count('render');
 
-            return h('div', count.value);
+            return h('div', { id: 'box' }, count.value);
           };
         },
       };
