@@ -481,8 +481,16 @@ export function createRenderer(options) {
 
     // 创建一个响应式effect，当响应式数据变化时，会执行componentUpdateFn
     const effect = new ReactiveEffect(componentUpdateFn);
-    // 执行effect
-    effect.run();
+
+    const update = effect.run.bind(effect);
+
+    instance.update = update;
+
+    effect.scheduler = () => {
+      update();
+    };
+
+    update();
   };
 
   /**
