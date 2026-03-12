@@ -66,9 +66,23 @@ const publicPropertiesMap = {
   $attrs: i => i.attrs,
   $slots: i => i.slots,
   $refs: i => i.refs,
+  /**
+   * `this.$nextTick(fn)`：
+   *
+   * - 等价于把 `scheduler.nextTick` 的 this 绑定为当前组件实例（i）
+   * - 使得 `nextTick` 内部以 `fn.call(this)` 执行时，this 指向组件实例
+   *
+   * 注意：这里返回的是一个“已 bind 的函数”；真正调度行为在 `scheduler.ts`。
+   */
   $nextTick: i => {
     return nextTick.bind(i);
   },
+  /**
+   * `this.$forceUpdate()`：
+   *
+   * 触发当前组件实例的更新（调用渲染器在 mount 时挂到实例上的 `instance.update`）。
+   * 当前实现会走 scheduler（异步微任务）还是同步执行，取决于渲染器里 effect 是否设置了 scheduler。
+   */
   $forceUpdate: i => {
     return () => i.update();
   },
