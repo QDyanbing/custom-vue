@@ -431,28 +431,7 @@ export function createRenderer(options) {
     }
   };
 
-  /**
-   * 挂载组件类型 VNode：创建实例 → 执行 setup → 用实例代理作为 this 调 render 得到子树 → patch 子树。
-   *
-   * - 组件实例的创建与 props/attrs 解析由 `createComponentInstance` + `setupComponent` 完成
-   * - `componentUpdateFn` 被包装进 `ReactiveEffect`，从而在响应式数据变化时重新执行 render 并 diff 子树
-   * - 当前是最小实现：没有 scheduler / job 队列，effect 触发后会同步重新执行 `componentUpdateFn`
-   *
-   * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
-   * @param container 挂载到的父容器
-   * @param anchor 锚点，插入位置
-   */
-  const mountComponent = (vnode: VNode, container: Element, anchor = null) => {
-    /**
-     * 1. 创建组件实例
-     * 2. 初始化组件状态
-     * 3. 挂载组件到页面
-     */
-    // 创建组件实例
-    const instance = createComponentInstance(vnode);
-    // 初始化组件状态
-    setupComponent(instance);
-
+  const setupRenderEffect = (instance, container, anchor = null) => {
     const componentUpdateFn = () => {
       /**
        * 区分挂载和更新
@@ -492,6 +471,31 @@ export function createRenderer(options) {
     };
 
     update();
+  };
+
+  /**
+   * 挂载组件类型 VNode：创建实例 → 执行 setup → 用实例代理作为 this 调 render 得到子树 → patch 子树。
+   *
+   * - 组件实例的创建与 props/attrs 解析由 `createComponentInstance` + `setupComponent` 完成
+   * - `componentUpdateFn` 被包装进 `ReactiveEffect`，从而在响应式数据变化时重新执行 render 并 diff 子树
+   * - 当前是最小实现：没有 scheduler / job 队列，effect 触发后会同步重新执行 `componentUpdateFn`
+   *
+   * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
+   * @param container 挂载到的父容器
+   * @param anchor 锚点，插入位置
+   */
+  const mountComponent = (vnode: VNode, container: Element, anchor = null) => {
+    /**
+     * 1. 创建组件实例
+     * 2. 初始化组件状态
+     * 3. 挂载组件到页面
+     */
+    // 创建组件实例
+    const instance = createComponentInstance(vnode);
+    // 初始化组件状态
+    setupComponent(instance);
+
+    setupRenderEffect(instance, container, anchor);
   };
 
   /**
