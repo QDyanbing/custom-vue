@@ -33,8 +33,13 @@
             });
           };
 
-          return () => {
+          return function render() {
             console.count('render');
+
+            this.$nextTick(() => {
+              const box = document.getElementById('box');
+              console.log('box.textContent ==> ', box.textContent);
+            });
 
             return h('div', { id: 'box' }, count.value);
           };

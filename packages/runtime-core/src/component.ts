@@ -2,7 +2,7 @@ import { type VNode } from './vnode';
 import { proxyRefs } from '@vue/reactivity';
 import { normalizePropsOptions, initProps } from './componentProps';
 import { hasOwn, isFunction, isObject } from '@vue/shared';
-
+import { nextTick } from './scheduler';
 /**
  * 创建组件实例。
  *
@@ -67,7 +67,7 @@ const publicPropertiesMap = {
   $slots: i => i.slots,
   $refs: i => i.refs,
   $nextTick: i => {
-    // TODO
+    return nextTick.bind(i);
   },
 };
 
