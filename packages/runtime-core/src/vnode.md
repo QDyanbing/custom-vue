@@ -20,7 +20,7 @@
 - `normalizeChildren`：在创建 VNode 前将 children 标准化（如 number 转 string），供 `createVNode` 内部使用
 - `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）或组件对象（有状态组件）
 - `isVNode`：判断一个值是否已经是 VNode
-- `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为“同一个节点”
+- `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
 
 这些内容会被 `h.ts` 和 `renderer.ts` 共同使用：  
 `h` 负责把用户多种调用方式标准化为 VNode，`renderer` 根据 VNode 的结构和标记信息决定如何挂载、更新和卸载真实 DOM；子节点中的原始值由 renderer 侧通过 `normalizeVNode` 转为 Text VNode。
@@ -36,17 +36,18 @@
   - VNode 数组
 - `key`：用于列表 diff 场景识别节点身份
 - `el`：挂载后的真实 DOM 元素引用（初始为 `null`，由 renderer 在运行时填充）
-- `shapeFlag`：使用位运算记录“节点类型 + 子节点类型”的组合信息
+- `shapeFlag`：使用位运算记录"节点类型 + 子节点类型"的组合信息
+- `component`：当 VNode 类型为组件时，渲染器在 `mountComponent` 中会把创建好的组件实例挂到这里；后续 `updateComponent` 通过 `n2.component = n1.component` 复用实例，避免重复创建
 
 借助 `shapeFlag`，后续在 `renderer` 里可以只通过按位与来判断当前 VNode 属于哪种形态，而不需要到处写 `typeof` / `Array.isArray` 之类的判断。
 
 ## Text 与文本节点
 
-`Text` 是一个 `Symbol('v-txt')`，用作“文本类型”VNode 的 `type`。当子节点在写法上是 string 或 number 时，不会直接作为元素 VNode 的 `children` 字符串存，而是先被 `normalizeVNode` 转成 `type === Text`、`children` 为字符串的 VNode，再参与挂载和 diff。这样在 renderer 里可以统一用 `patch` 处理元素和文本，并在 `patch` 内通过 `type === Text` 走 `processText`。
+`Text` 是一个 `Symbol('v-txt')`，用作"文本类型"VNode 的 `type`。当子节点在写法上是 string 或 number 时，不会直接作为元素 VNode 的 `children` 字符串存，而是先被 `normalizeVNode` 转成 `type === Text`、`children` 为字符串的 VNode，再参与挂载和 diff。这样在 renderer 里可以统一用 `patch` 处理元素和文本，并在 `patch` 内通过 `type === Text` 走 `processText`。
 
 ## normalizeVNode(vnode)
 
-把“可能是原始值”的子节点统一成 VNode，供 renderer 在挂载和 diff 时使用：
+把"可能是原始值"的子节点统一成 VNode，供 renderer 在挂载和 diff 时使用：
 
 - 若 `vnode` 是 `string` 或 `number`，返回 `createVNode(Text, null, String(vnode))`，即一个文本类型的 VNode。
 - 否则认为已经是 VNode，直接返回。
@@ -60,11 +61,11 @@
 - 若 `children` 为 `number`，转为 `String(children)`
 - 其它情况原样返回（string、数组、VNode 等由后续逻辑处理）
 
-这样保证进入“子节点类型”判断时，数字已被统一成字符串，避免重复分支。
+这样保证进入"子节点类型"判断时，数字已被统一成字符串，避免重复分支。
 
 ## createVNode(type, props?, children?)
 
-`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把“节点类型 / 子节点类型”编码进 `shapeFlag`。内部会先对 `children` 调用 `normalizeChildren(children)`。
+`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。内部会先对 `children` 调用 `normalizeChildren(children)`。
 
 - 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
 - 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
@@ -101,7 +102,7 @@ if (isString(children)) {
 `isVNode` 用于判断一个值是否已经是 VNode：
 
 - 通过内部的 `__v_isVNode` 标记识别
-- 主要服务于 `h` 这类 API，在处理参数时区分“普通对象”与“已经是 VNode”
+- 主要服务于 `h` 这类 API，在处理参数时区分"普通对象"与"已经是 VNode"
 
 例如在 `h` 里，当第二个参数是对象时，需要分情况判断：
 
@@ -115,8 +116,7 @@ if (isString(children)) {
 - 判断依据只有两点：
   - `type` 相同
   - `key` 相同
-- 一旦任意一项不同，就视为“完全不同的节点”，不再尝试复用，renderer 会选择卸载老节点、重新挂载新节点。
+- 一旦任意一项不同，就视为"完全不同的节点"，不再尝试复用，renderer 会选择卸载老节点、重新挂载新节点。
 
 这条规则和 Vue3 源码的核心思想一致：  
 只要 type + key 一致，就认为可复用，具体 props / children 的差异交给后续更细粒度的 patch 流程处理。
-
