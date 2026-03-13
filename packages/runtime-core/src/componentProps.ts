@@ -82,8 +82,23 @@ export function initProps(instance) {
 }
 
 export function updateProps(instance, nextVNode) {
-  const { props: prevProps, attrs: prevAttrs } = instance;
+  const { props, attrs } = instance;
   const rawProps = nextVNode.props;
 
-  setFullProps(instance, rawProps, prevProps, prevAttrs);
+  // 这里是设置所有的
+  setFullProps(instance, rawProps, props, attrs);
+
+  for (const key in props) {
+    if (!hasOwn(rawProps, key)) {
+      // 如果新的没有这个属性，则删除
+      delete props[key];
+    }
+  }
+
+  for (const key in attrs) {
+    if (!hasOwn(rawProps, key)) {
+      // 如果新的没有这个属性，则删除
+      delete attrs[key];
+    }
+  }
 }
