@@ -10,7 +10,7 @@
 - [render(vNode, container)](#rendervnode-container)
 - [patch(n1, n2, container, anchor?)](#patchn1-n2-container-anchor)
 - [patch 对类型的分发（Element / Text / Component）](#patch-对类型的分发element--text--component)
-- [组件 processComponent 与 mountComponent](#组件-processcomponent-与-mountcomponent)
+- [组件 processComponent、mountComponent 与 updateComponent](#组件-processcomponentmountcomponent-与-updatecomponent)
 - [patchElement 与 children 处理](#patchelement-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
 - [乱序 diff 与最长递增子序列（LIS）](#乱序-diff-与最长递增子序列lis)
@@ -21,7 +21,7 @@
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
 - 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
-- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `mountComponent` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff
+- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` 的链路
 - 卸载：`unmount`、`unmountChildren`
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
@@ -46,9 +46,9 @@ app.mount(container);                                // 根组件挂载
 
 ### render(vNode, container)
 
-`render` 的职责是把 VNode 渲染到 `container`，并维护一次渲染的“前后状态”：
+`render` 的职责是把 VNode 渲染到 `container`，并维护一次渲染的"前后状态"：
 
-- 首次渲染：`container._vnode` 为空，走“挂载整棵树”逻辑。
+- 首次渲染：`container._vnode` 为空，走"挂载整棵树"逻辑。
 - 更新渲染：`container._vnode` 不为空，会把老的 vnode 和新的 vnode 一起交给 `patch` 进行对比。
 - 传入 `null`：如果之前有渲染过，会调用 `unmount(container._vnode)` 卸载整棵树。
 
@@ -66,7 +66,7 @@ container._vnode = vnode;
 
 ### patch(n1, n2, container, anchor?)
 
-`patch` 是“挂载 + 更新”的统一入口：
+`patch` 是"挂载 + 更新"的统一入口：
 
 - 如果 `n1 === n2`：完全同一个引用，直接返回。
 - 如果 `n1` 存在但和 `n2` 不是同一个 VNode（`isSameVNode` 为假）：
@@ -80,22 +80,32 @@ container._vnode = vnode;
 
 ### patch 对类型的分发（Element / Text / Component）
 
-`patch` 在确定“同一节点需要更新”后，先根据 `n2.type` 判断是否为 `Text`，再根据 `n2.shapeFlag` 分发到元素或组件：
+`patch` 在确定"同一节点需要更新"后，先根据 `n2.type` 判断是否为 `Text`，再根据 `n2.shapeFlag` 分发到元素或组件：
 
 - `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
 - `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
-- `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；同一组件 VNode 的 props 等外部更新可后续做 `patchComponent`）。
+- `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；已挂载的组件走 `updateComponent` 判断是否需要更新 props 并触发子树 diff）。
 
 这样元素、文本、组件在挂载与更新时走各自分支。组件分支详见下一节。
 
-### 组件 processComponent 与 mountComponent
+### 组件 processComponent、mountComponent 与 updateComponent
 
-- **processComponent(n1, n2, container, anchor)**：组件入口。`n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；`n1 != null` 时为“同一组件 VNode 的更新”（如父组件传入新 props），当前未实现 `patchComponent`，可后续扩展。
+- **processComponent(n1, n2, container, anchor)**：组件入口。`n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；`n1 != null` 时走 `updateComponent(n1, n2)` 做组件更新。
 
 - **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode，并建立响应式更新链路。步骤为：
-  1. 调用 `createComponentInstance(vnode)`、`setupComponent(instance)` 得到实例与 `setupState`、`render`。
-  2. 定义 `componentUpdateFn`：若 `!instance.isMounted` 则首渲，`render.call(instance.proxy)` 得 subTree，`patch(null, subTree, container, anchor)`，并记 `instance.subTree`、`instance.isMounted = true`；否则为更新，取 `prevSubTree = instance.subTree`，再 render 得新 subTree，执行 `patch(prevSubTree, subTree, container, anchor)` 并更新 `instance.subTree`。
-  3. 使用 `new ReactiveEffect(componentUpdateFn)` 创建 effect，并把 `effect.run` 绑定为 `instance.update`。当响应式数据变化时，effect 会通过 `effect.scheduler` 把更新函数交给 `queueJob`（微任务）执行，从而完成组件内的异步更新（子树 diff）。
+  1. 调用 `createComponentInstance(vnode)`、`setupComponent(instance)` 得到实例与 `setupState`、`render`。同时把实例挂到 `vnode.component` 上，方便后续更新时复用。
+  2. 调用 `setupRenderEffect(instance, container, anchor)` 建立响应式 effect（见下方）。
+
+- **setupRenderEffect(instance, container, anchor)**：定义 `componentUpdateFn` 并用 `ReactiveEffect` 包裹：
+  - **首渲**（`!instance.isMounted`）：`render.call(instance.proxy)` 得 subTree，`patch(null, subTree, container, anchor)`；同时把 `vnode.el = subTree.el`（让 `$el` 可读），记 `instance.subTree`，标 `instance.isMounted = true`。
+  - **更新**：检查 `instance.next` 是否存在——若存在说明是父组件触发的更新，先调 `updateComponentPreRender(instance, next)` 把新 VNode 的 props/slots 同步到实例上；否则是自身响应式数据变化。之后重新 render 得新 subTree，`patch(prevSubTree, subTree)` 做子树 diff，并更新 `vnode.el`。
+  - 将 `effect.run` 绑定为 `instance.update`，设置 `effect.scheduler = () => queueJob(update)`，使更新走微任务调度。
+
+- **updateComponent(n1, n2)**：组件更新入口。复用旧 VNode 上的 `component`（组件实例）挂到新 VNode 上，再调用 `shouldUpdateComponent(n1, n2)`（见 [componentRenderUtils.md](./componentRenderUtils.md)）判断是否需要触发子树更新：
+  - 需要更新：把新 VNode 暂存到 `instance.next`，调用 `instance.update()` 触发 `componentUpdateFn` 重新执行
+  - 不需要更新：只复用 `el` 和更新 `instance.vnode` 引用，跳过子树 diff
+
+- **updateComponentPreRender(instance, nextVNode)**：在组件重新 render 之前，把新 VNode 上的数据同步到实例——更新 `instance.vnode`、清空 `instance.next`、调用 `updateProps` 把最新的 props/attrs 写入实例。
 
 组件实例与 setup 的细节见 [component.md](./component.md)。
 
@@ -118,7 +128,7 @@ container._vnode = vnode;
 
 `renderer.ts` 里实现的是带乱序处理的 keyed 双端 diff，入口是 `patchKeyedChildren(c1, c2, container)`：
 
-- **1. 头部同步**：从 `i = 0` 开始，依次比较 `c1[i]` / `c2[i]`，只要是“同一个 VNode”就递归 `patch`，直到遇到不同节点停下。
+- **1. 头部同步**：从 `i = 0` 开始，依次比较 `c1[i]` / `c2[i]`，只要是"同一个 VNode"就递归 `patch`，直到遇到不同节点停下。
 - **2. 尾部同步**：从尾部 `e1` / `e2` 向内比较，同样相同就 `patch` 并收缩，遇到不同停下。
 - **3. 仅多新节点**：若 `i > e1`，说明老列表先走完，剩余 `c2[i..e2]` 全部挂载到合适锚点前。
 - **4. 仅多老节点**：若 `i > e2`，说明新列表先走完，剩余 `c1[i..e1]` 全部卸载。
@@ -129,13 +139,13 @@ container._vnode = vnode;
 当头尾同步后中间段顺序不一致时（例如 `c1 = [a,b,c,d,e]`，`c2 = [a,c,d,b,e]`），会做：
 
 - **建立映射**：
-  - `keyToNewIndexMap`：新列表剩余段中 `key -> 新下标`，用于在老节点里查“这个 key 在新里排第几”。
+  - `keyToNewIndexMap`：新列表剩余段中 `key -> 新下标`，用于在老节点里查"这个 key 在新里排第几"。
   - `newIndexToOldIndexMap`：新列表剩余段长度，`newIndexToOldIndexMap[新下标 - s2] = 老下标`；未匹配填 `-1`（不参与 LIS）。
-- **遍历老列表剩余段**：按 key 在新里找位置，能找到则 `patch` 并写入 `newIndexToOldIndexMap`；找不到则卸载。同时根据“新下标是否单调递增”判断是否需要移动（`moved`）。
-- **最长递增子序列**：若 `moved === true`，对 `newIndexToOldIndexMap` 求 LIS（`getSequence`），得到“在新列表中下标递增的一段”，这些节点相对顺序没变，不需要移动。
-- **按新列表顺序插入**：从新列表剩余段尾部往头遍历，以“下一个节点”为 anchor；若当前节点在新列表中的下标不在 LIS 中，则 `hostInsert` 移动到 anchor 前；若无 `el` 说明是新加的，则 `patch(null, n2, ...)` 挂载。
+- **遍历老列表剩余段**：按 key 在新里找位置，能找到则 `patch` 并写入 `newIndexToOldIndexMap`；找不到则卸载。同时根据"新下标是否单调递增"判断是否需要移动（`moved`）。
+- **最长递增子序列**：若 `moved === true`，对 `newIndexToOldIndexMap` 求 LIS（`getSequence`），得到"在新列表中下标递增的一段"，这些节点相对顺序没变，不需要移动。
+- **按新列表顺序插入**：从新列表剩余段尾部往头遍历，以"下一个节点"为 anchor；若当前节点在新列表中的下标不在 LIS 中，则 `hostInsert` 移动到 anchor 前；若无 `el` 说明是新加的，则 `patch(null, n2, ...)` 挂载。
 
-这样只需移动“不在 LIS 里”的节点，最小化 DOM 移动次数。`getSequence` 使用“耐心排序 + 二分”求 LIS 下标序列，时间 O(n log n)，详见源码内 JSDoc。
+这样只需移动"不在 LIS 里"的节点，最小化 DOM 移动次数。`getSequence` 使用"耐心排序 + 二分"求 LIS 下标序列，时间 O(n log n)，详见源码内 JSDoc。
 
 ### 文本节点 processText
 
