@@ -4,6 +4,7 @@ import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
+import { shouldUpdateComponent } from './componentRenderUtils';
 
 /**
  * 创建一个渲染器。
@@ -438,22 +439,29 @@ export function createRenderer(options) {
        */
 
       if (!instance.isMounted) {
+        const { vnode, render } = instance;
         // 挂载
         // 调用 render 函数拿到 subTree，并绑定 this 为 instance.proxy
-        const subTree = instance.render.call(instance.proxy);
+        const subTree = render.call(instance.proxy);
         // 将 subTree 挂载到页面上
         patch(null, subTree, container, anchor);
+        // 组件的el 指向 subTree 的el，他们是相同的
+        vnode.el = subTree.el;
         // 保存子树
         instance.subTree = subTree;
         // 已经挂载过了
         instance.isMounted = true;
       } else {
+        const { vnode, render } = instance;
+
         // 更新
         const prevSubTree = instance.subTree;
         // 调用 render 函数拿到 subTree，并绑定 this 为 instance.proxy
-        const subTree = instance.render.call(instance.proxy);
+        const subTree = render.call(instance.proxy);
         // 将 subTree 挂载到页面上
         patch(prevSubTree, subTree, container, anchor);
+        // 组件的el 指向 subTree 的el，他们是相同的
+        vnode.el = subTree.el;
         // 保存子树
         instance.subTree = subTree;
       }
@@ -492,10 +500,29 @@ export function createRenderer(options) {
      */
     // 创建组件实例
     const instance = createComponentInstance(vnode);
+    // 将组件实例挂载到 vnode 上,方便后续更新时使用
+    vnode.component = instance;
     // 初始化组件状态
     setupComponent(instance);
 
     setupRenderEffect(instance, container, anchor);
+  };
+
+  const updateComponent = (n1, n2) => {
+    const instance = (n2.component = n1.component);
+    /**
+     * 该更新：props 和 slots 变化
+     * 不该更新：啥都没变
+     */
+    if (shouldUpdateComponent(n1, n2)) {
+      console.log('更新');
+    } else {
+      // 没有任何属性变化，则不需要更新；但是需要复用 el 和 更新 vnode
+      // 即使不需要更新，el 也是需要复用的
+      n2.el = n1.el;
+      // 更新 vnode
+      instance.vnode = n2;
+    }
   };
 
   /**
@@ -511,7 +538,7 @@ export function createRenderer(options) {
       mountComponent(n2, container, anchor);
     } else {
       // 更新
-      // patchComponent(n1, n2);
+      updateComponent(n1, n2);
     }
   };
 

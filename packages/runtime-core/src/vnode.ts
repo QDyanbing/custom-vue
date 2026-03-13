@@ -17,6 +17,7 @@ export interface VNode {
   key?: string | number; // 用于高效 diff 的标识
   el?: Element | null; // 关联的真实 DOM 元素
   shapeFlag: number; // 使用位运算标记当前 VNode 的“形状”（元素 / 文本子节点 / 数组子节点）
+  component?: any; // 组件实例
 }
 
 /**
