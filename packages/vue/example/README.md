@@ -12,6 +12,6 @@
 - `08-demo.html`：`setup + render` 计数器，演示 `ref` 与 `this` 上的自动解包。
 - `09-demo.html`：演示根组件 props 与 attrs 的拆分：组件只声明 `props: ['msg']`，创建应用时额外传入 `count`，可以在 `setup(props, { attrs })` 中分别看到 `props.msg` 和 `attrs.count`。
 - `10-demo.html`：演示组件的异步更新与 `nextTick/$nextTick`：连续多次修改响应式值会被调度到同一轮微任务中执行渲染；并在更新后通过 nextTick 读取到最新的 DOM 内容。
+- `11-demo.html`：演示父子组件的更新流程：父组件持有 `ref(age)` 并通过 props 传给子组件 `Child`；点击按钮触发 `age++`，父组件重新 render → `updateComponent` → `shouldUpdateComponent` → `updateProps` 把新的 `age` 同步给子组件，子组件 render effect 重新执行。
 
 后续如果新增 demo，建议在这里简单列一下文件名和它覆盖的能力，方便快速索引。
-
