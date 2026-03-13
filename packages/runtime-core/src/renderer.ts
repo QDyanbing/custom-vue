@@ -433,6 +433,15 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * 在组件重新执行 render 之前，把新 VNode 上的 props/slots 同步到实例上。
+   *
+   * 调用时机：`componentUpdateFn` 检测到 `instance.next` 存在（即父组件触发的更新），
+   * 在执行 render 之前先调用本函数，让 instance 上的数据与最新的 VNode 对齐。
+   *
+   * @param instance 组件实例
+   * @param nextVNode 新的组件 VNode（由父组件传入的更新后 VNode）
+   */
   const updateComponentPreRender = (instance, nextVNode) => {
     /**
      * 复用组件实例
@@ -445,6 +454,23 @@ export function createRenderer(options) {
     updateProps(instance, nextVNode);
   };
 
+  /**
+   * 为组件实例建立响应式渲染 effect。
+   *
+   * 内部定义 `componentUpdateFn`，作为 `ReactiveEffect` 的回调：
+   * - 首次执行（`!instance.isMounted`）：调用 render 得到子树并 patch 挂载，
+   *   同时把 `vnode.el` 指向子树的根 DOM（供 `$el` 读取）
+   * - 后续执行（更新）：
+   *   - 若 `instance.next` 存在，说明是父组件传入新 props 触发的更新，
+   *     先调 `updateComponentPreRender` 同步 props/slots，再重新 render
+   *   - 否则是自身响应式数据变化触发的更新，直接 render 并 patch 子树
+   *
+   * effect 的 scheduler 被设置为 `queueJob(update)`，把更新推入微任务。
+   *
+   * @param instance 组件实例
+   * @param container 挂载容器
+   * @param anchor 锚点
+   */
   const setupRenderEffect = (instance, container, anchor = null) => {
     const componentUpdateFn = () => {
       /**
@@ -529,6 +555,18 @@ export function createRenderer(options) {
     setupRenderEffect(instance, container, anchor);
   };
 
+  /**
+   * 组件类型 VNode 的更新入口。
+   *
+   * 当父组件重新渲染时，子组件会走到这里：
+   * 1. 复用旧 VNode 上的 `component`（组件实例），挂到新 VNode 上
+   * 2. 调用 `shouldUpdateComponent` 判断 props/slots 是否有变化
+   *    - 有变化：把新 VNode 暂存到 `instance.next`，再调 `instance.update()` 触发子树更新
+   *    - 无变化：只做 `el` 复用和 `vnode` 引用更新，跳过子树 diff
+   *
+   * @param n1 旧组件 VNode
+   * @param n2 新组件 VNode
+   */
   const updateComponent = (n1, n2) => {
     const instance = (n2.component = n1.component);
     /**
@@ -551,7 +589,7 @@ export function createRenderer(options) {
   };
 
   /**
-   * 处理组件的挂载和更新。n1 为空时挂载（mountComponent）；否则为组件更新，当前未实现 patchComponent。
+   * 处理组件的挂载和更新。n1 为空时挂载（mountComponent）；n1 存在时走 updateComponent 做组件更新。
    * @param n1 旧组件 VNode，null 表示挂载
    * @param n2 新组件 VNode
    * @param container 容器
