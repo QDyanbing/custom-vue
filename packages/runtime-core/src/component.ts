@@ -63,6 +63,13 @@ export function setupComponent(instance) {
 }
 
 const publicPropertiesMap = {
+  /**
+   * `this.$el`：
+   *
+   * 返回组件根元素对应的真实 DOM 节点。
+   * 实际取自 `instance.vnode.el`——渲染器在 mountComponent/componentUpdateFn
+   * 里会把子树根节点的 el 赋给组件 VNode，从而让 `$el` 能读到最新的根 DOM。
+   */
   $el: i => i.vnode.el,
   $attrs: i => i.attrs,
   $slots: i => i.slots,
