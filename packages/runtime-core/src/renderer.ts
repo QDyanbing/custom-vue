@@ -440,6 +440,7 @@ export function createRenderer(options) {
      * 更新 slots
      */
     instance.vnode = nextVNode;
+    instance.next = null;
 
     updateProps(instance, nextVNode);
   };
