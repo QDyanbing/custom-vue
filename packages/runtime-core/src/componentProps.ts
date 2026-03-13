@@ -80,3 +80,10 @@ export function initProps(instance) {
   instance.props = reactive(props);
   instance.attrs = attrs;
 }
+
+export function updateProps(instance, nextVNode) {
+  const { props: prevProps, attrs: prevAttrs } = instance;
+  const rawProps = nextVNode.props;
+
+  setFullProps(instance, rawProps, prevProps, prevAttrs);
+}

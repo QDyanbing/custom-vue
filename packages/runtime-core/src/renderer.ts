@@ -5,6 +5,7 @@ import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
 import { shouldUpdateComponent } from './componentRenderUtils';
+import { updateProps } from './componentProps';
 
 /**
  * 创建一个渲染器。
@@ -432,6 +433,17 @@ export function createRenderer(options) {
     }
   };
 
+  const updateComponentPreRender = (instance, nextVNode) => {
+    /**
+     * 复用组件实例
+     * 更新 props
+     * 更新 slots
+     */
+    instance.vnode = nextVNode;
+
+    updateProps(instance, nextVNode);
+  };
+
   const setupRenderEffect = (instance, container, anchor = null) => {
     const componentUpdateFn = () => {
       /**
@@ -452,11 +464,19 @@ export function createRenderer(options) {
         // 已经挂载过了
         instance.isMounted = true;
       } else {
-        const { vnode, render } = instance;
+        let { vnode, render, next } = instance;
+
+        if (next) {
+          // 父组件传的属性触发的更新
+          updateComponentPreRender(instance, next);
+        } else {
+          //  如果没有就用之前的
+          next = vnode;
+        }
 
         // 更新
         const prevSubTree = instance.subTree;
-        // 调用 render 函数拿到 subTree，并绑定 this 为 instance.proxy
+        // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = render.call(instance.proxy);
         // 将 subTree 挂载到页面上
         patch(prevSubTree, subTree, container, anchor);
@@ -515,7 +535,11 @@ export function createRenderer(options) {
      * 不该更新：啥都没变
      */
     if (shouldUpdateComponent(n1, n2)) {
-      console.log('更新');
+      // 绑定新的 vnode 到实例上，方便后续更新时使用
+      instance.next = n2;
+
+      // 更新
+      instance.update();
     } else {
       // 没有任何属性变化，则不需要更新；但是需要复用 el 和 更新 vnode
       // 即使不需要更新，el 也是需要复用的
