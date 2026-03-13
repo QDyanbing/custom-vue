@@ -8,6 +8,7 @@
 
 - [createComponentInstance(vnode)](#createcomponentinstancevnode)
 - [setupComponent(instance)](#setupcomponentinstance)
+- [publicPropertiesMap](#publicpropertiesmap)
 - [实例结构 (instance)](#实例结构-instance)
 - [依赖](#依赖)
 
@@ -31,9 +32,9 @@
 2. 创建 `setupContext`，当前仅暴露只读的 `attrs`：
    - `setup(props, { attrs })` 中访问到的 `attrs` 是一个 getter，每次读取都会返回当前的 `instance.attrs`
 3. 创建组件代理 `instance.proxy`（`Proxy(instance.ctx, handlers)`），渲染时会作为 `render` 的 this：
-   - 读取属性时先查 `setupState`，再查 `props`，最后支持 `$attrs/$slots/$refs` 等公共属性
+   - 读取属性时先查 `setupState`，再查 `props`，最后支持 `$el/$attrs/$slots/$refs` 等公共属性
    - 命名冲突时：`setupState` 的同名字段会覆盖 `props` 的同名字段（因为访问顺序是 setupState → props）
-   - `$attrs/$slots/$refs` 的取值来自 `publicPropertiesMap`（本文件内的映射表）
+   - `$el/$attrs/$slots/$refs/$nextTick/$forceUpdate` 的取值来自 `publicPropertiesMap`（本文件内的映射表）
 4. 若组件定义了 `setup` 且为函数，则调用：
    - `const setupResult = type.setup(instance.props, setupContext)`
    - 当 `setupResult` 为对象：`instance.setupState = proxyRefs(setupResult)`，render 中访问 ref 时无需 `.value`
@@ -42,18 +43,33 @@
 
 依赖 `@vue/reactivity` 的 `proxyRefs`，用于在暴露给 render 的上下文中自动解包 ref。
 
+## publicPropertiesMap
+
+组件代理 `instance.proxy` 在 get 中查找的公共属性映射表，目前包含：
+
+| 属性 | 取值方式 | 说明 |
+|------|----------|------|
+| `$el` | `instance.vnode.el` | 组件根元素对应的真实 DOM 节点；渲染器在 `componentUpdateFn` 中把子树根节点的 el 赋给组件 VNode |
+| `$attrs` | `instance.attrs` | 未在 props 选项中声明的透传属性 |
+| `$slots` | `instance.slots` | 插槽（当前未实现具体逻辑） |
+| `$refs` | `instance.refs` | 模板引用（当前未实现具体逻辑） |
+| `$nextTick` | `nextTick.bind(instance)` | 在下一个微任务中执行回调，this 绑定为组件实例 |
+| `$forceUpdate` | `() => instance.update()` | 强制触发组件更新（调用渲染器在 mount 时挂到实例上的 update 函数） |
+
 ## 实例结构 (instance)
 
 | 字段 | 说明 |
 |------|------|
 | `type` | 组件定义（即 vnode.type） |
 | `vnode` | 当前组件对应的 VNode |
-| `props` / `attrs` | 组件接收的属性：`props` 为按 `props` 选项声明的响应式对象，`attrs` 为未声明但传入的“额外属性”（通常透传到根元素） |
+| `props` / `attrs` | 组件接收的属性：`props` 为按 `props` 选项声明的响应式对象，`attrs` 为未声明但传入的"额外属性"（通常透传到根元素） |
 | `subTree` | 当前 render 的返回值（子树 VNode）；渲染器挂载时写入，更新时作为 prevSubTree 与新一轮 render 结果做 patch |
 | `isMounted` | 是否已完成首次挂载；渲染器在 componentUpdateFn 中用于区分首渲（patch(null, subTree)）与更新（patch(prevSubTree, subTree)） |
 | `render` | 组件的 render 函数，由 setupComponent 从 type 上赋值 |
 | `setupState` | setup 返回值为对象时的 proxyRefs 代理；渲染时会优先从这里取同名属性 |
-| `proxy` | 公共实例代理：render 的 this（`instance.proxy`），负责把 `setupState/props/$attrs...` 暴露到同一访问入口 |
+| `proxy` | 公共实例代理：render 的 this（`instance.proxy`），负责把 `setupState/props/$el/$attrs...` 暴露到同一访问入口 |
+| `update` | 渲染器在 `setupRenderEffect` 中挂载的更新函数（`effect.run.bind(effect)`），`$forceUpdate` 和 `updateComponent` 都通过它触发子树更新 |
+| `next` | 父组件触发更新时，渲染器在 `updateComponent` 中暂存的新 VNode；`componentUpdateFn` 执行时检测到 `next` 存在，会先调 `updateComponentPreRender` 同步 props |
 
 补充说明：
 
@@ -63,9 +79,11 @@
 
 - `./vnode`：使用 `VNode` 类型
 - `./componentProps`：`normalizePropsOptions`、`initProps`，用于解析组件 props / attrs
+- `./scheduler`：`nextTick`，供 `$nextTick` 使用
 - `@vue/reactivity`：`proxyRefs`，用于解包 ref 供 render 使用
 
 ## 相关文档
 
 - [renderer.md](./renderer.md)：`mountComponent` 会调用 `createComponentInstance` 与 `setupComponent`，再用 `ReactiveEffect` 包装的 `componentUpdateFn` 做首渲与后续更新（render → patch 子树）。
+- [componentRenderUtils.md](./componentRenderUtils.md)：`shouldUpdateComponent` 判断是否需要触发组件更新。
 - [vnode.md](./vnode.md)：组件类型 VNode 的 `type` 为对象，`shapeFlag` 含 `STATEFUL_COMPONENT`。
