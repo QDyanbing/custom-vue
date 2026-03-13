@@ -81,6 +81,20 @@ export function initProps(instance) {
   instance.attrs = attrs;
 }
 
+/**
+ * 更新组件实例上的 props / attrs。
+ *
+ * 当父组件重新渲染导致子组件接收到新的 VNode 时（`updateComponentPreRender` 中调用），
+ * 本函数会：
+ * 1. 用新 VNode 的 `props` 重新走一遍 `setFullProps`，把最新值写入 `instance.props` 和 `instance.attrs`
+ * 2. 清理掉旧 `props`/`attrs` 中已不存在于新 VNode 的属性（删除多余的 key）
+ *
+ * 因为 `instance.props` 是 reactive 对象，写入/删除操作会自动触发依赖收集，
+ * 从而让子组件的 render effect 在下一次 flush 时重新执行。
+ *
+ * @param instance 组件实例
+ * @param nextVNode 新的组件 VNode（包含最新的 props）
+ */
 export function updateProps(instance, nextVNode) {
   const { props, attrs } = instance;
   const rawProps = nextVNode.props;
