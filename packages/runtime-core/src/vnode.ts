@@ -51,11 +51,21 @@ export function normalizeVNode(vnode: any): VNode {
  * @param children 子节点（可能为 string / number / 数组 / VNode 等）
  * @returns 标准化后的 children，未必是 VNode（仅做 number→string 等基础处理）
  */
-export function normalizeChildren(children: any): any {
-  if (isNumber(children)) {
+export function normalizeChildren(vnode: VNode, children: any): any {
+  let { shapeFlag } = vnode;
+
+  if (isArray(children)) {
+    // 子节点是多个 VNode 组成的数组
+    shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
+  } else if (isNumber(children) || isString(children)) {
     // 如果是number，则转换为string
     children = String(children);
+    shapeFlag |= ShapeFlags.TEXT_CHILDREN;
   }
+
+  // 处理完成后重新赋值给vnode
+  vnode.shapeFlag = shapeFlag;
+  vnode.children = children;
 
   return children;
 }
@@ -82,8 +92,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
 
-  children = normalizeChildren(children);
-
+  // 处理 type 的 shapeFlag
   if (isString(type)) {
     // 当前只处理原生元素，后续可扩展到组件等类型
     shapeFlag = ShapeFlags.ELEMENT;
@@ -92,21 +101,18 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
   }
 
-  if (isString(children)) {
-    // 子节点是一个文本节点
-    shapeFlag |= ShapeFlags.TEXT_CHILDREN;
-  } else if (isArray(children)) {
-    // 子节点是多个 VNode 组成的数组
-    shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
-  }
-
-  return {
+  const vnode: VNode = {
     __v_isVNode: true,
     type,
     props,
-    children,
+    children: null,
     key: props?.key, // 虚拟节点的 key 属性,作用是用于优化 diff 算法
     el: null, // 虚拟节点对应的 DOM 元素
     shapeFlag,
   };
+
+  // children 的标准化 和 children 的  shapeFlag 的设置
+  normalizeChildren(vnode, children);
+
+  return vnode;
 }
