@@ -12,9 +12,9 @@
       import { h, createApp } from '../dist/vue.esm.js';
 
       const Child = {
-        setup() {
+        setup(props, { slots }) {
           return () => {
-            return h('div');
+            return h('div', [slots.header()]);
           };
         },
       };
