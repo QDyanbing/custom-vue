@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="module">
+      // import { h, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, createApp } from '../dist/vue.esm.js';
+
+      const Child = {
+        setup(props, { emit }) {
+          return () => {
+            return h(
+              'button',
+              {
+                onclick: () => {
+                  emit('foo', 1, 2, 3);
+                },
+              },
+              'click me',
+            );
+          };
+        },
+      };
+
+      const Comp = {
+        setup(props, { attrs }) {
+          return () => {
+            return h(Child, {
+              onFoo() {
+                console.log('click');
+              },
+            });
+          };
+        },
+      };
+
+      // 挂载带 setup 的根组件；渲染函数来自 setup 的返回值
+      createApp(Comp, { msg: 'Hi', count: 0 }).mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
