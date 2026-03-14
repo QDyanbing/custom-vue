@@ -35,7 +35,7 @@ export function createComponentInstance(vnode) {
   };
 
   instance.ctx = { _: instance };
-
+  instance.emit = (event, ...args) => emit(instance, event, ...args);
   return instance;
 }
 
@@ -72,6 +72,7 @@ const publicPropertiesMap = {
    */
   $el: i => i.vnode.el,
   $attrs: i => i.attrs,
+  $emit: i => i.emit,
   $slots: i => i.slots,
   $refs: i => i.refs,
   /**
@@ -185,20 +186,25 @@ function createSetupContext(instance) {
       return instance.attrs;
     },
     emit(event, ...args) {
-      /**
-       * 转换一下事件名
-       * foo -> onFoo
-       * bar -> onBar
-       */
-      const eventName = `on${event[0].toUpperCase() + event.slice(1)}`;
-
-      // 拿到事件处理函数
-      const handler = instance.vnode.props[eventName];
-
-      // 如果是个函数就执行
-      if (isFunction(handler)) {
-        handler(...args);
-      }
+      emit(instance, event, ...args);
     },
   };
+}
+
+// 处理组件传递的事件
+function emit(instance, event, ...args) {
+  /**
+   * 转换一下事件名
+   * foo -> onFoo
+   * bar -> onBar
+   */
+  const eventName = `on${event[0].toUpperCase() + event.slice(1)}`;
+
+  // 拿到事件处理函数
+  const handler = instance.vnode.props[eventName];
+
+  // 如果是个函数就执行
+  if (isFunction(handler)) {
+    handler(...args);
+  }
 }
