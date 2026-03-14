@@ -57,6 +57,17 @@ export function normalizeChildren(vnode: VNode, children: any): any {
   if (isArray(children)) {
     // 子节点是多个 VNode 组成的数组
     shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
+  } else if (isObject(children)) {
+    /**
+     * 如果子节点是对象，则认为是插槽
+     * children = {
+     *  header: () => h('div', 'header'),
+     * }
+     */
+    if (shapeFlag & ShapeFlags.COMPONENT) {
+      // 如果是组件，则认为是插槽
+      shapeFlag |= ShapeFlags.SLOTS_CHILDREN;
+    }
   } else if (isNumber(children) || isString(children)) {
     // 如果是number，则转换为string
     children = String(children);
