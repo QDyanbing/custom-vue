@@ -1,4 +1,4 @@
-import { ShapeFlags, isArray, isString, isNumber, isObject } from '@vue/shared';
+import { ShapeFlags, isArray, isString, isNumber, isObject, isFunction } from '@vue/shared';
 
 /**
  * 文本节点标记
@@ -68,6 +68,13 @@ export function normalizeChildren(vnode: VNode, children: any): any {
       // 如果是组件，则认为是插槽
       shapeFlag |= ShapeFlags.SLOTS_CHILDREN;
     }
+  } else if (isFunction(children)) {
+    // 如果是函数，则认为是插槽
+    if (shapeFlag & ShapeFlags.COMPONENT) {
+      // 如果是组件，则认为是插槽
+      shapeFlag |= ShapeFlags.SLOTS_CHILDREN;
+    }
+    children = { default: children };
   } else if (isNumber(children) || isString(children)) {
     // 如果是number，则转换为string
     children = String(children);

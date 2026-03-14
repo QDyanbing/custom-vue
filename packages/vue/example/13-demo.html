@@ -14,7 +14,7 @@
       const Child = {
         setup(props, { slots }) {
           return () => {
-            return h('div', [slots.header(), slots.footer({ a: '子组件传递的' })]);
+            return h('div', [slots.default()]);
           };
         },
       };
@@ -24,10 +24,12 @@
           return () => {
             return h('div', [
               h('p', '父组件'),
-              h(Child, null, {
-                header: () => h('div', '父组件传递的插槽 Header'),
-                footer: ({ a }) => h('div', '父组件传递的插槽 Footer' + a),
-              }),
+              // h(Child, null, {
+              //   header: () => h('div', '父组件传递的插槽 Header'),
+              //   footer: ({ a }) => h('div', '父组件传递的插槽 Footer' + a),
+              // }),
+
+              h(Child, null, () => h('div', '父组件传递的默认插槽')),
             ]);
           };
         },
