@@ -6,6 +6,7 @@ import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
 import { shouldUpdateComponent } from './componentRenderUtils';
 import { updateProps } from './componentProps';
+import { updateSlots } from './componentSlots';
 
 /**
  * 创建一个渲染器。
@@ -451,7 +452,10 @@ export function createRenderer(options) {
     instance.vnode = nextVNode;
     instance.next = null;
 
+    // 更新组件的属性
     updateProps(instance, nextVNode);
+    // 更新组件的插槽
+    updateSlots(instance, nextVNode);
   };
 
   /**
