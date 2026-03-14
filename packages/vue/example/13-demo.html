@@ -7,10 +7,19 @@
   <body>
     <div id="app"></div>
 
+    <!--
+      演示组件插槽（slots）：
+      - 父组件通过 h(Child, null, slotContent) 向子组件传递插槽
+      - 支持两种传递方式：
+        1. 函数形式：h(Child, null, () => h(...))，会被包装为 { default: fn }
+        2. 对象形式：h(Child, null, { header: () => h(...), footer: () => h(...) })
+      - 子组件通过 setup 的第二个参数 { slots } 获取并调用插槽函数
+    -->
     <script type="module">
       // import { h, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, createApp } from '../dist/vue.esm.js';
 
+      // 子组件：通过 slots.default() 调用父组件传入的默认插槽
       const Child = {
         setup(props, { slots }) {
           return () => {
@@ -19,16 +28,19 @@
         },
       };
 
+      // 父组件：通过函数形式传递默认插槽给 Child
       const Comp = {
         setup(props, { attrs }) {
           return () => {
             return h('div', [
               h('p', '父组件'),
+              // 具名插槽的写法（对象形式）：
               // h(Child, null, {
               //   header: () => h('div', '父组件传递的插槽 Header'),
               //   footer: ({ a }) => h('div', '父组件传递的插槽 Footer' + a),
               // }),
 
+              // 默认插槽的写法（函数形式）：
               h(Child, null, () => h('div', '父组件传递的默认插槽')),
             ]);
           };
