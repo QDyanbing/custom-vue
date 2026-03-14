@@ -17,7 +17,7 @@
             return h(
               'button',
               {
-                onclick: () => {
+                onClick: () => {
                   emit('foo', 1, 2, 3);
                 },
               },
@@ -31,8 +31,8 @@
         setup(props, { attrs }) {
           return () => {
             return h(Child, {
-              onFoo() {
-                console.log('click');
+              onFoo(a, b, c) {
+                console.log('click parent', a, b, c);
               },
             });
           };

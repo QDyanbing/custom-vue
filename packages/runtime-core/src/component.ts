@@ -184,5 +184,21 @@ function createSetupContext(instance) {
     get attrs() {
       return instance.attrs;
     },
+    emit(event, ...args) {
+      /**
+       * 转换一下事件名
+       * foo -> onFoo
+       * bar -> onBar
+       */
+      const eventName = `on${event[0].toUpperCase() + event.slice(1)}`;
+
+      // 拿到事件处理函数
+      const handler = instance.vnode.props[eventName];
+
+      // 如果是个函数就执行
+      if (isFunction(handler)) {
+        handler(...args);
+      }
+    },
   };
 }
