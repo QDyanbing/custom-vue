@@ -4,6 +4,7 @@ import { normalizePropsOptions, initProps } from './componentProps';
 import { hasOwn, isFunction, isObject } from '@vue/shared';
 import { nextTick } from './scheduler';
 import { initSlots } from './componentSlots';
+
 /**
  * 创建组件实例。
  *
@@ -76,6 +77,12 @@ const publicPropertiesMap = {
    */
   $el: i => i.vnode.el,
   $attrs: i => i.attrs,
+  /**
+   * `this.$emit(event, ...args)`：
+   *
+   * 触发组件事件。内部通过将事件名转换为 `onXxx` 的形式，
+   * 从 `vnode.props` 中查找对应的事件处理函数并调用。
+   */
   $emit: i => i.emit,
   $slots: i => i.slots,
   $refs: i => i.refs,
@@ -179,8 +186,11 @@ function handleSetupResult(instance, setupResult) {
 /**
  * 为组件的 `setup` 创建上下文对象。
  *
- * 当前仅实现 `attrs`，并通过 getter 始终从最新的 `instance.attrs` 读取，
- * 以便后续若父组件更新 attrs 时，这里能拿到最新值。
+ * 当前实现了三个属性：
+ * - `attrs`：通过 getter 始终从最新的 `instance.attrs` 读取，
+ *   以便父组件更新 attrs 时能拿到最新值
+ * - `emit`：触发组件事件，内部委托给模块级的 `emit` 函数
+ * - `slots`：直接引用 `instance.slots`，由 `initSlots` / `updateSlots` 维护
  *
  * @param instance 组件实例
  */
@@ -199,7 +209,20 @@ function createSetupContext(instance) {
   };
 }
 
-// 处理组件传递的事件
+/**
+ * 触发组件事件。
+ *
+ * 将事件名转为 `onXxx` 形式（如 `foo` → `onFoo`），
+ * 从 `instance.vnode.props` 中取出对应的处理函数并执行。
+ *
+ * 调用方式：
+ * - 在 `setup` 中通过 `context.emit('foo', 1, 2)` 触发
+ * - 在模板中通过 `this.$emit('foo', 1, 2)` 触发
+ *
+ * @param instance 组件实例
+ * @param event 事件名（如 'foo'）
+ * @param args 传递给事件处理函数的参数
+ */
 function emit(instance, event, ...args) {
   /**
    * 转换一下事件名
