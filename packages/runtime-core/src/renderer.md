@@ -21,7 +21,7 @@
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
 - 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
-- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` 的链路
+- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props/slots 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` + `updateSlots` 的链路
 - 卸载：`unmount`、`unmountChildren`
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
@@ -105,7 +105,7 @@ container._vnode = vnode;
   - 需要更新：把新 VNode 暂存到 `instance.next`，调用 `instance.update()` 触发 `componentUpdateFn` 重新执行
   - 不需要更新：只复用 `el` 和更新 `instance.vnode` 引用，跳过子树 diff
 
-- **updateComponentPreRender(instance, nextVNode)**：在组件重新 render 之前，把新 VNode 上的数据同步到实例——更新 `instance.vnode`、清空 `instance.next`、调用 `updateProps` 把最新的 props/attrs 写入实例。
+- **updateComponentPreRender(instance, nextVNode)**：在组件重新 render 之前，把新 VNode 上的数据同步到实例——更新 `instance.vnode`、清空 `instance.next`、调用 `updateProps` 把最新的 props/attrs 写入实例、调用 `updateSlots`（见 [componentSlots.md](./componentSlots.md)）把最新的插槽同步到 `instance.slots`。
 
 组件实例与 setup 的细节见 [component.md](./component.md)。
 
