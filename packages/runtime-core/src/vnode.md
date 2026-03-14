@@ -9,7 +9,7 @@
 - [VNode 结构](#vnode-结构)
 - [Text 与文本节点](#text-与文本节点)
 - [normalizeVNode(vnode)](#normalizevnodevnode)
-- [normalizeChildren(children)](#normalizechildrenchildren)
+- [normalizeChildren(vnode, children)](#normalizechildrenvnode-children)
 - [createVNode(type, props?, children?)](#createvnodetype-props-children)
 - [isVNode(value)](#isvnodevalue)
 - [isSameVNode(v1, v2)](#issamevnodev1-v2)
@@ -17,7 +17,7 @@
 - `VNode`：虚拟节点的数据结构
 - `Text`：文本类型 VNode 的 type 标记（Symbol），供 renderer 走 `processText`
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
-- `normalizeChildren`：在创建 VNode 前将 children 标准化（如 number 转 string），供 `createVNode` 内部使用
+- `normalizeChildren`：在创建 VNode 时对 children 做标准化并设置对应的 shapeFlag（处理文本、数组、插槽等），供 `createVNode` 内部使用
 - `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）或组件对象（有状态组件）
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
@@ -34,6 +34,7 @@
 - `children`：子节点，可以是：
   - 文本（string）
   - VNode 数组
+  - 插槽对象 `{ slotName: renderFn }`（当父节点为组件时）
 - `key`：用于列表 diff 场景识别节点身份
 - `el`：挂载后的真实 DOM 元素引用（初始为 `null`，由 renderer 在运行时填充）
 - `shapeFlag`：使用位运算记录"节点类型 + 子节点类型"的组合信息
@@ -54,48 +55,59 @@
 
 在 `mountChildren`、`patchKeyedChildren` 等逻辑里，会对 children 数组中的每一项调用 `normalizeVNode`，保证传给 `patch` 的始终是 VNode。
 
-## normalizeChildren(children)
+## normalizeChildren(vnode, children)
 
-在 `createVNode` 内部使用，在写 `shapeFlag` 和存 `children` 之前对子节点做一次标准化：
+在 `createVNode` 内部使用，负责对 children 做标准化并根据 children 的类型设置 vnode 的 `shapeFlag`。函数会直接修改传入的 `vnode` 对象（写回 `shapeFlag` 和 `children`）。
 
-- 若 `children` 为 `number`，转为 `String(children)`
-- 其它情况原样返回（string、数组、VNode 等由后续逻辑处理）
+处理逻辑按 children 类型分支：
 
-这样保证进入"子节点类型"判断时，数字已被统一成字符串，避免重复分支。
+| children 类型 | 处理方式 | shapeFlag 追加 |
+|--------------|---------|---------------|
+| 数组 | 原样保留 | `ARRAY_CHILDREN` |
+| 对象（且 vnode 为组件） | 视为具名插槽 `{ header: () => h(...) }` | `SLOTS_CHILDREN` |
+| 函数（且 vnode 为组件） | 视为默认插槽，包装成 `{ default: children }` | `SLOTS_CHILDREN` |
+| string / number | 统一转为 string | `TEXT_CHILDREN` |
+
+插槽的识别依赖于 vnode 本身的 `shapeFlag` 是否包含 `COMPONENT`——只有组件类型的 VNode 才会把对象/函数形式的 children 当作插槽处理。
+
+与 `initSlots`（见 [componentSlots.md](./componentSlots.md)）配合：`normalizeChildren` 把 children 标记为插槽并存到 vnode 上，`initSlots` 再把它们赋值到 `instance.slots`。
 
 ## createVNode(type, props?, children?)
 
-`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。内部会先对 `children` 调用 `normalizeChildren(children)`。
+`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。
 
-- 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
-- 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
-- 根据 `children` 的类型追加子节点标记：
-  - 文本：`ShapeFlags.TEXT_CHILDREN`
-  - 数组：`ShapeFlags.ARRAY_CHILDREN`
+流程分两步：
+
+1. **确定节点自身类型**（type 的 shapeFlag）：
+   - 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
+   - 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
+
+2. **标准化 children 并追加子节点类型标记**：
+   - 先创建 vnode 对象（`children` 暂为 `null`）
+   - 调用 `normalizeChildren(vnode, children)`，由该函数根据 children 类型设置 `shapeFlag` 并写回 `children`
+   - 这样 children 的 shapeFlag 设置（文本/数组/插槽）与 children 的标准化（函数转对象、number 转 string）统一在 `normalizeChildren` 中完成
 
 伪代码可以理解为：
 
 ```ts
-children = normalizeChildren(children);
-
 if (isString(type)) {
   shapeFlag = ShapeFlags.ELEMENT;
 } else if (isObject(type)) {
   shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
 }
 
-if (isString(children)) {
-  shapeFlag |= ShapeFlags.TEXT_CHILDREN;
-} else if (isArray(children)) {
-  shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
-}
+const vnode = { type, props, children: null, shapeFlag, ... };
+
+normalizeChildren(vnode, children);
+
+return vnode;
 ```
 
 最终返回的 VNode 会同时携带：
 
 - 结构信息：`type` / `props` / `children` / `key`
 - 运行时引用：`el`（由 renderer 填充）
-- 形态标记：`shapeFlag`
+- 形态标记：`shapeFlag`（节点类型 + 子节点类型的位组合）
 
 ## isVNode(value)
 

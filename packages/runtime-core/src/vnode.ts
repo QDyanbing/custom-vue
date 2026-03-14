@@ -47,9 +47,19 @@ export function normalizeVNode(vnode: any): VNode {
 }
 
 /**
- * 在 createVNode 内部使用：对 children 做标准化（如 number 转 string），便于后续写 shapeFlag 与存 children。
- * @param children 子节点（可能为 string / number / 数组 / VNode 等）
- * @returns 标准化后的 children，未必是 VNode（仅做 number→string 等基础处理）
+ * 在 createVNode 内部使用：对 children 做标准化，并根据 children 的类型设置 vnode 的 shapeFlag。
+ *
+ * 处理的情况：
+ * - 数组：标记 `ARRAY_CHILDREN`
+ * - 对象（且父节点是组件）：视为具名插槽，标记 `SLOTS_CHILDREN`
+ * - 函数（且父节点是组件）：视为默认插槽，包装成 `{ default: children }`，标记 `SLOTS_CHILDREN`
+ * - string / number：转为 string，标记 `TEXT_CHILDREN`
+ *
+ * 处理完成后会将 shapeFlag 和 children 直接写回 vnode。
+ *
+ * @param vnode 当前正在创建的 VNode，函数会修改其 shapeFlag 和 children
+ * @param children 子节点（可能为 string / number / 数组 / 对象 / 函数等）
+ * @returns 标准化后的 children
  */
 export function normalizeChildren(vnode: VNode, children: any): any {
   let { shapeFlag } = vnode;
