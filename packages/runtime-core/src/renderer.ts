@@ -71,7 +71,7 @@ export function createRenderer(options) {
    * @param vnode 要卸载的虚拟节点
    */
   const unmount = vnode => {
-    const { type, shapeFlag, children } = vnode;
+    const { shapeFlag, children } = vnode;
 
     if (shapeFlag & ShapeFlags.COMPONENT) {
       // 卸载组件
