@@ -43,3 +43,15 @@ export const onUpdated = createHook(LifecycleHooks.UPDATED);
 // 卸载
 export const onBeforeUnmount = createHook(LifecycleHooks.BEFORE_UNMOUNT);
 export const onUnmounted = createHook(LifecycleHooks.UNMOUNTED);
+
+/**
+ * 触发生命周期
+ * @param instance 当前组件实例
+ * @param type 生命周期类型
+ */
+export function triggerHook(instance: any, type: LifecycleHooks) {
+  const hooks = instance[type];
+  if (hooks) {
+    hooks.forEach(hook => hook());
+  }
+}

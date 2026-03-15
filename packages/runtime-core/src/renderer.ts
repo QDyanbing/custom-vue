@@ -7,6 +7,7 @@ import { queueJob } from './scheduler';
 import { shouldUpdateComponent } from './componentRenderUtils';
 import { updateProps } from './componentProps';
 import { updateSlots } from './componentSlots';
+import { LifecycleHooks, triggerHook } from './apiLifecycle';
 
 /**
  * 创建一个渲染器。
@@ -483,6 +484,8 @@ export function createRenderer(options) {
 
       if (!instance.isMounted) {
         const { vnode, render } = instance;
+        // 挂载前
+        triggerHook(instance, LifecycleHooks.BEFORE_MOUNT);
         // 挂载
         // 调用 render 函数拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = render.call(instance.proxy);
