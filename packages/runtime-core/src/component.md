@@ -10,6 +10,7 @@
 - [setupComponent(instance)](#setupcomponentinstance)
 - [createSetupContext(instance)](#createsetupcontextinstance)
 - [emit(instance, event, ...args)](#emitinstance-event-args)
+- [getCurrentInstance / setCurrentInstance / unsetCurrentInstance](#getcurrentinstance--setcurrentinstance--unsetcurrentinstance)
 - [publicPropertiesMap](#publicpropertiesmap)
 - [实例结构 (instance)](#实例结构-instance)
 - [依赖](#依赖)
@@ -87,6 +88,16 @@ setup(props, { attrs, emit, slots }) {
 
 事件名转换规则：`event[0].toUpperCase() + event.slice(1)`，再拼上 `on` 前缀。
 
+## getCurrentInstance / setCurrentInstance / unsetCurrentInstance
+
+模块内维护一个 `currentInstance`，用于在 `setup` 或生命周期钩子执行期间标识“当前正在初始化的组件实例”：
+
+- **setCurrentInstance(instance)**：在 `setupComponent` 里执行 `type.setup` 前调用，将当前实例设为 `instance`。
+- **getCurrentInstance()**：返回当前实例。仅在 `setup` 或生命周期钩子（见 [apiLifecycle.md](./apiLifecycle.md)）同步执行过程中有效；异步回调中可能为 `null`。
+- **unsetCurrentInstance()**：在 `setup` 执行完毕后调用，将 `currentInstance` 置空。
+
+这样在 `setup` 里或由 apiLifecycle 注入的钩子中调用 `getCurrentInstance()` 即可拿到当前组件实例，常用于获取 proxy、propsOptions 或与生命周期 API 配合使用。
+
 ## 实例结构 (instance)
 
 | 字段 | 说明 |
@@ -121,4 +132,5 @@ setup(props, { attrs, emit, slots }) {
 - [renderer.md](./renderer.md)：`mountComponent` 会调用 `createComponentInstance` 与 `setupComponent`，再用 `ReactiveEffect` 包装的 `componentUpdateFn` 做首渲与后续更新（render → patch 子树）。
 - [componentRenderUtils.md](./componentRenderUtils.md)：`shouldUpdateComponent` 判断是否需要触发组件更新。
 - [componentSlots.md](./componentSlots.md)：`initSlots` / `updateSlots` 负责插槽的初始化与更新。
+- [apiLifecycle.md](./apiLifecycle.md)：生命周期钩子执行前会通过 `setCurrentInstance` 设置当前实例，便于 `getCurrentInstance()` 在钩子内拿到正确实例。
 - [vnode.md](./vnode.md)：组件类型 VNode 的 `type` 为对象，`shapeFlag` 含 `STATEFUL_COMPONENT`；`normalizeChildren` 负责识别插槽 children 并标记 `SLOTS_CHILDREN`。
