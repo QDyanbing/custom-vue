@@ -56,6 +56,7 @@
             console.log('父组件：before mount');
           });
           onMounted(() => {
+            console.log('父组件：getCurrentInstance', getCurrentInstance());
             console.log('父组件：mounted');
           });
 

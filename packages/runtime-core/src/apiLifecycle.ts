@@ -1,4 +1,4 @@
-import { getCurrentInstance } from './component';
+import { getCurrentInstance, setCurrentInstance, unsetCurrentInstance } from './component';
 
 export enum LifecycleHooks {
   // 挂载
@@ -30,8 +30,15 @@ function injectHook(target: any, hook: () => void, type: LifecycleHooks) {
     target[type] = [];
   }
 
+  // 包装一下生命周期函数，在执行生命周期函数之前设置当前组件实例
+  const _hook = () => {
+    setCurrentInstance(target);
+    hook();
+    unsetCurrentInstance();
+  };
+
   // 将生命周期函数添加到数组中
-  target[type].push(hook);
+  target[type].push(_hook);
 }
 
 // 挂载
