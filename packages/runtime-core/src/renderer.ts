@@ -81,7 +81,12 @@ export function createRenderer(options) {
       unmountChildren(children);
     }
 
-    hostRemove(vnode.el);
+    const remove = () => {
+      // 移除 dom 元素
+      vnode.el && hostRemove(vnode.el);
+    };
+
+    remove();
   };
 
   /**
