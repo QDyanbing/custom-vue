@@ -21,15 +21,42 @@
         onUnmounted,
       } from '../dist/vue.esm.js';
 
+      const Child = {
+        props: ['count'],
+        setup(props) {
+          onBeforeMount(() => {
+            console.log('子组件：before mount');
+          });
+          onMounted(() => {
+            console.log('子组件：mounted');
+          });
+
+          onBeforeUpdate(() => {
+            console.log('子组件：before update');
+          });
+          onUpdated(() => {
+            console.log('子组件：updated');
+          });
+          onBeforeUnmount(() => {
+            console.log('子组件：before unmount');
+          });
+          onUnmounted(() => {
+            console.log('子组件：unmounted');
+          });
+
+          return () => h('div', ['子组件', props.count]);
+        },
+      };
+
       const Comp = {
         setup() {
           const count = ref(0);
 
           onBeforeMount(() => {
-            console.log('before mount');
+            console.log('父组件：before mount');
           });
           onMounted(() => {
-            console.log('mounted');
+            console.log('父组件：mounted');
           });
 
           setTimeout(() => {
@@ -37,18 +64,18 @@
           }, 1000);
 
           onBeforeUpdate(() => {
-            console.log('before update');
+            console.log('父组件：before update');
           });
           onUpdated(() => {
-            console.log('updated');
+            console.log('父组件：updated');
           });
           onBeforeUnmount(() => {
-            console.log('before unmount');
+            console.log('父组件：before unmount');
           });
           onUnmounted(() => {
-            console.log('unmounted');
+            console.log('父组件：unmounted');
           });
-          return () => h('div', [h('p', '父组件'), count.value]);
+          return () => h('div', [h('p', '父组件'), h(Child, { count: count.value })]);
         },
       };
       const app = createApp(Comp, { msg: 'Hi' });
