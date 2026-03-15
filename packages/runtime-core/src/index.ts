@@ -2,7 +2,7 @@
  * `runtime-core` 对外导出入口。
  *
  * - 透出 `@vue/reactivity`，以便直接使用响应式能力
- * - 导出运行时的 `h` 与 `createRenderer`
+ * - 导出运行时的 `h`、`createRenderer`、组件实例 API（如 getCurrentInstance）、生命周期 API（如 onMounted）
  */
 export * from '@vue/reactivity';
 export * from './h';

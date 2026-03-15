@@ -10,11 +10,12 @@
 - [使用示例](#使用示例)
 - [模块结构](#模块结构)
 
-当前入口主要透出三块内容：
+当前入口主要透出几块内容：
 
 - **响应式能力**：直接 re-export `@vue/reactivity`
 - **VNode / 渲染入口**：`h` / `createVNode` / `VNode`
 - **渲染器工厂**：`createRenderer`
+- **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
 
 ### 导出内容一览
 
@@ -77,11 +78,12 @@ render(vnode, document.getElementById('app')!);
 
 ```text
 runtime-core/src/
-├── index.ts        # 入口文件，统一导出
-├── apiCreateApp.ts # createAppApi(render)，供 createRenderer 生成 createApp
-├── component.ts    # 组件实例 createComponentInstance、setupComponent（供 renderer 挂载组件）
-├── vnode.ts        # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
-├── h.ts            # h（参数标准化，内部调用 createVNode）
-└── renderer.ts     # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）
+├── index.ts         # 入口文件，统一导出
+├── apiCreateApp.ts  # createAppApi(render)，供 createRenderer 生成 createApp
+├── apiLifecycle.ts  # 生命周期 onXxx、triggerHook、LifecycleHooks（供 renderer 在挂载/更新/卸载时触发）
+├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
+├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
+├── h.ts             # h（参数标准化，内部调用 createVNode）
+└── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
 ```
 
