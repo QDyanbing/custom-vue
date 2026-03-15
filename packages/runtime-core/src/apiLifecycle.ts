@@ -1,3 +1,9 @@
+/**
+ * 组件生命周期 API。
+ *
+ * 提供 onBeforeMount / onMounted / onBeforeUpdate / onUpdated / onBeforeUnmount / onUnmounted，
+ * 以及供渲染器调用的 triggerHook。钩子通过 injectHook 挂到组件实例上，执行前会设置 currentInstance 便于 getCurrentInstance() 使用。
+ */
 import { getCurrentInstance, setCurrentInstance, unsetCurrentInstance } from './component';
 
 export enum LifecycleHooks {
@@ -12,6 +18,10 @@ export enum LifecycleHooks {
   UNMOUNTED = 'um',
 }
 
+/**
+ * 创建生命周期钩子函数。
+ * 返回的函数接收 hook 与可选的 target（默认 getCurrentInstance()），将 hook 注入到对应实例的 type 队列中。
+ */
 function createHook(type: LifecycleHooks) {
   return (hook: () => void, target = getCurrentInstance()) => {
     injectHook(target, hook, type);
