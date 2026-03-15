@@ -22,7 +22,8 @@
 
 - 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
 - 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props/slots 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` + `updateSlots` 的链路
-- 卸载：`unmount`、`unmountChildren`
+- 卸载：`unmount`、`unmountChildren`、`unmountComponent`；组件卸载前/后通过 [apiLifecycle](./apiLifecycle.md) 的 `triggerHook` 触发 `beforeUnmount` / `unmounted`
+- 生命周期：在 `setupRenderEffect` 的 componentUpdateFn 中，首渲前后触发 `beforeMount` / `mounted`，更新前后触发 `beforeUpdate` / `updated`（见 [apiLifecycle.md](./apiLifecycle.md)）
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
 
@@ -97,8 +98,8 @@ container._vnode = vnode;
   2. 调用 `setupRenderEffect(instance, container, anchor)` 建立响应式 effect（见下方）。
 
 - **setupRenderEffect(instance, container, anchor)**：定义 `componentUpdateFn` 并用 `ReactiveEffect` 包裹：
-  - **首渲**（`!instance.isMounted`）：`render.call(instance.proxy)` 得 subTree，`patch(null, subTree, container, anchor)`；同时把 `vnode.el = subTree.el`（让 `$el` 可读），记 `instance.subTree`，标 `instance.isMounted = true`。
-  - **更新**：检查 `instance.next` 是否存在——若存在说明是父组件触发的更新，先调 `updateComponentPreRender(instance, next)` 把新 VNode 的 props/slots 同步到实例上；否则是自身响应式数据变化。之后重新 render 得新 subTree，`patch(prevSubTree, subTree)` 做子树 diff，并更新 `vnode.el`。
+  - **首渲**（`!instance.isMounted`）：先 `triggerHook(instance, BEFORE_MOUNT)`，再 `render` 得 subTree 并 `patch(null, subTree, ...)`，然后 `vnode.el = subTree.el`、记 `instance.subTree`、`instance.isMounted = true`，最后 `triggerHook(instance, MOUNTED)`。
+  - **更新**：若有 `instance.next` 先调 `updateComponentPreRender` 同步 props/slots；再 `triggerHook(instance, BEFORE_UPDATE)`，然后 render 并 `patch(prevSubTree, subTree)`，更新 `vnode.el` 与 `instance.subTree`，最后 `triggerHook(instance, UPDATED)`。
   - 将 `effect.run` 绑定为 `instance.update`，设置 `effect.scheduler = () => queueJob(update)`，使更新走微任务调度。
 
 - **updateComponent(n1, n2)**：组件更新入口。复用旧 VNode 上的 `component`（组件实例）挂到新 VNode 上，再调用 `shouldUpdateComponent(n1, n2)`（见 [componentRenderUtils.md](./componentRenderUtils.md)）判断是否需要触发子树更新：
@@ -107,7 +108,10 @@ container._vnode = vnode;
 
 - **updateComponentPreRender(instance, nextVNode)**：在组件重新 render 之前，把新 VNode 上的数据同步到实例——更新 `instance.vnode`、清空 `instance.next`、调用 `updateProps` 把最新的 props/attrs 写入实例、调用 `updateSlots`（见 [componentSlots.md](./componentSlots.md)）把最新的插槽同步到 `instance.slots`。
 
-组件实例与 setup 的细节见 [component.md](./component.md)。
+组件实例与 setup 的细节见 [component.md](./component.md)。生命周期钩子的注册与触发见 [apiLifecycle.md](./apiLifecycle.md)。
+
+- **unmountComponent(instance)**：卸载组件时调用。先 `triggerHook(instance, BEFORE_UNMOUNT)`，再 `unmount(instance.subTree)` 卸载子树，最后 `triggerHook(instance, UNMOUNTED)`。
+- **unmount(vnode)**：卸载单个 VNode。若为组件则只调 `unmountComponent`；若为元素等则先 `unmountChildren` 再移除自身 DOM。移除 DOM 时使用 `vnode.el && hostRemove(vnode.el)`，避免对已移除或无 el 的节点传 null。
 
 ### patchElement 与 children 处理
 

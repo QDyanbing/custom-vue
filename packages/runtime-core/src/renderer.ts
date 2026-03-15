@@ -53,20 +53,20 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * 卸载组件：先触发生命周期 beforeUnmount，再卸载子树，最后触发 unmounted。
+   */
   const unmountComponent = (instance: any) => {
-    // 卸载前
     triggerHook(instance, LifecycleHooks.BEFORE_UNMOUNT);
-    // 把subTree卸载掉
     unmount(instance.subTree);
-    // 卸载后
     triggerHook(instance, LifecycleHooks.UNMOUNTED);
   };
 
   /**
    * 卸载单个 VNode。
    *
-   * 1. 若有子节点，先递归卸载子树
-   * 2. 再调用宿主的 remove 把自身对应的 DOM 节点移除
+   * 组件先走 unmountComponent（内部会卸载 subTree）；元素/文本等先卸载子节点，再移除自身 DOM。
+   * 移除 DOM 时仅当 vnode.el 存在才调用 hostRemove，避免对已移除或无 el 的节点传 null。
    *
    * @param vnode 要卸载的虚拟节点
    */
@@ -74,18 +74,14 @@ export function createRenderer(options) {
     const { shapeFlag, children } = vnode;
 
     if (shapeFlag & ShapeFlags.COMPONENT) {
-      // 卸载组件
       unmountComponent(vnode.component);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      // 卸载数组子节点
       unmountChildren(children);
     }
 
     const remove = () => {
-      // 移除 dom 元素
       vnode.el && hostRemove(vnode.el);
     };
-
     remove();
   };
 
@@ -502,10 +498,7 @@ export function createRenderer(options) {
 
       if (!instance.isMounted) {
         const { vnode, render } = instance;
-        // 挂载前
         triggerHook(instance, LifecycleHooks.BEFORE_MOUNT);
-        // 挂载
-        // 调用 render 函数拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = render.call(instance.proxy);
         // 将 subTree 挂载到页面上
         patch(null, subTree, container, anchor);
@@ -515,8 +508,6 @@ export function createRenderer(options) {
         instance.subTree = subTree;
         // 已经挂载过了
         instance.isMounted = true;
-
-        // 挂载后
         triggerHook(instance, LifecycleHooks.MOUNTED);
       } else {
         let { vnode, render, next } = instance;
@@ -529,10 +520,7 @@ export function createRenderer(options) {
           next = vnode;
         }
 
-        // 更新前
         triggerHook(instance, LifecycleHooks.BEFORE_UPDATE);
-
-        // 更新
         const prevSubTree = instance.subTree;
         // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = render.call(instance.proxy);
@@ -542,8 +530,6 @@ export function createRenderer(options) {
         vnode.el = subTree.el;
         // 保存子树
         instance.subTree = subTree;
-
-        // 更新后
         triggerHook(instance, LifecycleHooks.UPDATED);
       }
     };
