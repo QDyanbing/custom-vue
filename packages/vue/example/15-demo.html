@@ -8,21 +8,54 @@
     <div id="app"></div>
     <script type="module">
       // import { h, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { h, createApp, getCurrentInstance, onMounted } from '../dist/vue.esm.js';
+      import {
+        h,
+        ref,
+        createApp,
+        getCurrentInstance,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+        onBeforeUnmount,
+        onUnmounted,
+      } from '../dist/vue.esm.js';
 
       const Comp = {
         setup() {
+          const count = ref(0);
+
+          onBeforeMount(() => {
+            console.log('before mount');
+          });
           onMounted(() => {
             console.log('mounted');
           });
 
-          return () => {
-            return h('div', [h('p', '父组件')]);
-          };
+          setTimeout(() => {
+            count.value++;
+          }, 1000);
+
+          onBeforeUpdate(() => {
+            console.log('before update');
+          });
+          onUpdated(() => {
+            console.log('updated');
+          });
+          onBeforeUnmount(() => {
+            console.log('before unmount');
+          });
+          onUnmounted(() => {
+            console.log('unmounted');
+          });
+          return () => h('div', [h('p', '父组件'), count.value]);
         },
       };
-
-      createApp(Comp, { msg: 'Hi' }).mount(document.getElementById('app'));
+      const app = createApp(Comp, { msg: 'Hi' });
+      app.mount(document.getElementById('app'));
+      setTimeout(() => {
+        app.unmount();
+      }, 2000);
     </script>
   </body>
 </html>
