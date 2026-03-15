@@ -53,6 +53,15 @@ export function createRenderer(options) {
     }
   };
 
+  const unmountComponent = (instance: any) => {
+    // 卸载前
+    triggerHook(instance, LifecycleHooks.BEFORE_UNMOUNT);
+    // 把subTree卸载掉
+    unmount(instance.subTree);
+    // 卸载后
+    triggerHook(instance, LifecycleHooks.UNMOUNTED);
+  };
+
   /**
    * 卸载单个 VNode。
    *
@@ -64,7 +73,11 @@ export function createRenderer(options) {
   const unmount = vnode => {
     const { type, shapeFlag, children } = vnode;
 
-    if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+    if (shapeFlag & ShapeFlags.COMPONENT) {
+      // 卸载组件
+      unmountComponent(vnode.component);
+    } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 卸载数组子节点
       unmountChildren(children);
     }
 
