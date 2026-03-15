@@ -497,6 +497,9 @@ export function createRenderer(options) {
         instance.subTree = subTree;
         // 已经挂载过了
         instance.isMounted = true;
+
+        // 挂载后
+        triggerHook(instance, LifecycleHooks.MOUNTED);
       } else {
         let { vnode, render, next } = instance;
 
@@ -508,6 +511,9 @@ export function createRenderer(options) {
           next = vnode;
         }
 
+        // 更新前
+        triggerHook(instance, LifecycleHooks.BEFORE_UPDATE);
+
         // 更新
         const prevSubTree = instance.subTree;
         // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
@@ -518,6 +524,9 @@ export function createRenderer(options) {
         vnode.el = subTree.el;
         // 保存子树
         instance.subTree = subTree;
+
+        // 更新后
+        triggerHook(instance, LifecycleHooks.UPDATED);
       }
     };
 
