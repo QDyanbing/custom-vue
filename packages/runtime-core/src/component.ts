@@ -225,19 +225,22 @@ export function getComponentPublicInstance(instance) {
   if (instance.exposed) {
     // 用户可以访问 exposed 和 publicPropertiesMap
 
-    const exposedProxy = new Proxy(instance.exposed, {
+    // 如果已经存在代理对象，则直接返回
+    if (instance.exposedProxy) return instance.exposedProxy;
+
+    // 创建代理对象
+    instance.exposedProxy = new Proxy(instance.exposed, {
       get(target, key) {
         if (key in target) {
           return target[key];
         }
-
         if (key in publicPropertiesMap) {
           return publicPropertiesMap[key](instance);
         }
       },
     });
 
-    return exposedProxy;
+    return instance.exposedProxy;
   }
   return instance.proxy;
 }
