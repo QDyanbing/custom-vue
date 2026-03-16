@@ -39,6 +39,7 @@
 - `el`：挂载后的真实 DOM 元素引用（初始为 `null`，由 renderer 在运行时填充）
 - `shapeFlag`：使用位运算记录"节点类型 + 子节点类型"的组合信息
 - `component`：当 VNode 类型为组件时，渲染器在 `mountComponent` 中会把创建好的组件实例挂到这里；后续 `updateComponent` 通过 `n2.component = n1.component` 复用实例，避免重复创建
+ - `ref`：模板 ref 的内部表示，结构为 `{ r: rawRef, i: instance }`，其中 `r` 是原始 ref（字符串或 `Ref` 对象），`i` 是当前正在渲染的组件实例；渲染器会把这个对象交给 `setRef`（见 [renderTemplateRef.md](./renderTemplateRef.md)）做实际赋值/清理
 
 借助 `shapeFlag`，后续在 `renderer` 里可以只通过按位与来判断当前 VNode 属于哪种形态，而不需要到处写 `typeof` / `Array.isArray` 之类的判断。
 
@@ -71,6 +72,22 @@
 插槽的识别依赖于 vnode 本身的 `shapeFlag` 是否包含 `COMPONENT`——只有组件类型的 VNode 才会把对象/函数形式的 children 当作插槽处理。
 
 与 `initSlots`（见 [componentSlots.md](./componentSlots.md)）配合：`normalizeChildren` 把 children 标记为插槽并存到 vnode 上，`initSlots` 再把它们赋值到 `instance.slots`。
+
+## normalizeRef(ref)
+
+`normalizeRef` 用于在创建 VNode 时，把模板上的 `ref` 标准化成统一的内部结构，便于渲染器在挂载/卸载阶段统一处理：
+
+- 当 `ref` 为空时返回 `undefined`
+- 否则返回 `{ r: ref, i: getCurrentRenderingInstance() }`
+
+其中：
+
+- `r`（rawRef）：原始的 ref 值，可以是：
+  - 组合式 API 下的 `Ref` 对象（例如 `const elRef = ref(null)`）
+  - 字符串（例如 `'elRef'`，会映射到 `instance.refs.elRef`）
+- `i`（instance）：当前正在渲染的组件实例，由 `getCurrentRenderingInstance()` 提供
+
+在渲染阶段，renderer 会把这个对象传给 `setRef(ref, vnode)`（见 [renderTemplateRef.md](./renderTemplateRef.md)），根据 `shapeFlag` 决定将 DOM 元素还是组件实例写入 ref。
 
 ## createVNode(type, props?, children?)
 
@@ -108,6 +125,7 @@ return vnode;
 - 结构信息：`type` / `props` / `children` / `key`
 - 运行时引用：`el`（由 renderer 填充）
 - 形态标记：`shapeFlag`（节点类型 + 子节点类型的位组合）
+- 模板引用：`ref`（若 `props.ref` 存在，则由 `normalizeRef` 生成），供 `setRef` 在渲染阶段写入 DOM / 组件实例
 
 ## isVNode(value)
 
