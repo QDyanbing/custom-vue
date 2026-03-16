@@ -1,3 +1,4 @@
+import { Ref } from '@vue/reactivity';
 import { ShapeFlags, isArray, isString, isNumber, isObject, isFunction } from '@vue/shared';
 
 /**
@@ -18,6 +19,7 @@ export interface VNode {
   el?: Element | null; // 关联的真实 DOM 元素
   shapeFlag: number; // 使用位运算标记当前 VNode 的“形状”（元素 / 文本子节点 / 数组子节点）
   component?: any; // 组件实例
+  ref?: string | number | Ref | null; // 用于引用 DOM 元素或组件实例
 }
 
 /**
@@ -137,6 +139,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     key: props?.key, // 虚拟节点的 key 属性,作用是用于优化 diff 算法
     el: null, // 虚拟节点对应的 DOM 元素
     shapeFlag,
+    ref: props?.ref,
   };
 
   // children 的标准化 和 children 的  shapeFlag 的设置

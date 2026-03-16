@@ -8,6 +8,7 @@ import { shouldUpdateComponent } from './componentRenderUtils';
 import { updateProps } from './componentProps';
 import { updateSlots } from './componentSlots';
 import { LifecycleHooks, triggerHook } from './apiLifecycle';
+import { setRef } from './renderTemplateRef';
 
 /**
  * 创建一个渲染器。
@@ -650,7 +651,7 @@ export function createRenderer(options) {
       mountElement(n2, container);
     }
 
-    const { shapeFlag, type } = n2;
+    const { shapeFlag, type, ref } = n2;
 
     switch (type) {
       case Text:
@@ -664,6 +665,10 @@ export function createRenderer(options) {
           // 处理组件类型
           processComponent(n1, n2, container, anchor);
         }
+    }
+
+    if (ref) {
+      setRef(ref, n2);
     }
   };
 
