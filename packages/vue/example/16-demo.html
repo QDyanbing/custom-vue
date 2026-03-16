@@ -15,7 +15,6 @@
       import { h, ref, createApp, onMounted } from '../dist/vue.esm.js';
 
       const Child = {
-        props: ['count'],
         setup(props, { attrs, slots, emit, expose }) {
           expose({
             foo: () => {
@@ -23,7 +22,7 @@
             },
           });
 
-          return () => h('div', ['子组件', props.count]);
+          return () => h('div', ['子组件']);
         },
       };
 
@@ -31,12 +30,15 @@
         setup() {
           const count = ref(0);
           const elRef = ref();
+          const childRef = ref();
 
           onMounted(() => {
-            console.log('elRef.value', elRef.value);
+            console.log(elRef.value);
+            childRef.value.foo();
           });
 
-          return () => h('div', [h('p', { id: 'box', ref: elRef }, '父组件')]);
+          return () =>
+            h('div', [h('p', { id: 'box', ref: elRef }, '父组件'), h(Child, { ref: childRef })]);
         },
       };
       const app = createApp(Comp, { msg: 'Hi' });
