@@ -1,17 +1,27 @@
 import { isRef } from '@vue/reactivity';
-import { ShapeFlags } from '@vue/shared';
+import { isString, ShapeFlags } from '@vue/shared';
 import { getComponentPublicInstance } from './component';
 
 export function setRef(ref, vnode) {
   const { shapeFlag } = vnode;
 
-  if (isRef(ref)) {
+  const { r: rawRef, i: instance } = ref;
+
+  if (isRef(rawRef)) {
     if (shapeFlag & ShapeFlags.COMPONENT) {
       // vnode 是一个组件类型
-      ref.value = getComponentPublicInstance(vnode.component);
+      rawRef.value = getComponentPublicInstance(vnode.component);
     } else {
       // vnode 是一个 DOM 元素类型
-      ref.value = vnode.el;
+      rawRef.value = vnode.el;
+    }
+  } else if (isString(rawRef)) {
+    if (shapeFlag & ShapeFlags.COMPONENT) {
+      // vnode 是一个组件类型
+      instance.refs[rawRef] = getComponentPublicInstance(vnode.component);
+    } else {
+      // vnode 是一个 DOM 元素类型
+      instance.refs[rawRef] = vnode.el;
     }
   }
 }

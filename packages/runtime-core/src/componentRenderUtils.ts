@@ -1,3 +1,5 @@
+import { setCurrentRenderingInstance, unsetCurrentRenderingInstance } from './component';
+
 /**
  * 浅比较两组 props 是否发生了变化。
  *
@@ -65,4 +67,11 @@ export function shouldUpdateComponent(n1, n2): boolean {
 
   //  老的有新的也有
   return hasPropsChanged(prevProps, nextProps);
+}
+
+export function renderComponentRoot(instance) {
+  setCurrentRenderingInstance(instance);
+  const subTree = instance.render.call(instance.proxy);
+  unsetCurrentRenderingInstance();
+  return subTree;
 }

@@ -1,10 +1,15 @@
 import { ShapeFlags } from '@vue/shared';
 import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
-import { createComponentInstance, setupComponent } from './component';
+import {
+  createComponentInstance,
+  setCurrentRenderingInstance,
+  setupComponent,
+  unsetCurrentRenderingInstance,
+} from './component';
 import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
-import { shouldUpdateComponent } from './componentRenderUtils';
+import { renderComponentRoot, shouldUpdateComponent } from './componentRenderUtils';
 import { updateProps } from './componentProps';
 import { updateSlots } from './componentSlots';
 import { LifecycleHooks, triggerHook } from './apiLifecycle';
@@ -498,9 +503,9 @@ export function createRenderer(options) {
        */
 
       if (!instance.isMounted) {
-        const { vnode, render } = instance;
+        const { vnode } = instance;
         triggerHook(instance, LifecycleHooks.BEFORE_MOUNT);
-        const subTree = render.call(instance.proxy);
+        const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
         patch(null, subTree, container, anchor);
         // 组件的el 指向 subTree 的el，他们是相同的
@@ -511,7 +516,7 @@ export function createRenderer(options) {
         instance.isMounted = true;
         triggerHook(instance, LifecycleHooks.MOUNTED);
       } else {
-        let { vnode, render, next } = instance;
+        let { vnode, next } = instance;
 
         if (next) {
           // 父组件传的属性触发的更新
@@ -524,7 +529,7 @@ export function createRenderer(options) {
         triggerHook(instance, LifecycleHooks.BEFORE_UPDATE);
         const prevSubTree = instance.subTree;
         // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
-        const subTree = render.call(instance.proxy);
+        const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
         patch(prevSubTree, subTree, container, anchor);
         // 组件的el 指向 subTree 的el，他们是相同的

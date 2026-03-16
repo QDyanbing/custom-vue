@@ -12,7 +12,7 @@
     -->
     <script type="module">
       // import { h, ref, createApp, onMounted } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { h, ref, createApp, onMounted } from '../dist/vue.esm.js';
+      import { h, ref, createApp, onMounted, getCurrentInstance } from '../dist/vue.esm.js';
 
       const Child = {
         setup(props, { attrs, slots, emit, expose }) {
@@ -33,14 +33,16 @@
           const elRef = ref();
           const childRef = ref();
 
+          const vm = getCurrentInstance();
+
           onMounted(() => {
-            console.log(elRef.value);
+            console.log(vm.proxy.$refs.elRef);
             console.log(childRef.value.a);
             console.log(childRef.value.$el);
           });
 
           return () =>
-            h('div', [h('p', { id: 'box', ref: elRef }, '父组件'), h(Child, { ref: childRef })]);
+            h('div', [h('p', { id: 'box', ref: 'elRef' }, '父组件'), h(Child, { ref: childRef })]);
         },
       };
       const app = createApp(Comp, { msg: 'Hi' });

@@ -301,3 +301,31 @@ export function getCurrentInstance() {
 export function unsetCurrentInstance() {
   currentInstance = null;
 }
+
+/**
+ * 当前正在渲染的组件实例
+ */
+let currentRenderingInstance = null;
+
+/**
+ * 设置当前正在渲染的组件实例
+ * @param instance 组件实例
+ */
+export function setCurrentRenderingInstance(instance) {
+  currentRenderingInstance = instance;
+}
+
+/**
+ * 获取当前正在渲染的组件实例
+ * @returns 当前正在渲染的组件实例
+ */
+export function getCurrentRenderingInstance() {
+  return currentRenderingInstance;
+}
+
+/**
+ * 清除当前正在渲染的组件实例
+ */
+export function unsetCurrentRenderingInstance() {
+  currentRenderingInstance = null;
+}
