@@ -229,7 +229,7 @@ export function getComponentPublicInstance(instance) {
     if (instance.exposedProxy) return instance.exposedProxy;
 
     // 创建代理对象
-    instance.exposedProxy = new Proxy(instance.exposed, {
+    instance.exposedProxy = new Proxy(proxyRefs(instance.exposed), {
       get(target, key) {
         if (key in target) {
           return target[key];

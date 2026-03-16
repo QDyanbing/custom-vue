@@ -17,6 +17,7 @@
       const Child = {
         setup(props, { attrs, slots, emit, expose }) {
           expose({
+            a: ref(0),
             foo: () => {
               console.log('子组件暴露的 foo 方法');
             },
@@ -34,7 +35,7 @@
 
           onMounted(() => {
             console.log(elRef.value);
-
+            console.log(childRef.value.a);
             console.log(childRef.value.$el);
           });
 
