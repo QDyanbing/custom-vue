@@ -102,6 +102,7 @@ export function normalizeChildren(vnode: VNode, children: any): any {
 }
 
 export function normalizeRef(ref) {
+  if (!ref) return;
   return {
     r: ref,
     i: getCurrentRenderingInstance(),

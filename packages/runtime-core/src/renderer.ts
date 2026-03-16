@@ -77,7 +77,7 @@ export function createRenderer(options) {
    * @param vnode 要卸载的虚拟节点
    */
   const unmount = vnode => {
-    const { shapeFlag, children } = vnode;
+    const { shapeFlag, children, ref } = vnode;
 
     if (shapeFlag & ShapeFlags.COMPONENT) {
       unmountComponent(vnode.component);
@@ -89,6 +89,10 @@ export function createRenderer(options) {
       vnode.el && hostRemove(vnode.el);
     };
     remove();
+
+    if (ref) {
+      setRef(ref, null);
+    }
   };
 
   /**
