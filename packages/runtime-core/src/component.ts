@@ -214,6 +214,10 @@ function createSetupContext(instance) {
     },
     // 处理组件传递的插槽
     slots: instance.slots,
+    expose(exposed) {
+      // 把用户传递的exposed对象挂载到组件实例上
+      instance.exposed = exposed;
+    },
   };
 }
 
