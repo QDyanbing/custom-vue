@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示组件生命周期：onBeforeMount / onMounted / onBeforeUpdate / onUpdated / onBeforeUnmount / onUnmounted。
+      父组件 1s 时 count++ 触发更新，2s 时 app.unmount() 触发卸载，控制台按顺序打印各阶段日志。
+    -->
+    <script type="module">
+      // import { h, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, ref, createApp } from '../dist/vue.esm.js';
+
+      const Child = {
+        props: ['count'],
+        setup(props, { attrs, slots, emit, expose }) {
+          expose({
+            foo: () => {
+              console.log('子组件暴露的 foo 方法');
+            },
+          });
+
+          return () => h('div', ['子组件', props.count]);
+        },
+      };
+
+      const Comp = {
+        setup() {
+          const count = ref(0);
+
+          return () => h('div', [h('p', '父组件'), h(Child, { count: count.value })]);
+        },
+      };
+      const app = createApp(Comp, { msg: 'Hi' });
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
