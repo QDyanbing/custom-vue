@@ -12,7 +12,14 @@
     -->
     <script type="module">
       // import { h, ref, createApp, onMounted } from '/node_modules/vue/dist/vue.esm-browser.js';
-      import { h, ref, createApp, onMounted, getCurrentInstance } from '../dist/vue.esm.js';
+      import {
+        h,
+        ref,
+        createApp,
+        onMounted,
+        getCurrentInstance,
+        useTemplateRef,
+      } from '../dist/vue.esm.js';
 
       const Child = {
         setup(props, { attrs, slots, emit, expose }) {
@@ -30,15 +37,12 @@
       const Comp = {
         setup() {
           const count = ref(0);
-          const elRef = ref();
           const childRef = ref();
 
-          const vm = getCurrentInstance();
+          const elRef = useTemplateRef('elRef');
 
           onMounted(() => {
-            console.log(vm.proxy.$refs.elRef);
-            console.log(childRef.value.a);
-            console.log(childRef.value.$el);
+            console.log(elRef.value);
           });
 
           return () =>
