@@ -221,6 +221,27 @@ function createSetupContext(instance) {
   };
 }
 
+export function getComponentPublicInstance(instance) {
+  if (instance.exposed) {
+    // 用户可以访问 exposed 和 publicPropertiesMap
+
+    const exposedProxy = new Proxy(instance.exposed, {
+      get(target, key) {
+        if (key in target) {
+          return target[key];
+        }
+
+        if (key in publicPropertiesMap) {
+          return publicPropertiesMap[key](instance);
+        }
+      },
+    });
+
+    return exposedProxy;
+  }
+  return instance.proxy;
+}
+
 /**
  * 触发组件事件。
  *

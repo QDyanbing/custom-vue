@@ -34,7 +34,8 @@
 
           onMounted(() => {
             console.log(elRef.value);
-            childRef.value.foo();
+
+            console.log(childRef.value.$el);
           });
 
           return () =>
