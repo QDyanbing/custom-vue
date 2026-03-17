@@ -15,16 +15,18 @@
 - [实例结构 (instance)](#实例结构-instance)
 - [依赖](#依赖)
 
-## createComponentInstance(vnode)
+## createComponentInstance(vnode, parent)
 
 根据组件类型的 VNode 创建组件实例对象：
 
 - 从 `vnode.type` 取得组件定义（含 `props`、`setup`、`render`）
+- 接收 `parent` 参数：根组件挂载时渲染器传入 `null`，子组件传入父组件实例，用于建立 `instance.parent` 关系
+- 确定 `appContext`：有 parent 时从 `parent.appContext` 继承，否则从 `vnode.appContext` 取（根 vnode 由 createApp 在 mount 时挂上 appContext）
 - 使用 `normalizePropsOptions(type.props)` 标准化组件的 props 选项（数组/对象统一成对象），结果挂到 `instance.propsOptions`
 - 在实例上绑定 `emit` 方法（`instance.emit = (event, ...args) => emit(instance, event, ...args)`），供 `$emit` 和 `setupContext.emit` 使用
-- 返回的 instance 包含：`type`、`vnode`、`props`、`attrs`、`slots`、`emit`、`subTree`、`isMounted`、`render`、`setupState`，其中 `props` / `attrs` / `render` / `setupState` 在 `setupComponent` + `initProps` 中填充，`slots` 在 `initSlots` 中填充
+- 返回的 instance 包含：`type`、`vnode`、`parent`、`appContext`、`props`、`attrs`、`slots`、`emit`、`subTree`、`isMounted`、`render`、`setupState`，其中 `props` / `attrs` / `render` / `setupState` 在 `setupComponent` + `initProps` 中填充，`slots` 在 `initSlots` 中填充
 
-渲染器在 `mountComponent` 中先调用 `createComponentInstance`，再调用 `setupComponent`。
+渲染器在 `mountComponent` 中先调用 `createComponentInstance(vnode, parentComponent)`，再调用 `setupComponent`。
 
 ## setupComponent(instance)
 
@@ -104,6 +106,8 @@ setup(props, { attrs, emit, slots }) {
 |------|------|
 | `type` | 组件定义（即 vnode.type） |
 | `vnode` | 当前组件对应的 VNode |
+| `parent` | 父组件实例，根组件为 null；可通过 `getCurrentInstance().parent` 访问 |
+| `appContext` | 应用上下文，由 createApp 创建，含 `provides` 等，供 provide/inject 使用；根组件从 vnode.appContext 取，子组件从 parent.appContext 继承 |
 | `props` / `attrs` | 组件接收的属性：`props` 为按 `props` 选项声明的响应式对象，`attrs` 为未声明但传入的"额外属性"（通常透传到根元素） |
 | `slots` | 插槽对象，由 `initSlots` 在挂载时填充，`updateSlots` 在更新时同步；`setup(props, { slots })` 和 `this.$slots` 读取的都是同一个引用 |
 | `emit` | 事件触发方法，绑定了当前实例；`setup(props, { emit })` 和 `this.$emit` 使用的都是它 |
