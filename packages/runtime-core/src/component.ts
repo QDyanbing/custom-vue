@@ -11,12 +11,15 @@ import { initSlots } from './componentSlots';
  * 只负责根据传入的组件 VNode 构造一个“空壳”实例对象，并记录：
  * - 组件定义（type）
  * - 对应的 VNode
+ * - 父组件实例（parent，根组件时为 null）
+ * - 应用上下文（appContext，根组件从 vnode.appContext 取，子组件从 parent.appContext 继承）
  * - props / attrs 占位对象
  * - 用于组件挂载与更新的渲染相关字段（subTree / isMounted / render / setupState）
  *
  * props / attrs 的实际填充由 `setupComponent` 内部调用 `initProps` 完成。
  *
  * @param vnode 组件类型的 VNode
+ * @param parent 父组件实例，根组件挂载时由渲染器传入 null
  * @returns 组件实例对象
  */
 export function createComponentInstance(vnode, parent) {
