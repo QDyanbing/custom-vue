@@ -39,7 +39,8 @@
 - `el`：挂载后的真实 DOM 元素引用（初始为 `null`，由 renderer 在运行时填充）
 - `shapeFlag`：使用位运算记录"节点类型 + 子节点类型"的组合信息
 - `component`：当 VNode 类型为组件时，渲染器在 `mountComponent` 中会把创建好的组件实例挂到这里；后续 `updateComponent` 通过 `n2.component = n1.component` 复用实例，避免重复创建
- - `ref`：模板 ref 的内部表示，结构为 `{ r: rawRef, i: instance }`，其中 `r` 是原始 ref（字符串或 `Ref` 对象），`i` 是当前正在渲染的组件实例；渲染器会把这个对象交给 `setRef`（见 [renderTemplateRef.md](./renderTemplateRef.md)）做实际赋值/清理
+- `ref`：模板 ref 的内部表示，结构为 `{ r: rawRef, i: instance }`，其中 `r` 是原始 ref（字符串或 `Ref` 对象），`i` 是当前正在渲染的组件实例；渲染器会把这个对象交给 `setRef`（见 [renderTemplateRef.md](./renderTemplateRef.md)）做实际赋值/清理
+- `appContext`：应用上下文，createApp 在 mount 时挂到根 vnode 上（`vnode.appContext = context`），供 `createComponentInstance` 在创建根组件实例时使用；子组件的 appContext 从 parent 继承，不依赖 vnode
 
 借助 `shapeFlag`，后续在 `renderer` 里可以只通过按位与来判断当前 VNode 属于哪种形态，而不需要到处写 `typeof` / `Array.isArray` 之类的判断。
 
