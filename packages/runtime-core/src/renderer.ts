@@ -20,7 +20,7 @@ export function createRenderer(options) {
   const {
     createElement: hostCreateElement,
     insert: hostInsert,
-    nextSibling: hostNextSibling,
+    nextSibling: hostNextSibling, // 获取节点的下一个兄弟，用于 n1/n2 不同节点时确定新节点插入锚点
     setElementText: hostSetElementText,
     setText: hostSetText,
     createText: hostCreateText,
@@ -34,6 +34,7 @@ export function createRenderer(options) {
    *
    * @param children 子 VNode 列表
    * @param el 挂载到的父容器
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const mountChildren = (children, el, parentComponent = null) => {
     for (let i = 0; i < children.length; i++) {
@@ -44,7 +45,7 @@ export function createRenderer(options) {
   };
 
   /**
-   * 卸载一组子 VNode，对应从父容器中移除一整 套子树。
+   * 卸载一组子 VNode，对应从父容器中移除一整套子树。
    *
    * @param children 要卸载的子 VNode 列表
    */
@@ -101,6 +102,7 @@ export function createRenderer(options) {
    * @param vNode 要挂载的元素 VNode
    * @param container 挂载到的父容器
    * @param anchor 锚点，用于控制插入位置
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const mountElement = (vNode, container, anchor = null, parentComponent = null) => {
     /*
@@ -166,6 +168,7 @@ export function createRenderer(options) {
    *
    * @param n1 旧 VNode
    * @param n2 新 VNode
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const patchChildren = (n1, n2, parentComponent = null) => {
     const el = n2.el;
@@ -235,6 +238,7 @@ export function createRenderer(options) {
    * @param c1 旧 children 列表
    * @param c2 新 children 列表
    * @param container 容器元素
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const patchKeyedChildren = (c1, c2, container, parentComponent = null) => {
     /**
@@ -402,6 +406,8 @@ export function createRenderer(options) {
    * 1. 复用 DOM
    * 2. 对比并更新 props
    * 3. 对比并更新 children
+   *
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const patchElement = (n1, n2, parentComponent = null) => {
     // 复用 dom 元素
@@ -423,6 +429,7 @@ export function createRenderer(options) {
    * @param n2 新节点
    * @param container 要挂载的容器
    * @param anchor 锚点，用于控制插入位置
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const processElement = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
@@ -564,6 +571,7 @@ export function createRenderer(options) {
    * @param vnode 组件类型的 VNode（vnode.type 为组件定义对象）
    * @param container 挂载到的父容器
    * @param anchor 锚点，插入位置
+   * @param parentComponent 父组件实例，根组件挂载时为 null；子组件会将其赋给 instance.parent
    */
   const mountComponent = (
     vnode: VNode,
@@ -625,6 +633,7 @@ export function createRenderer(options) {
    * @param n2 新组件 VNode
    * @param container 容器
    * @param anchor 锚点
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const processComponent = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
@@ -647,7 +656,8 @@ export function createRenderer(options) {
    * @param n1 老节点，如果有则需要和 n2 做 diff；如果没有则直接挂载 n2
    * @param n2 新节点
    * @param container 要挂载的容器
-   * @param anchor 锚点，用于控制插入位置
+   * @param anchor 锚点，用于控制插入位置；当 n1 与 n2 不是同一节点时，会在卸载前用 hostNextSibling(n1.el) 更新，保证新节点插入到原位置
+   * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const patch = (n1, n2, container, anchor = null, parentComponent = null) => {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
