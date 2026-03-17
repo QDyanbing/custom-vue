@@ -32,6 +32,9 @@
             },
           });
 
+          const vm = getCurrentInstance();
+          console.log('parent===>', vm.parent);
+
           return () => h('div', ['子组件']);
         },
       };
