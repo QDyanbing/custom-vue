@@ -41,7 +41,7 @@ app.mount(container);                                // 根组件挂载
 - **render**：将 VNode 渲染到指定容器；传 `null` 表示卸载。
 - **createApp**：由 `createAppApi(render)` 生成，用于创建应用实例并挂载根组件，详见 [apiCreateApp.md](./apiCreateApp.md)。
 
-内部将 options 中的宿主方法重命名为 `hostCreateElement`、`hostInsert`、`hostRemove` 等，挂载/更新/卸载流程仅依赖这些宿主钩子，与具体平台解耦。
+内部将 options 中的宿主方法重命名为 `hostCreateElement`、`hostInsert`、`hostNextSibling`、`hostRemove` 等，挂载/更新/卸载流程仅依赖这些宿主钩子，与具体平台解耦。其中 `hostNextSibling` 用于在 patch 时，当 n1 与 n2 不是同一节点（需卸载旧节点并挂载新节点）时，获取旧节点的下一个兄弟作为锚点，保证新节点插入到原位置。
 
 目前已经在 `renderer.ts` 源码里通过 JSDoc 把每个宿主钩子、每个内部 helper 的职责都标注清楚，这里的文档主要帮助理解整体调用关系。
 
@@ -65,19 +65,19 @@ if (vnode === null) {
 container._vnode = vnode;
 ```
 
-### patch(n1, n2, container, anchor?)
+### patch(n1, n2, container, anchor?, parentComponent?)
 
 `patch` 是"挂载 + 更新"的统一入口：
 
 - 如果 `n1 === n2`：完全同一个引用，直接返回。
 - 如果 `n1` 存在但和 `n2` 不是同一个 VNode（`isSameVNode` 为假）：
-  - 说明结构发生了根本变化，先卸载老节点，再当成新节点重新挂载。
+  - 说明结构发生了根本变化，先通过 `hostNextSibling(n1.el)` 拿到老节点的下一个兄弟作为 anchor，再卸载老节点，最后将新节点挂载到该 anchor 前（保证插入位置正确）。
 - 如果 `n1` 为空：
   - 说明是初次挂载，走 `mountElement`。
 - 其他情况：
   - 认为是同一个节点，只需要在原地更新，走 `patchElement`。
 
-这里的 `anchor` 由外层传入，用来控制元素插入的准确位置，当前 demo 里主要在 keyed diff 时使用。
+`anchor` 由外层传入，用来控制元素插入的准确位置，当前 demo 里主要在 keyed diff 时使用。`parentComponent` 为父组件实例，会沿 patch 调用链向下传递，供子组件在 `createComponentInstance` 时建立 `instance.parent` 关系。
 
 ### patch 对类型的分发（Element / Text / Component）
 
@@ -91,10 +91,10 @@ container._vnode = vnode;
 
 ### 组件 processComponent、mountComponent 与 updateComponent
 
-- **processComponent(n1, n2, container, anchor)**：组件入口。`n1 == null` 时执行挂载 `mountComponent(n2, container, anchor)`；`n1 != null` 时走 `updateComponent(n1, n2)` 做组件更新。
+- **processComponent(n1, n2, container, anchor, parentComponent)**：组件入口。`n1 == null` 时执行挂载 `mountComponent(n2, container, anchor, parentComponent)`；`n1 != null` 时走 `updateComponent(n1, n2)` 做组件更新。
 
-- **mountComponent(vnode, container, anchor)**：挂载组件类型 VNode，并建立响应式更新链路。步骤为：
-  1. 调用 `createComponentInstance(vnode)`、`setupComponent(instance)` 得到实例与 `setupState`、`render`。同时把实例挂到 `vnode.component` 上，方便后续更新时复用。
+- **mountComponent(vnode, container, anchor, parentComponent)**：挂载组件类型 VNode，并建立响应式更新链路。步骤为：
+  1. 调用 `createComponentInstance(vnode, parentComponent)` 创建实例（根组件时 `parentComponent` 为 null，子组件会得到父实例并赋给 `instance.parent`），再调用 `setupComponent(instance)` 得到 `setupState`、`render`。同时把实例挂到 `vnode.component` 上，方便后续更新时复用。
   2. 调用 `setupRenderEffect(instance, container, anchor)` 建立响应式 effect（见下方）。
 
 - **setupRenderEffect(instance, container, anchor)**：定义 `componentUpdateFn` 并用 `ReactiveEffect` 包裹：
@@ -118,7 +118,7 @@ container._vnode = vnode;
 - `patchElement` 负责：
   - 复用旧的 DOM：`n2.el = n1.el`
   - 调用 `patchProps(el, oldProps, newProps)` 更新属性
-  - 调用 `patchChildren(n1, n2)` 更新子节点
+  - 调用 `patchChildren(n1, n2, parentComponent)` 更新子节点（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
 
 - `patchChildren` 通过 `shapeFlag` 区分几种情况：
   - 文本 → 文本：必要时直接改写 `textContent`。
