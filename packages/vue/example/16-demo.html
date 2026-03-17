@@ -7,10 +7,11 @@
   <body>
     <div id="app"></div>
     <!--
-      演示模板 ref 与组件 expose：
+      演示模板 ref、组件 expose、parent 与 appContext：
       - 子组件通过 setup 第二个参数的 expose 暴露方法和状态
       - 父组件通过 ref 绑定子组件实例，再结合 useTemplateRef 绑定 DOM 元素
       - onMounted 中分别打印 DOM ref 和子组件暴露出的实例
+      - 子组件 setup 中通过 getCurrentInstance() 可拿到 vm.parent（父组件实例）和 vm.appContext（应用上下文）
     -->
     <script type="module">
       // import { h, ref, createApp, onMounted } from '/node_modules/vue/dist/vue.esm-browser.js';
