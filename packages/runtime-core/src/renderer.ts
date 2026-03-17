@@ -20,6 +20,7 @@ export function createRenderer(options) {
   const {
     createElement: hostCreateElement,
     insert: hostInsert,
+    nextSibling: hostNextSibling,
     setElementText: hostSetElementText,
     setText: hostSetText,
     createText: hostCreateText,
@@ -653,6 +654,9 @@ export function createRenderer(options) {
     if (n1 === n2) return;
 
     if (n1 && !isSameVNode(n1, n2)) {
+      // 卸载老节点之前，拿到老节点的下一个节点，挂载的时候，将新节点挂载到n1之前的位置
+      anchor = hostNextSibling(n1.el);
+
       // 如果老节点和新节点不是同一个节点，则直接卸载老节点，挂载新节点
       // 这里是学习用的简化处理：直接按“卸载旧 → 重新挂载新”走，不做更细的分支判断
       unmount(n1);
