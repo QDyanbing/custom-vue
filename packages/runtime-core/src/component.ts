@@ -19,12 +19,13 @@ import { initSlots } from './componentSlots';
  * @param vnode 组件类型的 VNode
  * @returns 组件实例对象
  */
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   const { type } = vnode;
 
   const instance: any = {
     type,
     vnode,
+    parent, // 父组件
     props: {},
     attrs: {},
     slots: {},

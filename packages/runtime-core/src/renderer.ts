@@ -1,11 +1,6 @@
 import { ShapeFlags } from '@vue/shared';
 import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
-import {
-  createComponentInstance,
-  setCurrentRenderingInstance,
-  setupComponent,
-  unsetCurrentRenderingInstance,
-} from './component';
+import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
@@ -39,16 +34,16 @@ export function createRenderer(options) {
    * @param children 子 VNode 列表
    * @param el 挂载到的父容器
    */
-  const mountChildren = (children, el) => {
+  const mountChildren = (children, el, parentComponent = null) => {
     for (let i = 0; i < children.length; i++) {
       const child = (children[i] = normalizeVNode(children[i]));
       // 递归挂载子节点
-      patch(null, child, el);
+      patch(null, child, el, null, parentComponent);
     }
   };
 
   /**
-   * 卸载一组子 VNode，对应从父容器中移除一整套子树。
+   * 卸载一组子 VNode，对应从父容器中移除一整 套子树。
    *
    * @param children 要卸载的子 VNode 列表
    */
@@ -106,7 +101,7 @@ export function createRenderer(options) {
    * @param container 挂载到的父容器
    * @param anchor 锚点，用于控制插入位置
    */
-  const mountElement = (vNode, container, anchor = null) => {
+  const mountElement = (vNode, container, anchor = null, parentComponent = null) => {
     /*
      * 1. 创建一个 dom 节点
      * 2. 设置它的 props
@@ -129,7 +124,7 @@ export function createRenderer(options) {
       hostSetElementText(el, children);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       // 子节点是数组
-      mountChildren(children, el);
+      mountChildren(children, el, parentComponent);
     }
 
     hostInsert(el, container, anchor);
@@ -171,7 +166,7 @@ export function createRenderer(options) {
    * @param n1 旧 VNode
    * @param n2 新 VNode
    */
-  const patchChildren = (n1, n2) => {
+  const patchChildren = (n1, n2, parentComponent = null) => {
     const el = n2.el;
     /**
      * 1. 新节点他的子节点是 文本
@@ -204,7 +199,7 @@ export function createRenderer(options) {
 
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // 挂载新的子节点
-          mountChildren(n2.children, el);
+          mountChildren(n2.children, el, parentComponent);
         }
       } else {
         // 老的数组或null
@@ -213,7 +208,7 @@ export function createRenderer(options) {
           if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
             // 新的是数组
             // TODO: 全量 diff
-            patchKeyedChildren(n1.children, n2.children, el);
+            patchKeyedChildren(n1.children, n2.children, el, parentComponent);
           } else {
             // 新的不是数组，把老的数组卸载
             unmountChildren(n1.children);
@@ -222,7 +217,7 @@ export function createRenderer(options) {
           // 老的是 null
           if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
             // 新的是数组，挂载新的子节点
-            mountChildren(n2.children, el);
+            mountChildren(n2.children, el, parentComponent);
           }
         }
       }
@@ -240,7 +235,7 @@ export function createRenderer(options) {
    * @param c2 新 children 列表
    * @param container 容器元素
    */
-  const patchKeyedChildren = (c1, c2, container) => {
+  const patchKeyedChildren = (c1, c2, container, parentComponent = null) => {
     /**
      * 全量 diff
      * 1. 双端 diff
@@ -275,7 +270,7 @@ export function createRenderer(options) {
       const n2 = (c2[i] = normalizeVNode(c2[i]));
       if (isSameVNode(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比下一个节点
-        patch(n1, n2, container);
+        patch(n1, n2, container, null, parentComponent);
       } else {
         // 如果n1和n2不是同一个节点，则直接break
         break;
@@ -294,7 +289,7 @@ export function createRenderer(options) {
       const n2 = (c2[e2] = normalizeVNode(c2[e2]));
       if (isSameVNode(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比上一个节点
-        patch(n1, n2, container);
+        patch(n1, n2, container, null, parentComponent);
       } else {
         // 如果n1和n2不是同一个节点，则直接break
         break;
@@ -311,7 +306,7 @@ export function createRenderer(options) {
       // 如果i大于e1，则说明新的节点比老的节点多，需要挂载新的节点
       while (i <= e2) {
         const n2 = (c2[i] = normalizeVNode(c2[i]));
-        patch(null, n2, container, anchor);
+        patch(null, n2, container, anchor, parentComponent);
         i++;
       }
     } else if (i > e2) {
@@ -368,7 +363,7 @@ export function createRenderer(options) {
           newIndexToOldIndexMap[newIndex] = j;
 
           // 找到 key 相同的则 patch
-          patch(n1, c2[newIndex], container);
+          patch(n1, c2[newIndex], container, null, parentComponent);
         } else {
           // 没找到则卸载旧节点
           unmount(n1);
@@ -395,7 +390,7 @@ export function createRenderer(options) {
           }
         } else {
           // 没有 el 则挂载新节点（新列表里多出来的）
-          patch(null, n2, container, anchor);
+          patch(null, n2, container, anchor, parentComponent);
         }
       }
     }
@@ -407,7 +402,7 @@ export function createRenderer(options) {
    * 2. 对比并更新 props
    * 3. 对比并更新 children
    */
-  const patchElement = (n1, n2) => {
+  const patchElement = (n1, n2, parentComponent = null) => {
     // 复用 dom 元素
     const el = (n2.el = n1.el);
 
@@ -417,7 +412,7 @@ export function createRenderer(options) {
     patchProps(el, oldProps, newProps);
 
     // 更新 children
-    patchChildren(n1, n2);
+    patchChildren(n1, n2, parentComponent);
   };
 
   /**
@@ -428,13 +423,13 @@ export function createRenderer(options) {
    * @param container 要挂载的容器
    * @param anchor 锚点，用于控制插入位置
    */
-  const processElement = (n1, n2, container, anchor = null) => {
+  const processElement = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
       // 挂载新节点
-      mountElement(n2, container, anchor);
+      mountElement(n2, container, anchor, parentComponent);
     } else {
       // 更新老节点
-      patchElement(n1, n2);
+      patchElement(n1, n2, parentComponent);
     }
   };
 
@@ -511,7 +506,7 @@ export function createRenderer(options) {
         triggerHook(instance, LifecycleHooks.BEFORE_MOUNT);
         const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
-        patch(null, subTree, container, anchor);
+        patch(null, subTree, container, anchor, instance);
         // 组件的el 指向 subTree 的el，他们是相同的
         vnode.el = subTree.el;
         // 保存子树
@@ -535,7 +530,7 @@ export function createRenderer(options) {
         // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
-        patch(prevSubTree, subTree, container, anchor);
+        patch(prevSubTree, subTree, container, anchor, instance);
         // 组件的el 指向 subTree 的el，他们是相同的
         vnode.el = subTree.el;
         // 保存子树
@@ -569,14 +564,19 @@ export function createRenderer(options) {
    * @param container 挂载到的父容器
    * @param anchor 锚点，插入位置
    */
-  const mountComponent = (vnode: VNode, container: Element, anchor = null) => {
+  const mountComponent = (
+    vnode: VNode,
+    container: Element,
+    anchor = null,
+    parentComponent = null,
+  ) => {
     /**
      * 1. 创建组件实例
      * 2. 初始化组件状态
      * 3. 挂载组件到页面
      */
     // 创建组件实例
-    const instance = createComponentInstance(vnode);
+    const instance = createComponentInstance(vnode, parentComponent);
     // 将组件实例挂载到 vnode 上,方便后续更新时使用
     vnode.component = instance;
     // 初始化组件状态
@@ -625,10 +625,10 @@ export function createRenderer(options) {
    * @param container 容器
    * @param anchor 锚点
    */
-  const processComponent = (n1, n2, container, anchor = null) => {
+  const processComponent = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
       // 挂载
-      mountComponent(n2, container, anchor);
+      mountComponent(n2, container, anchor, parentComponent);
     } else {
       // 更新
       updateComponent(n1, n2);
@@ -648,7 +648,7 @@ export function createRenderer(options) {
    * @param container 要挂载的容器
    * @param anchor 锚点，用于控制插入位置
    */
-  const patch = (n1, n2, container, anchor = null) => {
+  const patch = (n1, n2, container, anchor = null, parentComponent = null) => {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
     if (n1 === n2) return;
 
@@ -669,10 +669,10 @@ export function createRenderer(options) {
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // 处理 dom 元素；div，p，span，等
-          processElement(n1, n2, container, anchor);
+          processElement(n1, n2, container, anchor, parentComponent);
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
           // 处理组件类型
-          processComponent(n1, n2, container, anchor);
+          processComponent(n1, n2, container, anchor, parentComponent);
         }
     }
 
