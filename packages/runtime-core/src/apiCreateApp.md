@@ -23,15 +23,16 @@ createApp: createAppApi(render)
 
 | 属性/方法 | 说明 |
 |-----------|------|
-| `mount(container)` | 用 `h(rootComponent, rootProps)` 创建根 vnode，调用 `render` 渲染到 `container`，并记录 `_container` |
+| `mount(container)` | 用 `h(rootComponent, rootProps)` 创建根 vnode，将应用上下文 `context` 挂到 `vnode.appContext`，调用 `render` 渲染到 `container`，并记录 `_container` |
 | `unmount()` | 调用 `render(null, app._container)` 卸载，并清空 `_container` |
 | `_container` | 内部保存的挂载目标，`unmount` 时使用 |
+| `context`（内部） | 应用上下文对象，目前只包含 `provides`，会透过 `vnode.appContext` 传给根组件实例及其后代，供后续实现 `provide/inject` 能力 |
 
 ## 流程简述
 
 1. 用户调用 `createApp(RootComponent).mount(container)`（或带 rootProps：`createApp(Comp, { msg }).mount(container)`）。
 2. `createApp` 由 `createAppApi(render)` 生成，app 已绑定当前平台的 `render`。
-3. `mount` 时用 `h` 创建根 vnode，再 `render(vnode, container)` 完成首屏渲染。
+3. `mount` 时用 `h` 创建根 vnode，将应用上下文挂到 `vnode.appContext`，再 `render(vnode, container)` 完成首屏渲染；根组件实例会在 `createComponentInstance` 中从 `vnode.appContext` 继承 `appContext`。
 4. 销毁时调用 `app.unmount()`，内部执行 `render(null, container)` 做清理。
 
 ## 依赖
