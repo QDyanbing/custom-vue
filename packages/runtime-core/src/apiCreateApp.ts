@@ -14,11 +14,16 @@ export function createAppApi(render: any) {
    * @returns 应用实例 { mount, unmount }
    */
   return function createApp(rootComponent: any, rootProps: any) {
+    const context = {
+      provides: {}, // app 往后代组件使用 provide 注入的属性，会存到这里来
+    };
+
     const app = {
       _container: null,
       mount(container: Element) {
         // 创建组件的虚拟节点
         const vnode = h(rootComponent, rootProps);
+        vnode.appContext = context;
 
         // 渲染组件
         render(vnode, container);

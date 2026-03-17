@@ -34,6 +34,7 @@
 
           const vm = getCurrentInstance();
           console.log('parent===>', vm.parent);
+          console.log('child===>', vm);
 
           return () => h('div', ['子组件']);
         },

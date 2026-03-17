@@ -21,6 +21,7 @@ export interface VNode {
   shapeFlag: number; // 使用位运算标记当前 VNode 的“形状”（元素 / 文本子节点 / 数组子节点）
   component?: any; // 组件实例
   ref?: { r: string | number | Ref | null; i: any } | null; // 用于引用 DOM 元素或组件实例
+  appContext?: any; // 应用上下文
 }
 
 /**
@@ -148,6 +149,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     el: null, // 虚拟节点对应的 DOM 元素
     shapeFlag,
     ref: normalizeRef(props?.ref),
+    appContext: null, // 应用上下文
   };
 
   // children 的标准化 和 children 的  shapeFlag 的设置

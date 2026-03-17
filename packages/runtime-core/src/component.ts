@@ -22,9 +22,12 @@ import { initSlots } from './componentSlots';
 export function createComponentInstance(vnode, parent) {
   const { type } = vnode;
 
+  const appContext = parent ? parent.appContext : vnode.appContext;
+
   const instance: any = {
     type,
     vnode,
+    appContext, // createApp 产生的 appContext
     parent, // 父组件
     props: {},
     attrs: {},
