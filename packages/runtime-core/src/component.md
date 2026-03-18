@@ -108,6 +108,7 @@ setup(props, { attrs, emit, slots }) {
 | `vnode` | 当前组件对应的 VNode |
 | `parent` | 父组件实例，根组件为 null；可通过 `getCurrentInstance().parent` 访问 |
 | `appContext` | 应用上下文，由 createApp 创建，含 `provides` 等，供 provide/inject 使用；根组件从 vnode.appContext 取，子组件从 parent.appContext 继承 |
+| `provides` | 组件级依赖注入容器：默认以父级 `provides`（根组件则以 `appContext.provides`）为原型；组件首次调用 `provide` 时会创建自己的那一层，避免写入父级对象 |
 | `props` / `attrs` | 组件接收的属性：`props` 为按 `props` 选项声明的响应式对象，`attrs` 为未声明但传入的"额外属性"（通常透传到根元素） |
 | `slots` | 插槽对象，由 `initSlots` 在挂载时填充，`updateSlots` 在更新时同步；`setup(props, { slots })` 和 `this.$slots` 读取的都是同一个引用 |
 | `emit` | 事件触发方法，绑定了当前实例；`setup(props, { emit })` 和 `this.$emit` 使用的都是它 |
