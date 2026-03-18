@@ -25,6 +25,7 @@ createApp: createAppApi(render)
 |-----------|------|
 | `mount(container)` | 用 `h(rootComponent, rootProps)` 创建根 vnode，将应用上下文 `context` 挂到 `vnode.appContext`，调用 `render` 渲染到 `container`，并记录 `_container` |
 | `unmount()` | 调用 `render(null, app._container)` 卸载，并清空 `_container` |
+| `provide(key, value)` | 往 `context.provides` 写入键值；根组件及其后代在 `inject` 时会通过 `appContext.provides` 读到 |
 | `_container` | 内部保存的挂载目标，`unmount` 时使用 |
 | `context`（内部） | 应用上下文对象，目前只包含 `provides`，会透过 `vnode.appContext` 传给根组件实例及其后代，供后续实现 `provide/inject` 能力 |
 
