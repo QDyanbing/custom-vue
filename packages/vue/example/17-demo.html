@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示模板 ref、组件 expose、parent 与 appContext：
+      - 子组件通过 setup 第二个参数的 expose 暴露方法和状态
+      - 父组件通过 ref 绑定子组件实例，再结合 useTemplateRef 绑定 DOM 元素
+      - onMounted 中分别打印 DOM ref 和子组件暴露出的实例
+      - 子组件 setup 中通过 getCurrentInstance() 可拿到 vm.parent（父组件实例）和 vm.appContext（应用上下文）
+    -->
+    <script type="module">
+      import {
+        h,
+        ref,
+        createApp,
+        provide,
+        inject,
+      } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, ref, createApp } from '../dist/vue.esm.js';
+
+      const Child = {
+        setup() {
+          const count = inject('count');
+
+          return () => h('div', ['子组件', count.value]);
+        },
+      };
+
+      const Comp = {
+        setup() {
+          const count = ref(0);
+          provide('count', count);
+          return () => h('div', [h('p', { id: 'box' }, '父组件'), h(Child)]);
+        },
+      };
+      const app = createApp(Comp);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
