@@ -41,6 +41,7 @@ export function createComponentInstance(vnode, parent) {
     render: null, // 渲染函数
     setupState: {}, // setup 返回的状态
     propsOptions: normalizePropsOptions(type.props), // 用户声明的 props 选项
+    provides: Object.create(parent?.provides || {}), // 我要注入给子组件访问的属性
   };
 
   instance.ctx = { _: instance };
