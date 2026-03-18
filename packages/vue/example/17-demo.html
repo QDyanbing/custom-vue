@@ -40,10 +40,17 @@
             count.value++;
           }, 1000);
 
+          const a = inject('a');
+
+          console.log('a===>', a);
+
           return () => h('div', [h('p', { id: 'box' }, '父组件'), h(Child)]);
         },
       };
+
       const app = createApp(Comp);
+      const a = ref('aaa');
+      app.provide('a', a);
       app.mount(document.getElementById('app'));
     </script>
   </body>

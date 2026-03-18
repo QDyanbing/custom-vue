@@ -9,8 +9,8 @@ export const provide = (key: string, value: any) => {
 
 export const inject = (key: string, defaultValue: any) => {
   const instance = getCurrentInstance();
-  // 获取父组件的provides
-  const parentProvides = instance.parent?.provides;
+  // 获取父组件的provides,如果父组件没有证明是根组件
+  const parentProvides = instance.parent ? instance.parent?.provides : instance.appContext.provides;
 
   if (parentProvides && key in parentProvides) {
     // 如果父组件有则返回父组件的值

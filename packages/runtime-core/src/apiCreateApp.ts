@@ -36,6 +36,9 @@ export function createAppApi(render: any) {
         render(null, app._container);
         app._container = null;
       },
+      provide(key: string, value: any) {
+        context.provides[key] = value;
+      },
     };
 
     return app;
