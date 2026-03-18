@@ -16,6 +16,7 @@
 - **VNode / 渲染入口**：`h` / `createVNode` / `VNode`
 - **渲染器工厂**：`createRenderer`
 - **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
+- **依赖注入**：`apiInject`（`provide` / `inject`）
 
 ### 导出内容一览
 
@@ -47,7 +48,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 #### 3. renderer 相关
 
-- `createRenderer`：创建平台无关的渲染器实例，返回对象包含 `render` 和 `createApp`。`createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载，详见 [apiCreateApp.md](./src/apiCreateApp.md)。
+- `createRenderer`：创建平台无关的渲染器实例，返回对象包含 `render` 和 `createApp`。`createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载，详见 [apiCreateApp.md](./apiCreateApp.md)。
 - 组件的 `props` / `attrs` 解析链路由 `component.ts` 与 `componentProps.ts` 协作完成，文档见 [component.md](./component.md) 与 [componentProps.md](./componentProps.md)。
 
 它不关心“怎么操作 DOM”，只依赖上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。浏览器环境由 `@vue/runtime-dom` 提供；自定义渲染（如 Canvas / 小程序）可自行实现该接口。
@@ -80,6 +81,7 @@ render(vnode, document.getElementById('app')!);
 runtime-core/src/
 ├── index.ts         # 入口文件，统一导出
 ├── apiCreateApp.ts  # createAppApi(render)，供 createRenderer 生成 createApp
+├── apiInject.ts     # provide/inject（组件级），与 appContext.provides 配合
 ├── apiLifecycle.ts  # 生命周期 onXxx、triggerHook、LifecycleHooks（供 renderer 在挂载/更新/卸载时触发）
 ├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
 ├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
