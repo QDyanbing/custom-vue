@@ -68,7 +68,8 @@ props: ['msg', 'title'];
 2. 遍历 `rawProps`（即调用 `createVNode` 时传入的 props）
 3. 对于每一个 `key`：
    - 若 `key` 在 `propsOptions` 里存在，放入 `props[key]`
-   - 否则放入 `attrs[key]`
+   - 若是函数组件且该组件未声明任何 props（`propsOptions` 为空对象），也放入 `props[key]`
+   - 其余情况放入 `attrs[key]`
 
 这样在 Vue 的常见用法中：
 
@@ -83,6 +84,15 @@ createApp(Comp, { msg: 'Hi', count: 0 });
 
 - `msg` 会进入组件的响应式 `props`
 - `count` 会进入 `attrs`，可由组件选择性地透传到根元素
+
+对于函数组件，当前实现还有一条兼容规则：
+
+```ts
+const FnComp = (props) => h('div', props.msg);
+createApp(FnComp, { msg: 'Hi', count: 0 });
+```
+
+如果函数组件没有显式声明 `props`，`msg/count` 这类传入属性会直接进入 `props`，以匹配函数签名 `function(props, ctx)` 的直觉使用方式；这也就是 `setFullProps` 里 `(isFunctionComponent && !hasProps)` 分支的用途。
 
 ## 与 component.ts / renderer.ts 的关系
 
