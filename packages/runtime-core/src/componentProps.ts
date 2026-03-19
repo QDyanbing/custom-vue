@@ -47,11 +47,13 @@ function setFullProps(instance: any, rawProps: any, props: any, attrs: any) {
   // 是否是函数组件
   const isFunctionComponent = vnode.shapeFlag & ShapeFlags.FUNCTIONAL_COMPONENT;
 
+  // 是否声明了 props 选项（对象或数组标准化后的结果）
   const hasProps = Object.keys(propsOptions).length > 0;
 
   if (rawProps) {
     for (const key in rawProps) {
       if (hasOwn(propsOptions, key) || (isFunctionComponent && !hasProps)) {
+        // 函数组件未声明 props 时，把传入属性都放到 props，便于直接通过第一个参数读取
         // 如果属性在propsOptions中，则设置到props中
         props[key] = rawProps[key];
       } else {
