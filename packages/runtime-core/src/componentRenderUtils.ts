@@ -81,6 +81,12 @@ export function renderComponentRoot(instance) {
     return subTree;
   } else {
     // 函数组件
-    return vnode.type(vnode.props);
+    return vnode.type(vnode.props, {
+      get attrs() {
+        return instance.attrs;
+      },
+      slots: instance.slots,
+      emit: instance.emit,
+    });
   }
 }
