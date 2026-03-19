@@ -10,7 +10,9 @@
       // import { h, ref, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, ref, createApp } from '../dist/vue.esm.js';
 
+      // 函数组件签名：(props, ctx)
       function App(props, ctx) {
+        // 当前示例只使用 props，ctx 在这里保留用于说明签名
         return h('div', 'Hello World ' + props.msg);
       }
 
