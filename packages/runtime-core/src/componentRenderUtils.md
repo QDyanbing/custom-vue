@@ -37,28 +37,46 @@ return hasPropsChanged(prevProps, nextProps);
 
 ## renderComponentRoot(instance)
 
-`renderComponentRoot` 负责在执行组件的 `render` 函数时，维护“当前正在渲染的组件实例”这一全局状态：
+`renderComponentRoot` 负责执行组件渲染函数，并区分两类组件：
+
+- 有状态组件：执行 `instance.render.call(instance.proxy)`，并在执行前后维护“当前正在渲染的实例”
+- 函数组件：执行 `vnode.type(vnode.props, ctx)`，其中 `ctx` 只暴露 `attrs / slots / emit`
 
 ```ts
 export function renderComponentRoot(instance) {
-  setCurrentRenderingInstance(instance);
-  const subTree = instance.render.call(instance.proxy);
-  unsetCurrentRenderingInstance();
-  return subTree;
+  const { vnode } = instance;
+  if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+    setCurrentRenderingInstance(instance);
+    const subTree = instance.render.call(instance.proxy);
+    unsetCurrentRenderingInstance();
+    return subTree;
+  } else {
+    return vnode.type(vnode.props, {
+      get attrs() {
+        return instance.attrs;
+      },
+      slots: instance.slots,
+      emit: instance.emit,
+    });
+  }
 }
 ```
 
 调用特点：
 
 - 在 `renderer.ts` 的 `setupRenderEffect` 中，首渲和更新都会通过 `renderComponentRoot(instance)` 拿到子树 VNode。
-- 在调用前调用 `setCurrentRenderingInstance(instance)`，调用后无论如何都会执行 `unsetCurrentRenderingInstance()` 清理状态。
+- 有状态组件分支会在调用前设置当前渲染实例，调用后清理；函数组件分支不会设置该状态。
+- 函数组件通过第二个参数拿到运行时上下文：
+  - `attrs`：通过 getter 暴露 `instance.attrs`，读取时拿到最新值
+  - `slots`：读取 `instance.slots`
+  - `emit`：复用 `instance.emit`
 
 这与模板 ref 的实现有关：
 
 - `vnode.ts` 中的 `normalizeRef` 会通过 `getCurrentRenderingInstance()` 取得当前实例，构造 `{ r: rawRef, i: instance }`。
 - `renderTemplateRef.ts` 中的 `setRef` 再根据这个实例和 VNode，把 DOM 或组件 public 实例写入对应的 ref。
 
-因此，只有在 `renderComponentRoot` 包裹下执行的 render 期间，`normalizeRef` 才能拿到正确的“当前组件实例”，完成 `ref` → `instance` 的关联。
+因此，只有在有状态组件的 render 执行期间，`normalizeRef` 才能拿到正确的“当前组件实例”，完成 `ref` → `instance` 的关联。函数组件本身没有公开实例可供模板 ref 记录。
 
 ## 调用关系
 
