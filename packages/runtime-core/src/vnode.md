@@ -18,7 +18,7 @@
 - `Text`：文本类型 VNode 的 type 标记（Symbol），供 renderer 走 `processText`
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
 - `normalizeChildren`：在创建 VNode 时对 children 做标准化并设置对应的 shapeFlag（处理文本、数组、插槽等），供 `createVNode` 内部使用
-- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）或组件对象（有状态组件）
+- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、组件对象（有状态组件）或函数（函数组件）
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
 
@@ -29,7 +29,7 @@
 
 `VNode` 里包含渲染所需的关键信息：
 
-- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）
+- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）；函数表示函数组件（直接通过函数返回子树）
 - `props`：传入的属性/事件（`class`、`style`、`onClick` 等）
 - `children`：子节点，可以是：
   - 文本（string）
@@ -99,6 +99,7 @@
 1. **确定节点自身类型**（type 的 shapeFlag）：
    - 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
    - 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
+   - 当 `type` 是函数时：记为函数组件，`shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT`
 
 2. **标准化 children 并追加子节点类型标记**：
    - 先创建 vnode 对象（`children` 暂为 `null`）
@@ -112,6 +113,8 @@ if (isString(type)) {
   shapeFlag = ShapeFlags.ELEMENT;
 } else if (isObject(type)) {
   shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
+} else if (isFunction(type)) {
+  shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT;
 }
 
 const vnode = { type, props, children: null, shapeFlag, ... };
