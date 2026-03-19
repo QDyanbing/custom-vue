@@ -1,3 +1,4 @@
+import { ShapeFlags } from '@vue/shared';
 import { setCurrentRenderingInstance, unsetCurrentRenderingInstance } from './component';
 
 /**
@@ -70,8 +71,16 @@ export function shouldUpdateComponent(n1, n2): boolean {
 }
 
 export function renderComponentRoot(instance) {
-  setCurrentRenderingInstance(instance);
-  const subTree = instance.render.call(instance.proxy);
-  unsetCurrentRenderingInstance();
-  return subTree;
+  const { vnode } = instance;
+
+  if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+    // 有状态组件
+    setCurrentRenderingInstance(instance);
+    const subTree = instance.render.call(instance.proxy);
+    unsetCurrentRenderingInstance();
+    return subTree;
+  } else {
+    // 函数组件
+    return vnode.type(vnode.props);
+  }
 }

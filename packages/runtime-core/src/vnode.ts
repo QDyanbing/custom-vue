@@ -138,6 +138,9 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
   } else if (isObject(type)) {
     // 有状态组件
     shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
+  } else if (isFunction(type)) {
+    // 函数组件
+    shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT;
   }
 
   const vnode: VNode = {
