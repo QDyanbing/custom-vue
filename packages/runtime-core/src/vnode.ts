@@ -139,7 +139,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     // 有状态组件
     shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
   } else if (isFunction(type)) {
-    // 函数组件
+    // 函数组件（形如 function App(props, ctx) {}）
     shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT;
   }
 
