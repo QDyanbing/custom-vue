@@ -1,5 +1,5 @@
 import { reactive } from '@vue/reactivity';
-import { isArray, hasOwn } from '@vue/shared';
+import { isArray, hasOwn, ShapeFlags } from '@vue/shared';
 
 /**
  * 标准化组件定义上的 props 选项。
@@ -42,11 +42,16 @@ export function normalizePropsOptions(props: any = {}) {
  * @param attrs 本次解析得到的 attrs 容器对象
  */
 function setFullProps(instance: any, rawProps: any, props: any, attrs: any) {
-  const propsOptions = instance.propsOptions;
+  const { propsOptions, vnode } = instance;
+
+  // 是否是函数组件
+  const isFunctionComponent = vnode.shapeFlag & ShapeFlags.FUNCTIONAL_COMPONENT;
+
+  const hasProps = Object.keys(propsOptions).length > 0;
 
   if (rawProps) {
     for (const key in rawProps) {
-      if (hasOwn(propsOptions, key)) {
+      if (hasOwn(propsOptions, key) || (isFunctionComponent && !hasProps)) {
         // 如果属性在propsOptions中，则设置到props中
         props[key] = rawProps[key];
       } else {

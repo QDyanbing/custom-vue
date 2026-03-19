@@ -10,8 +10,8 @@
       // import { h, ref, createApp } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, ref, createApp } from '../dist/vue.esm.js';
 
-      function App(props) {
-        return h('div', 'Hello World');
+      function App(props, ctx) {
+        return h('div', 'Hello World ' + props.msg);
       }
 
       const app = createApp(App, { msg: 'App' });
