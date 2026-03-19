@@ -70,6 +70,12 @@ export function shouldUpdateComponent(n1, n2): boolean {
   return hasPropsChanged(prevProps, nextProps);
 }
 
+/**
+ * 执行组件渲染，返回本次渲染得到的子树 VNode。
+ *
+ * - 有状态组件：执行 `instance.render.call(instance.proxy)`，并维护当前渲染实例
+ * - 函数组件：执行 `vnode.type(vnode.props, ctx)`，ctx 暴露 attrs/slots/emit
+ */
 export function renderComponentRoot(instance) {
   const { vnode } = instance;
 
@@ -81,6 +87,7 @@ export function renderComponentRoot(instance) {
     return subTree;
   } else {
     // 函数组件
+    // 这里按 (props, ctx) 约定传参，和用户写函数组件的心智一致
     return vnode.type(vnode.props, {
       get attrs() {
         return instance.attrs;
