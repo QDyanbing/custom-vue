@@ -25,9 +25,10 @@
       const Comp = {
         setup() {
           const count = ref(0);
+          const to = ref('body');
 
           setTimeout(() => {
-            count.value++;
+            to.value = '#app';
           }, 1000);
 
           return () =>
@@ -35,7 +36,7 @@
               h('p', { id: 'box' }, '父组件'),
               h(
                 Teleport,
-                { to: 'body', disabled: true },
+                { to: to.value, },
                 h('div', ['我是Teleport的子内容', count.value]),
               ),
             ]);

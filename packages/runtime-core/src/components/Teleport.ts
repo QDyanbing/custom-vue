@@ -20,12 +20,12 @@ export const Teleport = {
     const {
       mountChildren,
       patchChildren,
-      options: { querySelector },
+      options: { querySelector, insert },
     } = internals;
 
-    if (n1 == null) {
-      const { to, disabled } = n2.props;
+    const { to, disabled } = n2.props;
 
+    if (n1 == null) {
       // 挂载 Teleport 组件
       const target = disabled ? container : querySelector(to);
 
@@ -38,6 +38,17 @@ export const Teleport = {
     } else {
       patchChildren(n1, n2, n1.target, parentComponent);
       n2.target = n1.target;
+
+      const prevProps = n1.props;
+
+      if (prevProps.to !== to || prevProps.disabled !== disabled) {
+        // to 发生变化，需要将子节点插入到新的目标容器中
+        // disabled 发生变化，需要将子节点插入到当前容器中
+        const target = disabled ? container : querySelector(to);
+        for (const child of n2.children) {
+          insert(child.el, target);
+        }
+      }
     }
   },
 };
