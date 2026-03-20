@@ -29,7 +29,7 @@
 
 `VNode` 里包含渲染所需的关键信息：
 
-- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）；函数表示函数组件（直接通过函数返回子树）
+- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）或 `Teleport` 定义对象；函数表示函数组件（直接通过函数返回子树）
 - `props`：传入的属性/事件（`class`、`style`、`onClick` 等）
 - `children`：子节点，可以是：
   - 文本（string）
@@ -99,6 +99,7 @@
 1. **确定节点自身类型**（type 的 shapeFlag）：
    - 当 `type` 是字符串时：记为元素节点，`shapeFlag = ShapeFlags.ELEMENT`
    - 当 `type` 是对象时（组件定义）：记为有状态组件，`shapeFlag = ShapeFlags.STATEFUL_COMPONENT`
+   - 当 `type` 是 Teleport 定义对象（含 `__isTeleport` 标记）时：记为 Teleport 节点，`shapeFlag = ShapeFlags.TELEPORT`
    - 当 `type` 是函数时：记为函数组件，`shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT`
 
 2. **标准化 children 并追加子节点类型标记**：
@@ -111,6 +112,8 @@
 ```ts
 if (isString(type)) {
   shapeFlag = ShapeFlags.ELEMENT;
+} else if (isTeleport(type)) {
+  shapeFlag = ShapeFlags.TELEPORT;
 } else if (isObject(type)) {
   shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
 } else if (isFunction(type)) {
