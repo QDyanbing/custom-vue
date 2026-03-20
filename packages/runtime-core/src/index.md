@@ -49,6 +49,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 #### 3. renderer 相关
 
 - `createRenderer`：创建平台无关的渲染器实例，返回对象包含 `render` 和 `createApp`。`createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载，详见 [apiCreateApp.md](./apiCreateApp.md)。
+- `Teleport`：跨容器挂载组件，支持 `props.to` 与 `props.disabled` 动态切换目标容器。
 - 组件的 `props` / `attrs` 解析链路由 `component.ts` 与 `componentProps.ts` 协作完成，文档见 [component.md](./component.md) 与 [componentProps.md](./componentProps.md)。
 
 它不关心“怎么操作 DOM”，只依赖上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。浏览器环境由 `@vue/runtime-dom` 提供；自定义渲染（如 Canvas / 小程序）可自行实现该接口。
@@ -87,5 +88,6 @@ runtime-core/src/
 ├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
 ├── h.ts             # h（参数标准化，内部调用 createVNode）
 └── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
+└── components/Teleport.ts # Teleport 组件定义（跨容器挂载，支持 to/disabled）
 ```
 
