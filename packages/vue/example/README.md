@@ -20,5 +20,6 @@
 - `16-demo.html`：演示 `expose`、模板 ref、`parent` 与 `appContext`：子组件通过 `expose` 暴露状态和方法，父组件通过 `ref` 拿到子组件 public 实例，同时用 `useTemplateRef('elRef')` 绑定 DOM 元素，在 `onMounted` 中打印两类 ref；子组件 setup 中通过 `getCurrentInstance()` 可拿到 `vm.parent`（父组件实例）和 `vm.appContext`（应用上下文）。
 - `17-demo.html`：演示 `provide/inject` 与 `app.provide`：父组件 `provide('count', ref(0))`，子组件 `inject('count')` 读取；`app.provide('a', ref('aaa'))` 写入 `appContext.provides`，组件内 `inject('a')` 可读到。
 - `18-demo.html`：演示函数组件接收 `props` 的最小用法：`createApp(App, { msg: 'App' })` 传入根 props，函数组件 `App(props, ctx)` 直接读取 `props.msg` 返回 VNode。该示例对应运行时里函数组件分支（`ShapeFlags.FUNCTIONAL_COMPONENT`）以及 props 分发逻辑。
+- `19-demo.html`：演示 Teleport 的动态 `to`：运行后把子内容从原目标容器迁移到新的目标容器。
 
 后续如果新增 demo，建议在这里简单列一下文件名和它覆盖的能力，方便快速索引。
