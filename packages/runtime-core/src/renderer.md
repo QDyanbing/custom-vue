@@ -10,6 +10,7 @@
 - [render(vNode, container)](#rendervnode-container)
 - [patch(n1, n2, container, anchor?)](#patchn1-n2-container-anchor)
 - [patch 对类型的分发（Element / Text / Component）](#patch-对类型的分发element--text--component)
+- [Teleport 组件](#teleport-组件)
 - [组件 processComponent、mountComponent 与 updateComponent](#组件-processcomponentmountcomponent-与-updatecomponent)
 - [patchElement 与 children 处理](#patchelement-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
@@ -86,8 +87,16 @@ container._vnode = vnode;
 - `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
 - `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
 - `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；已挂载的组件走 `updateComponent` 判断是否需要更新 props 并触发子树 diff）。
+- `n2.shapeFlag & TELEPORT`：走 Teleport 组件的 `process`（根据 `props.to / props.disabled` 把 children 挂到目标容器；`to / disabled` 变化时迁移）。
 
-这样元素、文本、组件在挂载与更新时走各自分支。组件分支详见下一节。
+这样元素、文本、组件在挂载与更新时走各自分支；Teleport 见下文 `Teleport 组件`小节，组件分支详见下一节。
+
+### Teleport 组件
+
+- Teleport 本身不创建独立的 DOM 节点，它只负责把 `children` 挂到由 `to`（`querySelector`）或 `disabled` 决定的目标容器。
+- 初次挂载：计算出 `target` 后，若 `target` 存在则把 `children` 挂载到目标容器。
+- 更新：先在旧 `target` 上 patch children；当 `to` 或 `disabled` 变化时，再把 children 的真实 DOM 插到新 `target`。
+- 卸载：在渲染器的 `unmount` 分支里直接卸载 Teleport 的 children 子树。
 
 ### 组件 processComponent、mountComponent 与 updateComponent
 
