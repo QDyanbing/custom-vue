@@ -27,7 +27,7 @@
           return () =>
             h('div', [
               h('p', { id: 'box' }, '父组件'),
-              h(Teleport, { to: 'body', disabled: true }, '我是Teleport的子内容'),
+              h(Teleport, { to: 'body', disabled: true }, h('div', '我是Teleport的子内容')),
             ]);
         },
       };

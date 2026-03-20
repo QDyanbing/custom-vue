@@ -687,6 +687,13 @@ export function createRenderer(options) {
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
           // 处理组件类型
           processComponent(n1, n2, container, anchor, parentComponent);
+        } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // 处理 Teleport 组件
+          type.process(n1, n2, container, anchor, parentComponent, {
+            mountChildren,
+            patchChildren,
+            options,
+          });
         }
     }
 

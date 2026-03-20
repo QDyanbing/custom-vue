@@ -1,6 +1,7 @@
 import { Ref } from '@vue/reactivity';
 import { ShapeFlags, isArray, isString, isNumber, isObject, isFunction } from '@vue/shared';
 import { getCurrentRenderingInstance } from './component';
+import { isTeleport } from './components/Teleport';
 
 /**
  * 文本节点标记
@@ -135,6 +136,9 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
   if (isString(type)) {
     // 当前只处理原生元素，后续可扩展到组件等类型
     shapeFlag = ShapeFlags.ELEMENT;
+  } else if (isTeleport(type)) {
+    // Teleport 组件
+    shapeFlag = ShapeFlags.TELEPORT;
   } else if (isObject(type)) {
     // 有状态组件
     shapeFlag = ShapeFlags.STATEFUL_COMPONENT;
