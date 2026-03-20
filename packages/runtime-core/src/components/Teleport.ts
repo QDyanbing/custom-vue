@@ -24,8 +24,10 @@ export const Teleport = {
     } = internals;
 
     if (n1 == null) {
+      const { to, disabled } = n2.props;
+
       // 挂载 Teleport 组件
-      const target = querySelector(n2.props.to);
+      const target = disabled ? container : querySelector(to);
       if (target) {
         // 把n2的子节点挂载到target中
         mountChildren(n2.children, target, parentComponent);
