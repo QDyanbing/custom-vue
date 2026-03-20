@@ -25,6 +25,7 @@ export const Teleport = {
 
     const { to, disabled } = n2.props;
 
+    // Teleport 本身不创建独立 DOM：它只是把 children 挂载到由 to/disabled 决定的目标容器里。
     if (n1 == null) {
       // 挂载 Teleport 组件
       const target = disabled ? container : querySelector(to);
@@ -36,6 +37,7 @@ export const Teleport = {
         mountChildren(n2.children, target, parentComponent);
       }
     } else {
+      // 先在旧 target 上 patch children，让 child.el 尽量保持可用。
       patchChildren(n1, n2, n1.target, parentComponent);
       n2.target = n1.target;
 
@@ -45,6 +47,8 @@ export const Teleport = {
         // to 发生变化，需要将子节点插入到新的目标容器中
         // disabled 发生变化，需要将子节点插入到当前容器中
         const target = disabled ? container : querySelector(to);
+
+        // hostInsert 语义上等同于“把节点移动到新容器”；这里直接把已有 DOM 节点插入到目标中。
         for (const child of n2.children) {
           insert(child.el, target);
         }
