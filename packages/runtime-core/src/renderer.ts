@@ -78,6 +78,9 @@ export function createRenderer(options) {
 
     if (shapeFlag & ShapeFlags.COMPONENT) {
       unmountComponent(vnode.component);
+    } else if (shapeFlag & ShapeFlags.TELEPORT) {
+      unmountChildren(children);
+      return;
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       unmountChildren(children);
     }
