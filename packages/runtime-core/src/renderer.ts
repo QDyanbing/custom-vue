@@ -170,8 +170,7 @@ export function createRenderer(options) {
    * @param n2 新 VNode
    * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
-  const patchChildren = (n1, n2, parentComponent = null) => {
-    const el = n2.el;
+  const patchChildren = (n1, n2, el, parentComponent = null) => {
     /**
      * 1. 新节点他的子节点是 文本
      *  1.1 老的是数组
@@ -419,7 +418,7 @@ export function createRenderer(options) {
     patchProps(el, oldProps, newProps);
 
     // 更新 children
-    patchChildren(n1, n2, parentComponent);
+    patchChildren(n1, n2, el, parentComponent);
   };
 
   /**

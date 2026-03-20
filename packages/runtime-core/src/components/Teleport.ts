@@ -28,12 +28,16 @@ export const Teleport = {
 
       // 挂载 Teleport 组件
       const target = disabled ? container : querySelector(to);
+
+      n2.target = target;
+
       if (target) {
         // 把n2的子节点挂载到target中
         mountChildren(n2.children, target, parentComponent);
       }
     } else {
-      patchChildren(n1, n2, parentComponent);
+      patchChildren(n1, n2, n1.target, parentComponent);
+      n2.target = n1.target;
     }
   },
 };
