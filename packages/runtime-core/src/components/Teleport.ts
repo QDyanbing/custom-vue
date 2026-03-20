@@ -33,7 +33,7 @@ export const Teleport = {
         mountChildren(n2.children, target, parentComponent);
       }
     } else {
-      // 更新 Teleport 组件
+      patchChildren(n1, n2, parentComponent);
     }
   },
 };
