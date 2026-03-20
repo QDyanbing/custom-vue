@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 provide/inject（组件级）与 app.provide（应用级）：
+      - 父组件在 setup 内 provide('count', ref(0))，子组件 inject('count') 并读取 count.value
+      - 通过 app.provide('a', ref('aaa')) 往 appContext.provides 写入；组件内 inject('a') 可以读到
+      - 组件级 provide 会写入当前组件实例的 provides（以父级 provides 为原型），从而不污染父级对象
+    -->
+    <script type="module">
+      // import { h, ref, createApp, Teleport } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, ref, createApp, Teleport } from '../dist/vue.esm.js';
+
+      const Child = {
+        setup() {
+          return () => h('div', ['子组件']);
+        },
+      };
+
+      const Comp = {
+        setup() {
+          return () =>
+            h('div', [
+              h('p', { id: 'box' }, '父组件'),
+              h(Teleport, { to: 'body', disabled: true }, '我是Teleport的子内容'),
+            ]);
+        },
+      };
+
+      const app = createApp(Comp);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
