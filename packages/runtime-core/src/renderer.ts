@@ -69,6 +69,7 @@ export function createRenderer(options) {
    * 卸载单个 VNode。
    *
    * 组件先走 unmountComponent（内部会卸载 subTree）；元素/文本等先卸载子节点，再移除自身 DOM。
+   * Teleport 不创建自身 DOM：卸载时只需要卸载它的 children 子树（真实 DOM 在目标容器里）。
    * 移除 DOM 时仅当 vnode.el 存在才调用 hostRemove，避免对已移除或无 el 的节点传 null。
    *
    * @param vnode 要卸载的虚拟节点
@@ -79,6 +80,7 @@ export function createRenderer(options) {
     if (shapeFlag & ShapeFlags.COMPONENT) {
       unmountComponent(vnode.component);
     } else if (shapeFlag & ShapeFlags.TELEPORT) {
+      // Teleport 自身不负责移除目标容器里的 DOM，它只卸载 children 子树即可。
       unmountChildren(children);
       return;
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
@@ -691,6 +693,7 @@ export function createRenderer(options) {
           processComponent(n1, n2, container, anchor, parentComponent);
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
           // 处理 Teleport 组件
+          // Teleport 根据 props.to / props.disabled 决定 children 的真实挂载目标，并在更新时迁移 DOM。
           type.process(n1, n2, container, anchor, parentComponent, {
             mountChildren,
             patchChildren,
