@@ -137,7 +137,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     // 当前只处理原生元素，后续可扩展到组件等类型
     shapeFlag = ShapeFlags.ELEMENT;
   } else if (isTeleport(type)) {
-    // Teleport 组件
+    // Teleport 组件：type 为 Teleport 定义对象（含 __isTeleport 标记）
     shapeFlag = ShapeFlags.TELEPORT;
   } else if (isObject(type)) {
     // 有状态组件
