@@ -1,6 +1,11 @@
 import { ShapeFlags } from '@vue/shared';
 import { getCurrentInstance } from '../component';
 
+/**
+ * 最小 KeepAlive：在 Map 里缓存子组件 VNode，配合 renderer 的 `COMPONENT_SHOULD_KEEP_ALIVE` /
+ * `COMPONENT_KEPT_ALIVE` 走 deactivate / activate，避免切换时真正卸载子组件。
+ * 设计说明见同目录 `KeepAlive.md`。
+ */
 export const isKeepAlive = (type: any) => type?.__isKeepAlive;
 
 export const KeepAlive = {
@@ -15,12 +20,11 @@ export const KeepAlive = {
      * 缓存组件的实例:
      * 1. 组件的实例: component => vnode
      * 2. 组件的 key: key => vnode
-     *
      */
     const cache = new Map();
     const storageContainer = createElement('div');
 
-    // 激活缓存的组件,renderer会调用这个方法在keepalive需要将之前缓存的组件实例插入到页面中
+    // 激活缓存的组件；renderer 在 processComponent 里调用，把之前缓存的 DOM 插回页面
     instance.ctx.activate = (vnode: any, container: Element, anchor: Element) => {
       insert(vnode.el, container, anchor);
     };
