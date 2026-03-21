@@ -675,7 +675,6 @@ export function createRenderer(options) {
       // 这里是学习用的简化处理：直接按“卸载旧 → 重新挂载新”走，不做更细的分支判断
       unmount(n1);
       n1 = null;
-      mountElement(n2, container);
     }
 
     const { shapeFlag, type, ref } = n2;
