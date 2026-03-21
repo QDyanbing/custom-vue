@@ -71,6 +71,7 @@ export function createRenderer(options) {
    *
    * 组件先走 unmountComponent（内部会卸载 subTree）；元素/文本等先卸载子节点，再移除自身 DOM。
    * Teleport 不创建自身 DOM：卸载时只需要卸载它的 children 子树（真实 DOM 在目标容器里）。
+   * KeepAlive 包裹的子组件：若带 `COMPONENT_SHOULD_KEEP_ALIVE`，不调用 `unmountComponent`，由父级 KeepAlive 的 `ctx.deactivate` 把子树根 DOM 挪到离线容器。
    * 移除 DOM 时仅当 vnode.el 存在才调用 hostRemove，避免对已移除或无 el 的节点传 null。
    *
    * @param vnode 要卸载的虚拟节点
@@ -78,6 +79,7 @@ export function createRenderer(options) {
   const unmount = vnode => {
     const { shapeFlag, children, ref } = vnode;
 
+    // 被 KeepAlive 标记的子树：跳过常规卸载，只“藏”到 KeepAlive 的 storage 容器
     if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
       const parentComponent = vnode.component.parent;
       parentComponent.ctx.deactivate(vnode);
@@ -599,6 +601,7 @@ export function createRenderer(options) {
     // 创建组件实例
     const instance = createComponentInstance(vnode, parentComponent);
 
+    // KeepAlive 的 setup 要用宿主 createElement/insert 建离线容器并移动 DOM，这里挂上 options
     if (isKeepAlive(vnode.type)) {
       instance.ctx.renderer = { options };
     }
@@ -655,6 +658,7 @@ export function createRenderer(options) {
   const processComponent = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
       // 是不是缓存的组件，要不要复用
+      // 命中缓存：已有 component/el，只把 DOM 插回当前容器，不再走 mountComponent
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         parentComponent.ctx.activate(n2, container, anchor);
 
