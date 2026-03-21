@@ -1,3 +1,4 @@
+/** `type` 可能为空；与 `isKeepAlive` 一样用可选链避免访问异常。 */
 export const isTeleport = (type: any) => type?.__isTeleport;
 
 export const Teleport = {
