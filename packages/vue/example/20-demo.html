@@ -7,9 +7,9 @@
   <body>
     <div id="app"></div>
     <!--
-      演示 Teleport 的动态目标容器：
-      - 父组件把 Teleport 的 `to` 写成响应式 ref，初始为 `body`
-      - 1s 后更新 `to` 为 `#app`，Teleport 的子内容会从旧目标迁移到新目标
+      演示 KeepAlive：
+      - 父组件用按钮在 Child1 / Child2 之间切换默认插槽里的动态组件
+      - 被切换走的组件不会走常规 unmount（DOM 移到 KeepAlive 内部容器）；再切回来时复用实例与 DOM，onMounted 只在首次进入时打印
     -->
     <script type="module">
       // import {
