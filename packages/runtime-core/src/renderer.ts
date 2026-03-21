@@ -9,6 +9,7 @@ import { updateProps } from './componentProps';
 import { updateSlots } from './componentSlots';
 import { LifecycleHooks, triggerHook } from './apiLifecycle';
 import { setRef } from './renderTemplateRef';
+import { isKeepAlive } from './components/KeepAlive';
 
 /**
  * 创建一个渲染器。
@@ -76,6 +77,13 @@ export function createRenderer(options) {
    */
   const unmount = vnode => {
     const { shapeFlag, children, ref } = vnode;
+
+    if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
+      const parentComponent = vnode.component.parent;
+      parentComponent.ctx.deactivate(vnode);
+
+      return;
+    }
 
     if (shapeFlag & ShapeFlags.COMPONENT) {
       unmountComponent(vnode.component);
@@ -590,6 +598,11 @@ export function createRenderer(options) {
      */
     // 创建组件实例
     const instance = createComponentInstance(vnode, parentComponent);
+
+    if (isKeepAlive(vnode.type)) {
+      instance.ctx.renderer = { options };
+    }
+
     // 将组件实例挂载到 vnode 上,方便后续更新时使用
     vnode.component = instance;
     // 初始化组件状态
