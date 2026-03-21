@@ -20,6 +20,11 @@ export const KeepAlive = {
     const cache = new Map();
     const storageContainer = createElement('div');
 
+    // 激活缓存的组件,renderer会调用这个方法在keepalive需要将之前缓存的组件实例插入到页面中
+    instance.ctx.activate = (vnode: any, container: Element, anchor: Element) => {
+      insert(vnode.el, container, anchor);
+    };
+
     // 虽然unmount不卸载了，但是我自己需要把这个虚拟节点放到某一处，我不希望他还在页面中显示
     instance.ctx.deactivate = (vnode: any) => {
       insert(vnode.el, storageContainer);
@@ -29,6 +34,16 @@ export const KeepAlive = {
       const vnode = slots.default?.();
 
       const key = vnode.key ? vnode.key : vnode.type;
+
+      const cachedVNode = cache.get(key);
+
+      if (cachedVNode) {
+        // 复用缓存过的组件实例，复用dom节点
+        vnode.component = cachedVNode.component;
+        vnode.el = cachedVNode.el;
+        // 再打一个标记，告诉renderer，不要重新挂载组件，直接复用缓存过的组件实例
+        vnode.shapeFlag |= ShapeFlags.COMPONENT_KEPT_ALIVE;
+      }
 
       cache.set(key, vnode);
 

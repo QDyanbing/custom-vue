@@ -654,6 +654,13 @@ export function createRenderer(options) {
    */
   const processComponent = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 == null) {
+      // 是不是缓存的组件，要不要复用
+      if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        parentComponent.ctx.activate(n2, container, anchor);
+
+        return;
+      }
+
       // 挂载
       mountComponent(n2, container, anchor, parentComponent);
     } else {
