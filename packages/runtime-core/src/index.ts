@@ -15,3 +15,4 @@ export * from './apiLifecycle';
 export * from './useTemplateRef';
 export * from './apiInject';
 export * from './components/Teleport';
+export * from './components/KeepAlive';

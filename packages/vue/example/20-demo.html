@@ -12,15 +12,15 @@
       - 1s 后更新 `to` 为 `#app`，Teleport 的子内容会从旧目标迁移到新目标
     -->
     <script type="module">
-      import {
-        h,
-        ref,
-        createApp,
-        KeepAlive,
-        onMounted,
-        onUnmounted,
-      } from '/node_modules/vue/dist/vue.esm-browser.js';
-      // import { h, ref, createApp, Teleport } from '../dist/vue.esm.js';
+      // import {
+      //   h,
+      //   ref,
+      //   createApp,
+      //   KeepAlive,
+      //   onMounted,
+      //   onUnmounted,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, ref, createApp, KeepAlive, onMounted, onUnmounted } from '../dist/vue.esm.js';
 
       const Child1 = {
         name: 'Child1',
@@ -28,6 +28,7 @@
           onMounted(() => {
             console.log('Child1 mounted');
           });
+
           onUnmounted(() => {
             console.log('Child1 unmounted');
           });
@@ -42,9 +43,11 @@
           onMounted(() => {
             console.log('Child2 mounted');
           });
+
           onUnmounted(() => {
             console.log('Child2 unmounted');
           });
+
           return () => h('div', ['子组件2', h('input')]);
         },
       };
@@ -55,17 +58,13 @@
           const components = [Child1, Child2];
           const index = ref(0);
 
+          function onClick() {
+            index.value = +!index.value;
+          }
+
           return () =>
             h('div', [
-              h(
-                'button',
-                {
-                  onClick: () => {
-                    index.value = +!index.value;
-                  },
-                },
-                '切换组件',
-              ),
+              h('button', { onClick }, '切换组件'),
               h(KeepAlive, null, () => h(components[index.value])),
             ]);
         },

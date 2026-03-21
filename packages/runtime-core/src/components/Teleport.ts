@@ -1,4 +1,4 @@
-export const isTeleport = (type: any) => type.__isTeleport;
+export const isTeleport = (type: any) => type?.__isTeleport;
 
 export const Teleport = {
   name: 'Teleport',
