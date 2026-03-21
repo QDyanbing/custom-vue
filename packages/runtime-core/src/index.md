@@ -17,6 +17,7 @@
 - **渲染器工厂**：`createRenderer`
 - **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
 - **依赖注入**：`apiInject`（`provide` / `inject`）
+- **内置组件**：`Teleport`（跨容器挂载）、`KeepAlive`（动态子组件缓存，与 renderer 的 deactivate/activate 配合）
 
 ### 导出内容一览
 
@@ -50,6 +51,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 - `createRenderer`：创建平台无关的渲染器实例，返回对象包含 `render` 和 `createApp`。`createApp` 由 `createAppApi(render)` 生成，用于根组件的挂载与卸载，详见 [apiCreateApp.md](./apiCreateApp.md)。
 - `Teleport`：跨容器挂载组件，支持 `props.to` 与 `props.disabled` 动态切换目标容器。
+- `KeepAlive`：缓存动态组件子树，详见 [components/KeepAlive.md](./components/KeepAlive.md)。
 - 组件的 `props` / `attrs` 解析链路由 `component.ts` 与 `componentProps.ts` 协作完成，文档见 [component.md](./component.md) 与 [componentProps.md](./componentProps.md)。
 
 它不关心“怎么操作 DOM”，只依赖上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。浏览器环境由 `@vue/runtime-dom` 提供；自定义渲染（如 Canvas / 小程序）可自行实现该接口。
@@ -87,7 +89,8 @@ runtime-core/src/
 ├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
 ├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
 ├── h.ts             # h（参数标准化，内部调用 createVNode）
-└── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
-└── components/Teleport.ts # Teleport 组件定义（跨容器挂载，支持 to/disabled）
+├── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
+├── components/Teleport.ts # Teleport 组件定义（跨容器挂载，支持 to/disabled）
+└── components/KeepAlive.ts # KeepAlive 组件定义（动态子组件缓存）
 ```
 
