@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 Teleport 的动态目标容器：
+      - 父组件把 Teleport 的 `to` 写成响应式 ref，初始为 `body`
+      - 1s 后更新 `to` 为 `#app`，Teleport 的子内容会从旧目标迁移到新目标
+    -->
+    <script type="module">
+      import {
+        h,
+        ref,
+        createApp,
+        KeepAlive,
+        onMounted,
+        onUnmounted,
+      } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, ref, createApp, Teleport } from '../dist/vue.esm.js';
+
+      const Child1 = {
+        name: 'Child1',
+        setup() {
+          onMounted(() => {
+            console.log('Child1 mounted');
+          });
+          onUnmounted(() => {
+            console.log('Child1 unmounted');
+          });
+
+          return () => h('div', ['子组件1', h('input')]);
+        },
+      };
+
+      const Child2 = {
+        name: 'Child2',
+        setup() {
+          onMounted(() => {
+            console.log('Child2 mounted');
+          });
+          onUnmounted(() => {
+            console.log('Child2 unmounted');
+          });
+          return () => h('div', ['子组件2', h('input')]);
+        },
+      };
+
+      const Comp = {
+        name: 'Comp',
+        setup() {
+          const components = [Child1, Child2];
+          const index = ref(0);
+
+          return () =>
+            h('div', [
+              h(
+                'button',
+                {
+                  onClick: () => {
+                    index.value = +!index.value;
+                  },
+                },
+                '切换组件',
+              ),
+              h(KeepAlive, null, () => h(components[index.value])),
+            ]);
+        },
+      };
+
+      const app = createApp(Comp);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
