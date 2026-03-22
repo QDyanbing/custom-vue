@@ -154,13 +154,13 @@ export function createRenderer(options) {
     }
 
     if (transition) {
-      transition.beforeEnter(el);
+      transition.beforeEnter?.(el);
     }
 
     hostInsert(el, container, anchor);
 
     if (transition) {
-      transition.enter(el);
+      transition.enter?.(el);
     }
   };
 

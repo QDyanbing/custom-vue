@@ -3,7 +3,7 @@
  * `BaseTransition` 把它们挂到默认插槽返回的**单个**子 VNode 的 `vnode.transition` 上，
  * 供 `renderer` 在 `mountElement`、`unmount` 里调用（class 切换 + 可选 JS 钩子）。
  */
-import { h } from '@vue/runtime-core';
+import { getCurrentInstance, h } from '@vue/runtime-core';
 
 function resolveTransitionProps(props: any) {
   const {
@@ -17,9 +17,11 @@ function resolveTransitionProps(props: any) {
     onEnter,
     onLeave,
     onBeforeEnter,
+    ...rest
   } = props;
 
   return {
+    ...rest,
     beforeEnter(el: HTMLElement) {
       el.classList.add(enterFromClass);
       el.classList.add(enterActiveClass);
@@ -73,13 +75,21 @@ export function Transition(props: any, { slots }: any) {
 }
 
 const BaseTransition: any = {
-  props: ['beforeEnter', 'enter', 'leave'],
+  props: ['beforeEnter', 'enter', 'leave', 'appear'],
   setup(props: any, { slots }: any) {
+    const vm = getCurrentInstance();
+
     return () => {
       const vnode = slots.default();
       if (!vnode) return;
 
-      vnode.transition = props;
+      if (props.appear || vm.isMounted) {
+        vnode.transition = props;
+      } else {
+        vnode.transition = {
+          leave: props.leave,
+        };
+      }
 
       return vnode;
     };
