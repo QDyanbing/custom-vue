@@ -19,9 +19,9 @@
   <body>
     <div id="app"></div>
     <!--
-      演示 KeepAlive：
-      - 父组件用按钮在 Child1 / Child2 之间切换默认插槽里的动态组件
-      - 被切换走的组件不会走常规 unmount（DOM 移到 KeepAlive 内部容器）；再切回来时复用实例与 DOM，onMounted 只在首次进入时打印
+      演示 Transition：
+      - 用按钮切换默认插槽里单个元素子节点（p）的显隐
+      - 进入/离开时由 Transition 写入的 vnode.transition 驱动 mountElement / unmount 中的 class 与钩子；样式见上方 .v-enter-* / .v-leave-*
     -->
     <script type="module">
       // import { h, ref, createApp, Transition } from '/node_modules/vue/dist/vue.esm-browser.js';
