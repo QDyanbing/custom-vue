@@ -530,7 +530,7 @@ export function createRenderer(options) {
         // 将 subTree 挂载到页面上
         patch(null, subTree, container, anchor, instance);
         // 组件的el 指向 subTree 的el，他们是相同的
-        vnode.el = subTree.el;
+        vnode.el = subTree?.el;
         // 保存子树
         instance.subTree = subTree;
         // 已经挂载过了
@@ -554,7 +554,7 @@ export function createRenderer(options) {
         // 将 subTree 挂载到页面上
         patch(prevSubTree, subTree, container, anchor, instance);
         // 组件的el 指向 subTree 的el，他们是相同的
-        vnode.el = subTree.el;
+        vnode.el = subTree?.el;
         // 保存子树
         instance.subTree = subTree;
         triggerHook(instance, LifecycleHooks.UPDATED);
@@ -690,6 +690,11 @@ export function createRenderer(options) {
   const patch = (n1, n2, container, anchor = null, parentComponent = null) => {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
     if (n1 === n2) return;
+
+    if (n1 && !n2) {
+      unmount(n1);
+      return;
+    }
 
     if (n1 && !isSameVNode(n1, n2)) {
       // 卸载老节点之前，拿到老节点的下一个节点，挂载的时候，将新节点挂载到n1之前的位置
