@@ -27,9 +27,9 @@ function resolveTransitionProps(props: any) {
     },
     enter(el: HTMLElement) {
       const done = () => {
-        // 动画结束了，移除 enterToClass 和 enterActiveClass
-        el.classList.remove(enterToClass);
+        // 动画结束了，移除 enterActiveClass 和 enterToClass
         el.classList.remove(enterActiveClass);
+        el.classList.remove(enterToClass);
       };
 
       requestAnimationFrame(() => {
@@ -52,7 +52,7 @@ function resolveTransitionProps(props: any) {
       };
 
       el.classList.add(leaveActiveClass);
-      el.classList.add(leaveFromClass);
+      el.classList.add(leaveToClass);
 
       requestAnimationFrame(() => {
         el.classList.remove(leaveFromClass);
