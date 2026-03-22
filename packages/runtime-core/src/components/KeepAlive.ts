@@ -14,7 +14,7 @@ export const KeepAlive = {
   props: ['max'],
   setup(props, { slots }) {
     const instance = getCurrentInstance();
-    const { options } = instance.ctx.renderer;
+    const { options, unmount } = instance.ctx.renderer;
     const { createElement, insert } = options;
 
     /**
@@ -51,7 +51,14 @@ export const KeepAlive = {
         vnode.shapeFlag |= ShapeFlags.COMPONENT_KEPT_ALIVE;
       }
 
-      cache.put(key, vnode);
+      const _vnode = cache.put(key, vnode);
+
+      if (_vnode) {
+        // 移除组件应该被 keep-alive 和 组件应该被卸载 的标记
+        resetShapeFlag(_vnode);
+        // 卸载组件
+        unmount(_vnode);
+      }
 
       // 标记组件应该被 keep-alive,告诉 unmount 别帮我卸载组件
       vnode.shapeFlag |= ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE;
@@ -60,6 +67,11 @@ export const KeepAlive = {
     };
   },
 };
+
+function resetShapeFlag(vnode: any) {
+  vnode.shapeFlag &= ~ShapeFlags.COMPONENT_KEPT_ALIVE;
+  vnode.shapeFlag &= ~ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE;
+}
 
 class LRUCache {
   cache = new Map();
@@ -80,16 +92,26 @@ class LRUCache {
   }
 
   put(key: any, value: any) {
+    // 过期的key
+    let expiredValue: any;
+
     if (this.cache.has(key)) {
       // 之前有，先删除旧的
       this.cache.delete(key);
     } else {
       if (this.cache.size >= this.max) {
+        // 获取最老的key
+        const firstKey = this.cache.keys().next().value;
+
+        expiredValue = this.cache.get(firstKey);
+
         // 如果超过最大值，则删除最旧的
-        this.cache.delete(this.cache.keys().next().value);
+        this.cache.delete(firstKey);
       }
     }
 
     this.cache.set(key, value);
+
+    return expiredValue;
   }
 }

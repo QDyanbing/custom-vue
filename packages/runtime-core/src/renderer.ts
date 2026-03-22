@@ -603,7 +603,7 @@ export function createRenderer(options) {
 
     // KeepAlive 的 setup 要用宿主 createElement/insert 建离线容器并移动 DOM，这里挂上 options
     if (isKeepAlive(vnode.type)) {
-      instance.ctx.renderer = { options };
+      instance.ctx.renderer = { options, unmount };
     }
 
     // 将组件实例挂载到 vnode 上,方便后续更新时使用
