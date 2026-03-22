@@ -11,6 +11,7 @@ export const isKeepAlive = (type: any) => type?.__isKeepAlive;
 export const KeepAlive = {
   name: 'KeepAlive',
   __isKeepAlive: true,
+  props: ['max'],
   setup(props, { slots }) {
     const instance = getCurrentInstance();
     const { options } = instance.ctx.renderer;
@@ -21,7 +22,8 @@ export const KeepAlive = {
      * 1. 组件的实例: component => vnode
      * 2. 组件的 key: key => vnode
      */
-    const cache = new Map();
+    const cache = new LRUCache(props.max);
+
     const storageContainer = createElement('div');
 
     // 激活缓存的组件；renderer 在 processComponent 里调用，把之前缓存的 DOM 插回页面
@@ -49,7 +51,7 @@ export const KeepAlive = {
         vnode.shapeFlag |= ShapeFlags.COMPONENT_KEPT_ALIVE;
       }
 
-      cache.set(key, vnode);
+      cache.put(key, vnode);
 
       // 标记组件应该被 keep-alive,告诉 unmount 别帮我卸载组件
       vnode.shapeFlag |= ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE;
@@ -58,3 +60,36 @@ export const KeepAlive = {
     };
   },
 };
+
+class LRUCache {
+  cache = new Map();
+  max: number;
+
+  constructor(max: number = Infinity) {
+    this.max = max;
+    this.cache = new Map();
+  }
+
+  get(key: any) {
+    if (!this.cache.has(key)) return;
+    // 如果存在，则将该key移动到末尾
+    const value = this.cache.get(key);
+    this.cache.delete(key);
+    this.cache.set(key, value);
+    return value;
+  }
+
+  put(key: any, value: any) {
+    if (this.cache.has(key)) {
+      // 之前有，先删除旧的
+      this.cache.delete(key);
+    } else {
+      if (this.cache.size >= this.max) {
+        // 如果超过最大值，则删除最旧的
+        this.cache.delete(this.cache.keys().next().value);
+      }
+    }
+
+    this.cache.set(key, value);
+  }
+}
