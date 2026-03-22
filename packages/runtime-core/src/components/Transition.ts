@@ -1,3 +1,8 @@
+/**
+ * `<Transition>` 最小实现：`resolveTransitionProps` 产出 beforeEnter / enter / leave，
+ * `BaseTransition` 把它们挂到默认插槽返回的**单个**子 VNode 的 `vnode.transition` 上，
+ * 供 `renderer` 在 `mountElement`、`unmount` 里调用（class 切换 + 可选 JS 钩子）。
+ */
 import { h } from '@vue/runtime-core';
 
 function resolveTransitionProps(props: any) {
