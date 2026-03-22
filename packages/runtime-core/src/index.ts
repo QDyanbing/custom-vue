@@ -5,6 +5,7 @@
  * - 导出运行时的 `h`、`createRenderer`、组件实例 API（如 getCurrentInstance）、生命周期 API（如 onMounted）
  * - 导出内置 `Teleport` 组件（支持跨容器挂载，且可通过 to / disabled 动态切换目标）
  * - 导出内置 `KeepAlive` 组件（缓存动态子组件，配合 renderer 的 deactivate / activate）
+ * - 导出内置 `Transition` 组件（在子 VNode 上挂 `transition` 钩子，配合 renderer 的 mountElement / unmount 做进入与离开过渡）
  */
 export * from '@vue/reactivity';
 export * from './h';
