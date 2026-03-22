@@ -77,7 +77,7 @@ export function createRenderer(options) {
    * @param vnode 要卸载的虚拟节点
    */
   const unmount = vnode => {
-    const { shapeFlag, children, ref } = vnode;
+    const { shapeFlag, children, ref, transition } = vnode;
 
     // 被 KeepAlive 标记的子树：跳过常规卸载，只“藏”到 KeepAlive 的 storage 容器
     if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
@@ -100,7 +100,12 @@ export function createRenderer(options) {
     const remove = () => {
       vnode.el && hostRemove(vnode.el);
     };
-    remove();
+
+    if (transition) {
+      transition.leave(vnode.el, remove);
+    } else {
+      remove();
+    }
 
     if (ref) {
       setRef(ref, null);
@@ -125,7 +130,7 @@ export function createRenderer(options) {
      * 2. 设置它的 props
      * 3. 挂载它的子节点
      */
-    const { type, props, children, shapeFlag } = vNode;
+    const { type, props, children, shapeFlag, transition } = vNode;
 
     const el = hostCreateElement(type);
     // 在 VNode 上记录对应的 DOM 元素，后续更新 / 卸载时会用到
@@ -145,7 +150,15 @@ export function createRenderer(options) {
       mountChildren(children, el, parentComponent);
     }
 
+    if (transition) {
+      transition.beforeEnter(el);
+    }
+
     hostInsert(el, container, anchor);
+
+    if (transition) {
+      transition.enter(el);
+    }
   };
 
   /**
