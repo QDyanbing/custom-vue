@@ -12,6 +12,7 @@
 - [patch 对类型的分发（Element / Text / Component）](#patch-对类型的分发element--text--component)
 - [Teleport 组件](#teleport-组件)
 - [KeepAlive 组件](#keepalive-组件)
+- [Transition 组件](#transition-组件)
 - [组件 processComponent、mountComponent 与 updateComponent](#组件-processcomponentmountcomponent-与-updatecomponent)
 - [patchElement 与 children 处理](#patchelement-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
@@ -90,7 +91,7 @@ container._vnode = vnode;
 - `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；已挂载的组件走 `updateComponent` 判断是否需要更新 props 并触发子树 diff）。
 - `n2.shapeFlag & TELEPORT`：走 Teleport 组件的 `process`（根据 `props.to / props.disabled` 把 children 挂到目标容器；`to / disabled` 变化时迁移）。
 
-这样元素、文本、组件在挂载与更新时走各自分支；Teleport 见下文 `Teleport 组件`小节，KeepAlive 见 `KeepAlive 组件`小节，组件分支详见下一节。
+这样元素、文本、组件在挂载与更新时走各自分支；Teleport 见下文 `Teleport 组件`小节，KeepAlive 见 `KeepAlive 组件`小节，Transition 见 `Transition 组件`小节，组件分支详见下一节。
 
 ### Teleport 组件
 
@@ -106,6 +107,16 @@ container._vnode = vnode;
 - **挂载 KeepAlive 自身**：`mountComponent` 若发现 `isKeepAlive(vnode.type)`，把宿主 `options` 挂到 `instance.ctx.renderer`，供 KeepAlive 的 setup 使用 `createElement` / `insert` 创建离线容器。
 - **挂载 KeepAlive 的子组件**：若子 VNode 带 `COMPONENT_KEPT_ALIVE`，`processComponent` 在 `n1 == null` 时走 `parentComponent.ctx.activate`，不再 `mountComponent`。
 - **卸载 KeepAlive 的子组件**：若子 VNode 带 `COMPONENT_SHOULD_KEEP_ALIVE`，`unmount` 走 `parentComponent.ctx.deactivate`，不调用 `unmountComponent`。
+
+### Transition 组件
+
+实现见 [Transition.md](./components/Transition.md)。与渲染器协作的要点：
+
+- **写入位置**：`<Transition>` 的 render 只包一层默认插槽；`BaseTransition` 在子 VNode 上设置 `vnode.transition = { beforeEnter, enter, leave }`（具体由 `resolveTransitionProps` 根据 `name` 与各 `*Class`、钩子解析而来）。
+- **挂载**：`mountElement` 在 `hostInsert` 前调用 `beforeEnter`，插入后调用 `enter`；内部用 `classList` 切换 `enter-from` → `enter-to` 等类名，并可配合 CSS `transition` 属性。
+- **卸载**：`unmount` 在需要移除宿主节点时，若存在 `transition`，改为调用 `leave(el, remove)`，由过渡逻辑在结束时再执行 `remove()`（即真正的 `hostRemove`）。
+
+当前实现针对**单个子节点**（插槽返回一个元素 VNode）；与 KeepAlive、Teleport 正交，可单独阅读 `Transition.ts` 与 `renderer.ts` 中的分支。
 
 ### 组件 processComponent、mountComponent 与 updateComponent
 
