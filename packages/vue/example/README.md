@@ -22,5 +22,6 @@
 - `18-demo.html`：演示函数组件接收 `props` 的最小用法：`createApp(App, { msg: 'App' })` 传入根 props，函数组件 `App(props, ctx)` 直接读取 `props.msg` 返回 VNode。该示例对应运行时里函数组件分支（`ShapeFlags.FUNCTIONAL_COMPONENT`）以及 props 分发逻辑。
 - `19-demo.html`：演示 Teleport 的动态 `to`：运行后把子内容从原目标容器迁移到新的目标容器。
 - `20-demo.html`：演示 `KeepAlive` 切换动态子组件时复用实例与 DOM，以及 `onMounted` / `onUnmounted` 与常规卸载的差异（说明见 [20-demo.md](./20-demo.md)）。
+- `21-demo.html`：演示 `Transition` 包裹单个子元素时的进入/离开 class 与钩子（说明见 [21-demo.md](./21-demo.md)）。
 
 后续如果新增 demo，建议在这里简单列一下文件名和它覆盖的能力，方便快速索引。
