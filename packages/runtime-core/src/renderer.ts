@@ -72,6 +72,7 @@ export function createRenderer(options) {
    * 组件先走 unmountComponent（内部会卸载 subTree）；元素/文本等先卸载子节点，再移除自身 DOM。
    * Teleport 不创建自身 DOM：卸载时只需要卸载它的 children 子树（真实 DOM 在目标容器里）。
    * KeepAlive 包裹的子组件：若带 `COMPONENT_SHOULD_KEEP_ALIVE`，不调用 `unmountComponent`，由父级 KeepAlive 的 `ctx.deactivate` 把子树根 DOM 挪到离线容器。
+   * 元素等节点若带 `transition`（由 `<Transition>` 写入子 VNode）：先 `transition.leave(el, remove)`，在离开动画结束后再 `hostRemove`；无 `transition` 则直接移除。
    * 移除 DOM 时仅当 vnode.el 存在才调用 hostRemove，避免对已移除或无 el 的节点传 null。
    *
    * @param vnode 要卸载的虚拟节点
@@ -118,6 +119,8 @@ export function createRenderer(options) {
    * 1. 创建一个 DOM 元素
    * 2. 设置它的 props
    * 3. 挂载它的子节点
+   *
+   * 若 `vNode.transition` 存在：在 `hostInsert` 之前调用 `beforeEnter(el)`，插入之后再调用 `enter(el)`，用于 CSS 类名驱动的进入过渡。
    *
    * @param vNode 要挂载的元素 VNode
    * @param container 挂载到的父容器
