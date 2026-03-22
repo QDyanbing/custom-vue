@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+
+    <style>
+      .v-enter-active,
+      .v-leave-active {
+        transition: opacity 0.5s ease;
+      }
+
+      .v-enter-from,
+      .v-leave-to {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 KeepAlive：
+      - 父组件用按钮在 Child1 / Child2 之间切换默认插槽里的动态组件
+      - 被切换走的组件不会走常规 unmount（DOM 移到 KeepAlive 内部容器）；再切回来时复用实例与 DOM，onMounted 只在首次进入时打印
+    -->
+    <script type="module">
+      import { h, ref, createApp, Transition } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, ref, createApp, Transition } from '../dist/vue.esm.js';
+
+      const App = {
+        name: 'App',
+        setup() {
+          const show = ref(true);
+
+          function onClick() {
+            show.value = !show.value;
+          }
+
+          return () =>
+            h('div', [
+              h('button', { onClick }, '切换'),
+              h(Transition, {}, () => (show.value ? h('p', 'hello world') : undefined)),
+            ]);
+        },
+      };
+
+      const app = createApp(App);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
