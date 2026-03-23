@@ -7,9 +7,10 @@
   <body>
     <div id="app"></div>
     <!--
-      演示 Transition：
-      - 用按钮切换默认插槽里单个元素子节点（p）的显隐
-      - 进入/离开时由 Transition 写入的 vnode.transition 驱动 mountElement / unmount 中的 class 与钩子；样式见上方 .v-enter-* / .v-leave-*
+      演示 defineAsyncComponent：
+      - loader 返回 Promise，1s 后 resolve 一个真正的组件定义
+      - 在等待期间先渲染 loadingComponent；若超时或 reject，则切到 errorComponent
+      - 外层传给异步组件的 props，会在真实组件加载完成后继续透传
     -->
     <script type="module">
       // import {
@@ -29,6 +30,7 @@
 
               return new Promise((resolve, reject) => {
                 setTimeout(() => {
+                  // 这里直接返回组件对象，便于观察 loading -> resolved 的切换过程。
                   resolve({
                     props: ['msg'],
                     setup(props) {
@@ -40,6 +42,7 @@
                 }, 1000);
               });
             },
+            // timeout 大于 loader 的耗时，所以当前示例会走成功分支。
             timeout: 2000,
             loadingComponent: {
               render() {
