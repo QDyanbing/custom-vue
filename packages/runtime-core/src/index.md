@@ -17,6 +17,7 @@
 - **渲染器工厂**：`createRenderer`
 - **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
 - **依赖注入**：`apiInject`（`provide` / `inject`）
+- **异步组件**：`defineAsyncComponent`（把 `loader` 包装成可渲染组件，支持 loading / error / timeout）
 - **内置组件**：`Teleport`（跨容器挂载）、`KeepAlive`（动态子组件缓存，与 renderer 的 deactivate/activate 配合）、`Transition`（子 VNode 上挂过渡钩子，与 renderer 的 mountElement/unmount 配合）
 
 ### 导出内容一览
@@ -57,6 +58,15 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 它不关心“怎么操作 DOM”，只依赖上层传入的宿主能力（`createElement`、`insert`、`patchProp` 等）。浏览器环境由 `@vue/runtime-dom` 提供；自定义渲染（如 Canvas / 小程序）可自行实现该接口。
 
+#### 4. 异步组件相关
+
+- `defineAsyncComponent`：把返回 Promise 的加载器包装成普通组件，对外暴露统一的组件用法。当前实现支持：
+  - 直接传函数 `() => import('./Comp')`
+  - 传对象 `{ loader, loadingComponent, errorComponent, timeout }`
+  - 在真实组件加载完成后继续透传 `props` / `attrs` / `slots`
+
+详细说明见 [apiAsyncComponent.md](./apiAsyncComponent.md)。
+
 ### 使用示例
 
 ```ts
@@ -85,6 +95,7 @@ render(vnode, document.getElementById('app')!);
 runtime-core/src/
 ├── index.ts         # 入口文件，统一导出
 ├── apiCreateApp.ts  # createAppApi(render)，供 createRenderer 生成 createApp
+├── apiAsyncComponent.ts # defineAsyncComponent，异步组件包装（loading/error/timeout）
 ├── apiInject.ts     # provide/inject（组件级），与 appContext.provides 配合
 ├── apiLifecycle.ts  # 生命周期 onXxx、triggerHook、LifecycleHooks（供 renderer 在挂载/更新/卸载时触发）
 ├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
