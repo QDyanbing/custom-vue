@@ -18,7 +18,7 @@ export function defineAsyncComponent(options: any) {
   } = options;
 
   return {
-    setup() {
+    setup(props, { attrs, slots }) {
       const component = ref(loadingComponent);
 
       function loadComponent() {
@@ -50,7 +50,7 @@ export function defineAsyncComponent(options: any) {
       );
 
       return () => {
-        return h(component.value);
+        return h(component.value, { ...attrs, ...props }, slots);
       };
     },
   };
