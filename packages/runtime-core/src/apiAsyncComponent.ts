@@ -14,15 +14,30 @@ export function defineAsyncComponent(options: any) {
     loader,
     loadingComponent = defaultComponent,
     errorComponent = defaultComponent,
+    timeout = 0,
   } = options;
 
   return {
     setup() {
       const component = ref(loadingComponent);
 
-      loader().then(
+      function loadComponent() {
+        return new Promise((resolve, reject) => {
+          if (timeout && timeout > 0) {
+            setTimeout(() => {
+              reject(new Error('timeout'));
+            }, timeout);
+          }
+
+          // 如果请求回来了，则调用 resolve 否则调用 reject
+          loader().then(resolve, reject);
+        });
+      }
+
+      loadComponent().then(
         comp => {
           if (comp && comp[Symbol.toStringTag] === 'Module') {
+            // @ts-ignore
             comp = comp.default;
           }
 

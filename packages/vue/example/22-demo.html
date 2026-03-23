@@ -29,16 +29,15 @@
 
               return new Promise((resolve, reject) => {
                 setTimeout(() => {
-                  // resolve({
-                  //   render() {
-                  //     return h('div', 'asyncComponent');
-                  //   },
-                  // });
-
-                  reject(new Error('error'));
+                  resolve({
+                    render() {
+                      return h('div', 'hello world');
+                    },
+                  });
                 }, 1000);
               });
             },
+            timeout: 1000,
             loadingComponent: {
               render() {
                 return h('div', 'loading...');
