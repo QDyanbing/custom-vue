@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 Transition：
+      - 用按钮切换默认插槽里单个元素子节点（p）的显隐
+      - 进入/离开时由 Transition 写入的 vnode.transition 驱动 mountElement / unmount 中的 class 与钩子；样式见上方 .v-enter-* / .v-leave-*
+    -->
+    <script type="module">
+      import {
+        h,
+        ref,
+        createApp,
+        defineAsyncComponent,
+      } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, ref, createApp, Transition } from '../dist/vue.esm.js';
+
+      const App = {
+        name: 'App',
+        setup() {
+          const component = defineAsyncComponent(() => {
+            return import('./js/asyncComponent.js');
+          });
+
+          return () => {
+            return h(component);
+          };
+        },
+      };
+
+      const app = createApp(App);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
