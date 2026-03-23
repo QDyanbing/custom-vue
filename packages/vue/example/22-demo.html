@@ -12,19 +12,29 @@
       - 进入/离开时由 Transition 写入的 vnode.transition 驱动 mountElement / unmount 中的 class 与钩子；样式见上方 .v-enter-* / .v-leave-*
     -->
     <script type="module">
-      import {
-        h,
-        ref,
-        createApp,
-        defineAsyncComponent,
-      } from '/node_modules/vue/dist/vue.esm-browser.js';
-      // import { h, ref, createApp, Transition } from '../dist/vue.esm.js';
+      // import {
+      //   h,
+      //   ref,
+      //   createApp,
+      //   defineAsyncComponent,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
+      import { h, ref, createApp, defineAsyncComponent } from '../dist/vue.esm.js';
 
       const App = {
         name: 'App',
         setup() {
           const component = defineAsyncComponent(() => {
-            return import('./js/asyncComponent.js');
+            // return import('./js/asyncComponent.js');
+
+            return new Promise(resolve => {
+              setTimeout(() => {
+                resolve({
+                  render() {
+                    return h('div', 'asyncComponent');
+                  },
+                });
+              }, 1000);
+            });
           });
 
           return () => {
