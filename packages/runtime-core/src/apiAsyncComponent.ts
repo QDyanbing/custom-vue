@@ -9,6 +9,10 @@ export function defineAsyncComponent(loader) {
       });
 
       loader().then(comp => {
+        if (comp && comp[Symbol.toStringTag] === 'Module') {
+          comp = comp.default;
+        }
+
         // 组件加载完成，更新组件
         component.value = comp;
       });
