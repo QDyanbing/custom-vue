@@ -692,6 +692,8 @@ export function createRenderer(options) {
   const processFragment = (n1, n2, container, parentComponent = null) => {
     if (n1 == null) {
       mountChildren(n2.children, container, parentComponent);
+    } else {
+      patchChildren(n1, n2, container, parentComponent);
     }
   };
 

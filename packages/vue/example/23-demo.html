@@ -19,10 +19,16 @@
       const App = {
         name: 'App',
         setup() {
+          const count = ref(0);
+
+          setTimeout(() => {
+            count.value++;
+          }, 2000);
+
           return () => {
             return h(Fragment, null, [
               h('div', { style: { color: 'red' } }, 'hello '),
-              h('div', { style: { color: 'blue' } }, 'world'),
+              h('div', { style: { color: 'blue' } }, `world ${count.value}`),
             ]);
           };
         },
