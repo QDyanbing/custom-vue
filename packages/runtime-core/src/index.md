@@ -13,7 +13,7 @@
 当前入口主要透出几块内容：
 
 - **响应式能力**：直接 re-export `@vue/reactivity`
-- **VNode / 渲染入口**：`h` / `createVNode` / `VNode`
+- **VNode / 渲染入口**：`h` / `createVNode` / `VNode` / `Fragment`（片段根，无包裹 DOM）
 - **渲染器工厂**：`createRenderer`
 - **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
 - **依赖注入**：`apiInject`（`provide` / `inject`）
@@ -41,6 +41,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 
 - `VNode`：虚拟节点的 TypeScript 类型
 - `Text`：文本类型 VNode 的 type 标记（Symbol），renderer 据此走 `processText`
+- `Fragment`：片段类型 VNode 的 type 标记（Symbol），renderer 据此走 `processFragment`，卸载时只卸子树
 - `createVNode`：底层工厂函数，`h` 会调用它来真正创建 VNode
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，renderer 在 children 处理时使用
 - `isVNode` / `isSameVNode`：判断是否为 VNode、两 VNode 是否可复用
