@@ -7,10 +7,10 @@
   <body>
     <div id="app"></div>
     <!--
-      演示 defineAsyncComponent：
-      - loader 返回 Promise，1s 后 resolve 一个真正的组件定义
-      - 在等待期间先渲染 loadingComponent；若超时或 reject，则切到 errorComponent
-      - 外层传给异步组件的 props，会在真实组件加载完成后继续透传
+      演示 Fragment 根节点 + 响应式更新 + 应用卸载：
+      - 根渲染函数返回 h(Fragment, null, [...])，多个兄弟节点直接挂到 #app 下（片段不产生包裹元素）
+      - 1s 后 count++，子节点走 patchChildren 更新文案
+      - 2s 后 app.unmount()，片段类型在 unmount 中只卸载 children，不 hostRemove 片段自身
     -->
     <script type="module">
       // import { h, ref, createApp, Fragment } from '/node_modules/vue/dist/vue.esm-browser.js';
