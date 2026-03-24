@@ -8,6 +8,7 @@
 
 - [VNode 结构](#vnode-结构)
 - [Text 与文本节点](#text-与文本节点)
+- [Fragment 与片段根](#fragment-与片段根)
 - [normalizeVNode(vnode)](#normalizevnodevnode)
 - [normalizeChildren(vnode, children)](#normalizechildrenvnode-children)
 - [createVNode(type, props?, children?)](#createvnodetype-props-children)
@@ -16,9 +17,10 @@
 
 - `VNode`：虚拟节点的数据结构
 - `Text`：文本类型 VNode 的 type 标记（Symbol），供 renderer 走 `processText`
+- `Fragment`：片段类型 VNode 的 type 标记（Symbol），供 renderer 走 `processFragment`；不生成包裹 DOM
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
 - `normalizeChildren`：在创建 VNode 时对 children 做标准化并设置对应的 shapeFlag（处理文本、数组、插槽等），供 `createVNode` 内部使用
-- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、组件对象（有状态组件）或函数（函数组件）
+- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、`Fragment`（片段）、组件对象（有状态组件）或函数（函数组件）
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
 
@@ -29,7 +31,7 @@
 
 `VNode` 里包含渲染所需的关键信息：
 
-- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；对象表示有状态组件（含 `setup`、`render` 等）或 `Teleport` 定义对象；函数表示函数组件（直接通过函数返回子树）
+- `type`：节点类型——字符串表示元素（如 `'div'`）；`Text` 表示文本节点；`Fragment` 表示片段（多根/无包裹层）；对象表示有状态组件（含 `setup`、`render` 等）或 `Teleport` 定义对象；函数表示函数组件（直接通过函数返回子树）
 - `props`：传入的属性/事件（`class`、`style`、`onClick` 等）
 - `children`：子节点，可以是：
   - 文本（string）
@@ -48,6 +50,12 @@
 ## Text 与文本节点
 
 `Text` 是一个 `Symbol('v-txt')`，用作"文本类型"VNode 的 `type`。当子节点在写法上是 string 或 number 时，不会直接作为元素 VNode 的 `children` 字符串存，而是先被 `normalizeVNode` 转成 `type === Text`、`children` 为字符串的 VNode，再参与挂载和 diff。这样在 renderer 里可以统一用 `patch` 处理元素和文本，并在 `patch` 内通过 `type === Text` 走 `processText`。
+
+## Fragment 与片段根
+
+`Fragment` 是一个 `Symbol('Fragment')`，用作“片段”VNode 的 `type`。片段**不对应**单独的真实 DOM 节点，只承载一组子 VNode：`renderer` 在 `patch` 里通过 `type === Fragment` 走 `processFragment`——初次挂载时对 `children` 调用 `mountChildren`（子节点直接插入外层 `container`），更新时走 `patchChildren` 做子列表 diff。卸载时 `unmount` 在 Fragment 分支里只 `unmountChildren(children)`，不会对片段本身调用 `hostRemove`。
+
+在 demo 里常见写法是 `h(Fragment, null, [h('div', ...), h('div', ...)])`，使多个兄弟节点挂到同一父容器下而不多套一层 `div`。
 
 ## normalizeVNode(vnode)
 
