@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 defineAsyncComponent：
+      - loader 返回 Promise，1s 后 resolve 一个真正的组件定义
+      - 在等待期间先渲染 loadingComponent；若超时或 reject，则切到 errorComponent
+      - 外层传给异步组件的 props，会在真实组件加载完成后继续透传
+    -->
+    <script type="module">
+      import { h, ref, createApp, Fragment } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { h, ref, createApp, Fragment } from '../dist/vue.esm.js';
+
+      const App = {
+        name: 'App',
+        setup() {
+          return () => {
+            return h(Fragment, null, [
+              h('div', { style: { color: 'red' } }, 'hello '),
+              h('div', { style: { color: 'blue' } }, 'world'),
+            ]);
+          };
+        },
+      };
+
+      const app = createApp(App);
+      app.mount(document.getElementById('app'));
+    </script>
+  </body>
+</html>
