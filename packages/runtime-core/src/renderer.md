@@ -9,7 +9,7 @@
 - [createRenderer(options)](#createrendereroptions)
 - [render(vNode, container)](#rendervnode-container)
 - [patch(n1, n2, container, anchor?)](#patchn1-n2-container-anchor)
-- [patch 对类型的分发（Element / Text / Component）](#patch-对类型的分发element--text--component)
+- [patch 对类型的分发（Element / Text / Fragment / Component）](#patch-对类型的分发element--text--fragment--component)
 - [Teleport 组件](#teleport-组件)
 - [KeepAlive 组件](#keepalive-组件)
 - [Transition 组件](#transition-组件)
@@ -23,9 +23,9 @@
 
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
-- 初次挂载：`mountElement`、`mountChildren`；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
+- 初次挂载：`mountElement`、`mountChildren`；`type === Fragment` 走 `processFragment`（子节点直接挂到当前 `container`）；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
 - 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props/slots 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` + `updateSlots` 的链路
-- 卸载：`unmount`、`unmountChildren`、`unmountComponent`；组件卸载前/后通过 [apiLifecycle](./apiLifecycle.md) 的 `triggerHook` 触发 `beforeUnmount` / `unmounted`
+- 卸载：`unmount`、`unmountChildren`、`unmountComponent`；`Fragment` 无自身 DOM，只卸载其 `children`；组件卸载前/后通过 [apiLifecycle](./apiLifecycle.md) 的 `triggerHook` 触发 `beforeUnmount` / `unmounted`
 - 生命周期：在 `setupRenderEffect` 的 componentUpdateFn 中，首渲前后触发 `beforeMount` / `mounted`，更新前后触发 `beforeUpdate` / `updated`（见 [apiLifecycle.md](./apiLifecycle.md)）
 
 最后通过 `render(vnode, container)` 与 `createApp` 对外暴露。
@@ -82,16 +82,17 @@ container._vnode = vnode;
 
 `anchor` 由外层传入，用来控制元素插入的准确位置，当前 demo 里主要在 keyed diff 时使用。`parentComponent` 为父组件实例，会沿 patch 调用链向下传递，供子组件在 `createComponentInstance` 时建立 `instance.parent` 关系。
 
-### patch 对类型的分发（Element / Text / Component）
+### patch 对类型的分发（Element / Text / Fragment / Component）
 
-`patch` 在确定"同一节点需要更新"后，先根据 `n2.type` 判断是否为 `Text`，再根据 `n2.shapeFlag` 分发到元素或组件：
+`patch` 在确定"同一节点需要更新"后，先根据 `n2.type` 判断是否为 `Text` 或 `Fragment`，再根据 `n2.shapeFlag` 分发到元素或组件：
 
 - `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
+- `n2.type === Fragment`：走 `processFragment`。`n1 == null` 时对 `n2.children` 做 `mountChildren`；否则对两棵片段的子列表走 `patchChildren`（片段本身不占 DOM，不创建/复用 `el`）。
 - `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
 - `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；已挂载的组件走 `updateComponent` 判断是否需要更新 props 并触发子树 diff）。
 - `n2.shapeFlag & TELEPORT`：走 Teleport 组件的 `process`（根据 `props.to / props.disabled` 把 children 挂到目标容器；`to / disabled` 变化时迁移）。
 
-这样元素、文本、组件在挂载与更新时走各自分支；Teleport 见下文 `Teleport 组件`小节，KeepAlive 见 `KeepAlive 组件`小节，Transition 见 `Transition 组件`小节，组件分支详见下一节。
+这样元素、文本、片段、组件在挂载与更新时走各自分支；Teleport 见下文 `Teleport 组件`小节，KeepAlive 见 `KeepAlive 组件`小节，Transition 见 `Transition 组件`小节，组件分支详见下一节。
 
 ### Teleport 组件
 
@@ -140,7 +141,7 @@ container._vnode = vnode;
 组件实例与 setup 的细节见 [component.md](./component.md)。生命周期钩子的注册与触发见 [apiLifecycle.md](./apiLifecycle.md)。
 
 - **unmountComponent(instance)**：卸载组件时调用。先 `triggerHook(instance, BEFORE_UNMOUNT)`，再 `unmount(instance.subTree)` 卸载子树，最后 `triggerHook(instance, UNMOUNTED)`。
-- **unmount(vnode)**：卸载单个 VNode。若带 `COMPONENT_SHOULD_KEEP_ALIVE`，交给 KeepAlive 的 `deactivate`。否则若为组件则调 `unmountComponent`；若为 Teleport 则只卸载其 `children`；若为元素等则先 `unmountChildren` 再移除自身 DOM。移除 DOM 时使用 `vnode.el && hostRemove(vnode.el)`，避免对已移除或无 el 的节点传 null。
+- **unmount(vnode)**：卸载单个 VNode。若带 `COMPONENT_SHOULD_KEEP_ALIVE`，交给 KeepAlive 的 `deactivate`。若为 `Fragment`（`type === Fragment`），只 `unmountChildren(children)`，不执行 `hostRemove`。否则若为组件则调 `unmountComponent`；若为 Teleport 则只卸载其 `children`；若为元素等则先 `unmountChildren` 再移除自身 DOM。移除 DOM 时使用 `vnode.el && hostRemove(vnode.el)`，避免对已移除或无 el 的节点传 null。
 
 ### patchElement 与 children 处理
 
