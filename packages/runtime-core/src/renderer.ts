@@ -1,5 +1,5 @@
 import { ShapeFlags } from '@vue/shared';
-import { isSameVNode, Text, normalizeVNode, type VNode } from './vnode';
+import { isSameVNode, Text, normalizeVNode, type VNode, Fragment } from './vnode';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppApi } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
@@ -689,6 +689,12 @@ export function createRenderer(options) {
     }
   };
 
+  const processFragment = (n1, n2, container, parentComponent = null) => {
+    if (n1 == null) {
+      mountChildren(n2.children, container, parentComponent);
+    }
+  };
+
   /**
    * 更新和挂载的统一入口。
    *
@@ -727,6 +733,9 @@ export function createRenderer(options) {
     switch (type) {
       case Text:
         processText(n1, n2, container, anchor);
+        break;
+      case Fragment:
+        processFragment(n1, n2, container, parentComponent);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {

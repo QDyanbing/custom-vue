@@ -9,6 +9,11 @@ import { isTeleport } from './components/Teleport';
 export const Text = Symbol('v-txt');
 
 /**
+ * 片段节点标记
+ */
+export const Fragment = Symbol('Fragment');
+
+/**
  * 运行时使用的虚拟节点结构（VNode）。
  * 这里的结构是 runtime 自己使用的内部格式，会由 `h` / 渲染器统一创建。
  */
