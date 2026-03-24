@@ -9,7 +9,8 @@ import { isTeleport } from './components/Teleport';
 export const Text = Symbol('v-txt');
 
 /**
- * 片段节点标记
+ * 片段节点标记。
+ * 不对应真实 DOM：`createRenderer` 里 `patch` 走 `processFragment`（子节点直接挂到外层 container），`unmount` 只卸载 `children` 子树。
  */
 export const Fragment = Symbol('Fragment');
 
