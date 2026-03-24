@@ -78,13 +78,19 @@ export function createRenderer(options) {
    * @param vnode 要卸载的虚拟节点
    */
   const unmount = vnode => {
-    const { shapeFlag, children, ref, transition } = vnode;
+    const { shapeFlag, children, ref, transition, type } = vnode;
 
     // 被 KeepAlive 标记的子树：跳过常规卸载，只“藏”到 KeepAlive 的 storage 容器
     if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
       const parentComponent = vnode.component.parent;
       parentComponent.ctx.deactivate(vnode);
 
+      return;
+    }
+
+    if (type === Fragment) {
+      // 如果是片段节点，则卸载子节点
+      unmountChildren(children);
       return;
     }
 
