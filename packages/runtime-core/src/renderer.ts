@@ -70,6 +70,7 @@ export function createRenderer(options) {
    * 卸载单个 VNode。
    *
    * 组件先走 unmountComponent（内部会卸载 subTree）；元素/文本等先卸载子节点，再移除自身 DOM。
+   * Fragment 不创建自身 DOM：卸载时只 unmountChildren(children)，不调用 hostRemove。
    * Teleport 不创建自身 DOM：卸载时只需要卸载它的 children 子树（真实 DOM 在目标容器里）。
    * KeepAlive 包裹的子组件：若带 `COMPONENT_SHOULD_KEEP_ALIVE`，不调用 `unmountComponent`，由父级 KeepAlive 的 `ctx.deactivate` 把子树根 DOM 挪到离线容器。
    * 元素等节点若带 `transition`（由 `<Transition>` 写入子 VNode）：先 `transition.leave(el, remove)`，在离开动画结束后再 `hostRemove`；无 `transition` 则直接移除。
@@ -695,6 +696,14 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * 处理 `type === Fragment` 的 VNode：片段自身不占 DOM，只对其 `children` 做挂载或 `patchChildren` 更新。
+   *
+   * @param n1 旧片段 VNode；`null` 表示初次挂载
+   * @param n2 新片段 VNode
+   * @param container 子节点挂载到的父容器（与片段外层的 container 相同）
+   * @param parentComponent 父组件实例，沿子节点 patch 链传递
+   */
   const processFragment = (n1, n2, container, parentComponent = null) => {
     if (n1 == null) {
       mountChildren(n2.children, container, parentComponent);
