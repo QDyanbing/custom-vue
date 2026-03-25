@@ -7,7 +7,8 @@
  * 补丁标志可以使用 | 位运算符组合，可以使用 & 运算符检查，例如：
  *
  * ```js
- * const flag = TEXT | CLASS * if (flag & TEXT) { ... }
+ * const flag = TEXT | CLASS;
+ * if (flag & TEXT) { ... }
  * ```
  * 查看 '../../runtime-core/src/renderer.ts' 中的 `patchElement` 函数，
  * 了解在差异比较过程中如何处理这些标志。
@@ -29,7 +30,8 @@ export enum PatchFlags {
    * + 检测并提升内联静态对象
    * 例如：`style="color: red"` 和 `:style="{ color: 'red' }"` 都被提升为：
    * ```js
-   * const style = { color: 'red' }   * render() { return e('div', { style }) }
+   * const style = { color: 'red' };
+   * render() { return e('div', { style }); }
    * ```
    */
   STYLE = 1 << 2,
@@ -98,7 +100,8 @@ export enum PatchFlags {
    * 并且是互斥的。检查特殊标志时，只需检查 patchFlag === FLAG。
    */
 
-  /**   * 表示缓存的静态 vnode。这也是水合的提示，跳过整个子树，
+  /**
+   * 表示缓存的静态 vnode。这也是水合的提示，跳过整个子树，
    * 因为静态内容永远不需要更新。
    */
   CACHED = -1,
