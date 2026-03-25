@@ -6,9 +6,11 @@
 
 - [工具函数概览（`src/utils.ts`）](#工具函数概览srcutilsts)
 - [形状标记概览（`src/shapeFlags.ts`）](#形状标记概览srcshapeflagsts)
+- [补丁标志概览（`src/patchFlags.ts`）](#补丁标志概览srcpatchflagsts)
 
 - **工具函数（`src/utils.ts`）**：对常见类型判断、变更判断等逻辑做了抽象，避免在各个包里重复实现。
 - **形状标记 `ShapeFlags`（`src/shapeFlags.ts`）**：为 vnode 的类型和子节点形态打标，在渲染与 diff 过程中做快速分支判断。
+- **补丁标志 `PatchFlags`（`src/patchFlags.ts`）**：提示元素更新时哪些部分可能变化，供 `patchElement` 在优化路径下定向更新；详见 [src/patchFlags.md](./src/patchFlags.md)。
 
 ### 工具函数概览（`src/utils.ts`）
 
@@ -42,3 +44,7 @@ if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
   // 处理多子节点的情况
 }
 ```
+
+### 补丁标志概览（`src/patchFlags.ts`）
+
+`PatchFlags` 与编译器约定一致时，运行时可在 `patchElement` 中按位更新 `class` / `style` / 动态文本等，而不必每次对比全部 props。负数标志 `CACHED`、`BAIL` 表示特殊语义，用法见 [src/patchFlags.md](./src/patchFlags.md)。
