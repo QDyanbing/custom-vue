@@ -14,7 +14,7 @@
 - [KeepAlive 组件](#keepalive-组件)
 - [Transition 组件](#transition-组件)
 - [组件 processComponent、mountComponent 与 updateComponent](#组件-processcomponentmountcomponent-与-updatecomponent)
-- [patchElement 与 children 处理](#patchelement-与-children-处理)
+- [patchElement、patchFlag 与 children 处理](#patchelementpatchflag-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
 - [乱序 diff 与最长递增子序列（LIS）](#乱序-diff-与最长递增子序列lis)
 - [文本节点 processText](#文本节点-processtext)
@@ -143,12 +143,12 @@ container._vnode = vnode;
 - **unmountComponent(instance)**：卸载组件时调用。先 `triggerHook(instance, BEFORE_UNMOUNT)`，再 `unmount(instance.subTree)` 卸载子树，最后 `triggerHook(instance, UNMOUNTED)`。
 - **unmount(vnode)**：卸载单个 VNode。若带 `COMPONENT_SHOULD_KEEP_ALIVE`，交给 KeepAlive 的 `deactivate`。若为 `Fragment`（`type === Fragment`），只 `unmountChildren(children)`，不执行 `hostRemove`。否则若为组件则调 `unmountComponent`；若为 Teleport 则只卸载其 `children`；若为元素等则先 `unmountChildren` 再移除自身 DOM。移除 DOM 时使用 `vnode.el && hostRemove(vnode.el)`，避免对已移除或无 el 的节点传 null。
 
-### patchElement 与 children 处理
+### patchElement、patchFlag 与 children 处理
 
 - `patchElement` 负责：
   - 复用旧的 DOM：`n2.el = n1.el`
-  - 调用 `patchProps(el, oldProps, newProps)` 更新属性
-  - 调用 `patchChildren(n1, n2, parentComponent)` 更新子节点（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
+  - **属性更新**：若 `n2.patchFlag > 0`，按 `PatchFlags`（见 [@vue/shared patchFlags.md](../../shared/src/patchFlags.md)）做定向更新——`CLASS` / `STYLE` 在对应 prop 引用变化时调 `hostPatchProp`；`TEXT` 表示子节点为动态纯文本，若 `n1.children !== n2.children` 则 `hostSetElementText` 并**直接 return**，不再调用 `patchChildren`。若 `patchFlag` 为 0 或未走上述分支，则调用 `patchProps(el, oldProps, newProps)` 全量对比属性。
+  - 在未因 `TEXT` 提前 return 的前提下，调用 `patchChildren(n1, n2, el, parentComponent)` 更新子节点（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
 
 - `patchChildren` 通过 `shapeFlag` 区分几种情况：
   - 文本 → 文本：必要时直接改写 `textContent`。
