@@ -444,6 +444,10 @@ export function createRenderer(options) {
    * 2. 对比并更新 props
    * 3. 对比并更新 children
    *
+   * 补充：`n2.patchFlag > 0` 时按 `PatchFlags` 做定向更新——`CLASS` / `STYLE` 仅在对应 prop 引用变化时调 `hostPatchProp`；
+   * `TEXT` 表示子节点为动态文本，若 `n1.children !== n2.children` 则 `hostSetElementText` 后直接 return，不再进入 `patchChildren`。
+   * `patchFlag` 为 0 或未命中上述分支时，走全量 `patchProps`，再 `patchChildren`。
+   *
    * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */
   const patchElement = (n1, n2, parentComponent = null) => {
