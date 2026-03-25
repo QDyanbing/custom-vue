@@ -18,9 +18,9 @@
       const App = {
         setup() {
           const count = ref(0);
-          // setTimeout(() => {
-          //   count.value++;
-          // }, 1000);
+          setTimeout(() => {
+            count.value++;
+          }, 1000);
 
           return () => {
             const vnode = createVNode(
