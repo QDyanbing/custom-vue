@@ -11,7 +11,8 @@
 - [Fragment 与片段根](#fragment-与片段根)
 - [normalizeVNode(vnode)](#normalizevnodevnode)
 - [normalizeChildren(vnode, children)](#normalizechildrenvnode-children)
-- [createVNode(type, props?, children?)](#createvnodetype-props-children)
+- [createVNode(type, props?, children?, patchFlag?)](#createvnodetype-props-children-patchflag)
+- [patchFlag 与 PatchFlags](#patchflag-与-patchflags)
 - [isVNode(value)](#isvnodevalue)
 - [isSameVNode(v1, v2)](#issamevnodev1-v2)
 
@@ -20,7 +21,7 @@
 - `Fragment`：片段类型 VNode 的 type 标记（Symbol），供 renderer 走 `processFragment`；不生成包裹 DOM
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
 - `normalizeChildren`：在创建 VNode 时对 children 做标准化并设置对应的 shapeFlag（处理文本、数组、插槽等），供 `createVNode` 内部使用
-- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、`Fragment`（片段）、组件对象（有状态组件）或函数（函数组件）
+- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、`Fragment`（片段）、组件对象（有状态组件）或函数（函数组件）；可选第四参 `patchFlag` 写入 `PatchFlags` 位组合供 `patchElement` 定向更新
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
 
@@ -44,6 +45,7 @@
 - `ref`：模板 ref 的内部表示，结构为 `{ r: rawRef, i: instance }`，其中 `r` 是原始 ref（字符串或 `Ref` 对象），`i` 是当前正在渲染的组件实例；渲染器会把这个对象交给 `setRef`（见 [renderTemplateRef.md](./renderTemplateRef.md)）做实际赋值/清理
 - `appContext`：应用上下文，createApp 在 mount 时挂到根 vnode 上（`vnode.appContext = context`），供 `createComponentInstance` 在创建根组件实例时使用；子组件的 appContext 从 parent 继承，不依赖 vnode
 - `transition`（运行时附加，非 `createVNode` 必填）：由 `<Transition>` 在渲染子节点时写入，值为 `{ beforeEnter, enter, leave }`；`renderer` 的 `mountElement` / `unmount` 读取后做进入、离开动画，详见 [components/Transition.md](./components/Transition.md)
+- `patchFlag`：可选的更新提示位掩码，枚举定义在 `@vue/shared` 的 `PatchFlags`。`patchFlag > 0` 时，`renderer` 的 `patchElement` 可按位只更新 `class` / `style` / 动态文本等；为 0 时走全量 `patchProps`。详见 [patchFlag 与 PatchFlags](#patchflag-与-patchflags)。
 
 借助 `shapeFlag`，后续在 `renderer` 里可以只通过按位与来判断当前 VNode 属于哪种形态，而不需要到处写 `typeof` / `Array.isArray` 之类的判断。
 
@@ -65,6 +67,15 @@
 - 否则认为已经是 VNode，直接返回。
 
 在 `mountChildren`、`patchKeyedChildren` 等逻辑里，会对 children 数组中的每一项调用 `normalizeVNode`，保证传给 `patch` 的始终是 VNode。
+
+## patchFlag 与 PatchFlags
+
+`patchFlag` 与 `shapeFlag` 职责不同：`shapeFlag` 描述**节点类型与子节点形态**（元素 / 组件 / 文本子节点 / 数组子节点等）；`patchFlag` 描述**同一元素节点在更新时哪些 prop 或子文本可能变化**，供 `patchElement` 做“定向补丁”。
+
+- 枚举与各标志含义见 [@vue/shared 的 patchFlags.md](../../shared/src/patchFlags.md)。
+- 本仓库 `renderer.ts` 中已实现：`PatchFlags.TEXT`、`CLASS`、`STYLE` 在 `patchFlag > 0` 时的分支行为；其余标志位可在后续扩展中与官方 Vue 对齐。
+
+手写 `createVNode` 时传入第四参即可带上标志，例如示例 `24-demo.html` 使用 `PatchFlags.TEXT` 标记动态文本子节点。
 
 ## normalizeChildren(vnode, children)
 
@@ -99,9 +110,9 @@
 
 在渲染阶段，renderer 会把这个对象传给 `setRef(ref, vnode)`（见 [renderTemplateRef.md](./renderTemplateRef.md)），根据 `shapeFlag` 决定将 DOM 元素还是组件实例写入 ref。
 
-## createVNode(type, props?, children?)
+## createVNode(type, props?, children?, patchFlag?)
 
-`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。
+`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。第四参 `patchFlag` 默认 `0`，非 0 时写入 vnode，供 `patchElement` 使用（见上一节）。
 
 流程分两步：
 
@@ -112,7 +123,7 @@
    - 当 `type` 是函数时：记为函数组件，`shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT`
 
 2. **标准化 children 并追加子节点类型标记**：
-   - 先创建 vnode 对象（`children` 暂为 `null`）
+   - 先创建 vnode 对象（`children` 暂为 `null`，`patchFlag` 由参数直接写入 vnode）
    - 调用 `normalizeChildren(vnode, children)`，由该函数根据 children 类型设置 `shapeFlag` 并写回 `children`
    - 这样 children 的 shapeFlag 设置（文本/数组/插槽）与 children 的标准化（函数转对象、number 转 string）统一在 `normalizeChildren` 中完成
 
@@ -141,6 +152,7 @@ return vnode;
 - 结构信息：`type` / `props` / `children` / `key`
 - 运行时引用：`el`（由 renderer 填充）
 - 形态标记：`shapeFlag`（节点类型 + 子节点类型的位组合）
+- 补丁提示：`patchFlag`（可选，来自第四参）
 - 模板引用：`ref`（若 `props.ref` 存在，则由 `normalizeRef` 生成），供 `setRef` 在渲染阶段写入 DOM / 组件实例
 
 ## isVNode(value)
