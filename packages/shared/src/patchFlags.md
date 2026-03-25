@@ -33,7 +33,7 @@
 | `1 << 10` | `DYNAMIC_SLOTS` | 动态插槽组件 |
 | `1 << 11` | `DEV_ROOT_FRAGMENT` | 开发环境根注释片段（仅 dev） |
 | `-1` | `CACHED` | 静态缓存节点 / 水合跳过子树 |
-| `-2` | `BAIL` | 退出优化模式，完整 diff |
+| `-2` | `BAIL` | 结束按标志的快速更新，走完整 diff |
 
 ## 与 `createVNode` 的关系
 
