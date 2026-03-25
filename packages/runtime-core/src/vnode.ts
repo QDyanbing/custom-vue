@@ -29,6 +29,7 @@ export interface VNode {
   component?: any; // 组件实例
   ref?: { r: string | number | Ref | null; i: any } | null; // 用于引用 DOM 元素或组件实例
   appContext?: any; // 应用上下文
+  /** `PatchFlags` 位组合；与编译器约定一致时，`renderer` 的 `patchElement` 可跳过全量 `patchProps` */
   patchFlag?: number; // 更新标记
 }
 
@@ -133,6 +134,7 @@ export function isVNode(value: any): boolean {
  * @param type 节点类型：字符串（如 'div'）、Text，或组件对象（含 setup/render）
  * @param props 传入的属性对象
  * @param children 子节点，可以是文本 / 数组 / 单个 VNode
+ * @param patchFlag `PatchFlags` 位组合（见 `@vue/shared` 的 `patchFlags.ts`）；渲染器 `patchElement` 在 `patchFlag > 0` 时按标志做定向更新，否则全量对比 props
  * @returns 创建好的虚拟节点
  */
 export function createVNode(
