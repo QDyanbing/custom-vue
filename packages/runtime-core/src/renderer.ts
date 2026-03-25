@@ -456,6 +456,21 @@ export function createRenderer(options) {
     const newProps = n2.props;
 
     if (patchFlag > 0) {
+
+      if (patchFlag & PatchFlags.CLASS) {
+        // 更新 class
+        if (oldProps.class !== newProps.class) {
+          hostPatchProp(el, 'class', oldProps.class, newProps.class);
+        }
+      }
+
+      if (patchFlag & PatchFlags.STYLE) {
+        // 更新 style
+        if (oldProps.style !== newProps.style) {
+          hostPatchProp(el, 'style', oldProps.style, newProps.style);
+        }
+      }
+
       if (patchFlag & PatchFlags.TEXT) {
         // 子节点是文本，并且是动态的
         if (n1.children !== n2.children) {
