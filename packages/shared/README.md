@@ -10,7 +10,7 @@
 
 - **工具函数（`src/utils.ts`）**：对常见类型判断、变更判断等逻辑做了抽象，避免在各个包里重复实现。
 - **形状标记 `ShapeFlags`（`src/shapeFlags.ts`）**：为 vnode 的类型和子节点形态打标，在渲染与 diff 过程中做快速分支判断。
-- **补丁标志 `PatchFlags`（`src/patchFlags.ts`）**：提示元素更新时哪些部分可能变化，供 `patchElement` 在优化路径下定向更新；详见 [src/patchFlags.md](./src/patchFlags.md)。
+- **补丁标志 `PatchFlags`（`src/patchFlags.ts`）**：提示元素更新时哪些部分可能变化，供 `patchElement` 在 `patchFlag > 0` 时定向更新；详见 [src/patchFlags.md](./src/patchFlags.md)。
 
 ### 工具函数概览（`src/utils.ts`）
 
