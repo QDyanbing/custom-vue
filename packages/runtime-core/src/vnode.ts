@@ -29,6 +29,7 @@ export interface VNode {
   component?: any; // 组件实例
   ref?: { r: string | number | Ref | null; i: any } | null; // 用于引用 DOM 元素或组件实例
   appContext?: any; // 应用上下文
+  patchFlag?: number; // 更新标记
 }
 
 /**
@@ -134,7 +135,12 @@ export function isVNode(value: any): boolean {
  * @param children 子节点，可以是文本 / 数组 / 单个 VNode
  * @returns 创建好的虚拟节点
  */
-export function createVNode(type: string | typeof Text, props?: any, children: any = null): VNode {
+export function createVNode(
+  type: string | typeof Text,
+  props?: any,
+  children: any = null,
+  patchFlag: number = 0, // 更新标记
+): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
 
@@ -163,6 +169,7 @@ export function createVNode(type: string | typeof Text, props?: any, children: a
     shapeFlag,
     ref: normalizeRef(props?.ref),
     appContext: null, // 应用上下文
+    patchFlag,
   };
 
   // children 的标准化 和 children 的  shapeFlag 的设置

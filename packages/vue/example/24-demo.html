@@ -23,12 +23,15 @@
           // }, 1000);
 
           return () => {
-            return createVNode(
+            const vnode = createVNode(
               'div',
               { class: 'container', style: { color: 'red' } },
               count.value,
               1,
             );
+
+            console.log(vnode);
+            return vnode;
           };
         },
       };
