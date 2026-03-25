@@ -11,6 +11,12 @@
   </head>
   <body>
     <div id="app"></div>
+    <!--
+      演示 createVNode 第四参 patchFlag + 动态文本 + 静态 class/style：
+      - createVNode(..., count.value, 1)：第四参为 1，即 PatchFlags.TEXT，标记动态文本子节点
+      - 1s 后 count++，patchElement 在 patchFlag & TEXT 分支里 hostSetElementText，跳过后续 patchChildren
+      - class/style 本示例为静态引用，更新轮次不会触发 CLASS/STYLE 的 hostPatchProp；若需演示可改为响应式对象
+    -->
     <script type="module">
       // import { h, ref, createApp, createVNode } from '/node_modules/vue/dist/vue.esm-browser.js';
       import { h, ref, createApp, createVNode } from '../dist/vue.esm.js';
