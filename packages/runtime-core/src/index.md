@@ -13,7 +13,7 @@
 当前入口主要透出几块内容：
 
 - **响应式能力**：直接 re-export `@vue/reactivity`
-- **VNode / 渲染入口**：`h` / `createVNode` / `VNode` / `Fragment`（片段根，无包裹 DOM）
+- **VNode / 渲染入口**：`h` / `createVNode` / `VNode` / `Fragment`（片段根，无包裹 DOM）；`openBlock` / `createElementBlock`（Block Tree 动态节点收集）
 - **渲染器工厂**：`createRenderer`
 - **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
 - **依赖注入**：`apiInject`（`provide` / `inject`）
@@ -46,8 +46,10 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，renderer 在 children 处理时使用
 - `isVNode` / `isSameVNode`：判断是否为 VNode、两 VNode 是否可复用
 - `h`：推荐的对外创建入口，负责把“多种调用方式”标准化成统一的 VNode 结构
+- `openBlock`：开启 Block 收集上下文，后续创建的动态节点会被收集到 `currentBlock`
+- `createElementBlock`：创建 Block 根元素 VNode，将 `currentBlock` 写入 `dynamicChildren`
 
-建议在业务 / demo 代码里只使用 `h`，`createVNode`、`Text`、`normalizeVNode` 等更多是给内部实现和类型提示用的。
+建议在业务 / demo 代码里只使用 `h`，`createVNode`、`Text`、`normalizeVNode` 等更多是给内部实现和类型提示用的。`openBlock` / `createElementBlock` 通常由编译器生成，手写时可用于模拟编译器输出（见 `25-demo.html`）。
 
 #### 3. renderer 相关
 
@@ -100,7 +102,7 @@ runtime-core/src/
 ├── apiInject.ts     # provide/inject（组件级），与 appContext.provides 配合
 ├── apiLifecycle.ts  # 生命周期 onXxx、triggerHook、LifecycleHooks（供 renderer 在挂载/更新/卸载时触发）
 ├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
-├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode
+├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode、openBlock、createElementBlock
 ├── h.ts             # h（参数标准化，内部调用 createVNode）
 ├── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
 ├── components/Teleport.ts # Teleport 组件定义（跨容器挂载，支持 to/disabled）
