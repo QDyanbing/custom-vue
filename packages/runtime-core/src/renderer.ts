@@ -438,6 +438,15 @@ export function createRenderer(options) {
     }
   };
 
+  /**
+   * Block Tree 模式下的子节点更新：只对比 `dynamicChildren` 中收集到的动态节点，
+   * 跳过所有静态子节点，将更新复杂度从 O(模板节点总数) 降到 O(动态节点数)。
+   *
+   * @param c1 旧 VNode 的 dynamicChildren
+   * @param c2 新 VNode 的 dynamicChildren
+   * @param container 父容器
+   * @param parentComponent 父组件实例
+   */
   const patchBlockChildren = (c1, c2, container, parentComponent = null) => {
     // 只对比当前block的动态子节点
     for (let i = 0; i < c1.length; i++) {
@@ -454,6 +463,9 @@ export function createRenderer(options) {
    * 补充：`n2.patchFlag > 0` 时按 `PatchFlags` 做定向更新——`CLASS` / `STYLE` 仅在对应 prop 引用变化时调 `hostPatchProp`；
    * `TEXT` 表示子节点为动态文本，若 `n1.children !== n2.children` 则 `hostSetElementText` 后直接 return，不再进入 `patchChildren`。
    * `patchFlag` 为 0 或未命中上述分支时，走全量 `patchProps`，再 `patchChildren`。
+   *
+   * 子节点更新分两条路径：若新旧 VNode 都携带 `dynamicChildren`（Block Tree 模式），
+   * 走 `patchBlockChildren` 只对比动态节点；否则走 `patchChildren` 做全量 diff。
    *
    * @param parentComponent 父组件实例，用于子组件创建时建立 parent 关系
    */

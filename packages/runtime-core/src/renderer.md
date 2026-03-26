@@ -17,6 +17,7 @@
 - [patchElement、patchFlag 与 children 处理](#patchelementpatchflag-与-children-处理)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
 - [乱序 diff 与最长递增子序列（LIS）](#乱序-diff-与最长递增子序列lis)
+- [Block Tree 与 patchBlockChildren](#block-tree-与-patchblockchildren)
 - [文本节点 processText](#文本节点-processtext)
 
 在 DOM 场景里，`@vue/runtime-dom` 会准备宿主操作（创建元素、插入、设置属性等），再把这些能力通过 `options` 传给 `createRenderer`。
@@ -148,7 +149,7 @@ container._vnode = vnode;
 - `patchElement` 负责：
   - 复用旧的 DOM：`n2.el = n1.el`
   - **属性更新**：若 `n2.patchFlag > 0`，按 `PatchFlags`（见 [@vue/shared patchFlags.md](../../shared/src/patchFlags.md)）做定向更新——`CLASS` / `STYLE` 在对应 prop 引用变化时调 `hostPatchProp`；`TEXT` 表示子节点为动态纯文本，若 `n1.children !== n2.children` 则 `hostSetElementText` 并**直接 return**，不再调用 `patchChildren`。若 `patchFlag` 为 0 或未走上述分支，则调用 `patchProps(el, oldProps, newProps)` 全量对比属性。
-  - 在未因 `TEXT` 提前 return 的前提下，调用 `patchChildren(n1, n2, el, parentComponent)` 更新子节点（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
+  - **子节点更新**：若新旧 VNode 都携带 `dynamicChildren`（Block Tree 模式），走 `patchBlockChildren` 只对比动态节点；否则走 `patchChildren(n1, n2, el, parentComponent)` 做全量 diff（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
 
 - `patchChildren` 通过 `shapeFlag` 区分几种情况：
   - 文本 → 文本：必要时直接改写 `textContent`。
@@ -157,6 +158,17 @@ container._vnode = vnode;
   - 数组 / null 之间互相转换：根据场景挂载或卸载整组子节点。
 
 借助 `shapeFlag`，在 children 形态切换时不需要做复杂的类型判断，只要用按位与就能跳到正确分支。
+
+### Block Tree 与 patchBlockChildren
+
+Block Tree 是编译器与运行时配合的性能方案，核心思想是在编译阶段标记出模板中的动态节点，更新时只对比这些动态节点而跳过静态内容。详细的 Block 收集机制见 [vnode.md](./vnode.md) 的「Block Tree 与 dynamicChildren」章节。
+
+在 `renderer.ts` 中的体现：
+
+- `patchBlockChildren(c1, c2, container, parentComponent)`：遍历 `dynamicChildren` 数组，对每对 `c1[i]` / `c2[i]` 调用 `patch`。由于编译器保证新旧 Block 的 `dynamicChildren` 长度和位置一一对应，因此只需按下标逐个 patch，不需要 key-based diff。
+- `patchElement` 在处理完属性更新后，优先检查 `dynamicChildren`：若新旧 VNode 都携带 `dynamicChildren`，走 `patchBlockChildren`；否则走传统的 `patchChildren`（全量 diff）。
+
+这样对于一个包含 100 个静态节点和 2 个动态节点的模板，更新时只需要 patch 2 个节点，而不是遍历全部 102 个。
 
 ### keyed children 与双端 diff
 
