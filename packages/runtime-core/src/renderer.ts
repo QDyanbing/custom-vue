@@ -438,6 +438,13 @@ export function createRenderer(options) {
     }
   };
 
+  const patchBlockChildren = (c1, c2, container, parentComponent = null) => {
+    // 只对比当前block的动态子节点
+    for (let i = 0; i < c1.length; i++) {
+      patch(c1[i], c2[i], container, null, parentComponent);
+    }
+  };
+
   /**
    * 同类型元素的更新逻辑：
    * 1. 复用 DOM
@@ -454,13 +461,12 @@ export function createRenderer(options) {
     // 复用 dom 元素
     const el = (n2.el = n1.el);
 
-    const { patchFlag } = n2;
+    const { patchFlag, dynamicChildren } = n2;
 
     const oldProps = n1.props;
     const newProps = n2.props;
 
     if (patchFlag > 0) {
-
       if (patchFlag & PatchFlags.CLASS) {
         // 更新 class
         if (oldProps.class !== newProps.class) {
@@ -487,8 +493,13 @@ export function createRenderer(options) {
       patchProps(el, oldProps, newProps);
     }
 
-    // 更新 children
-    patchChildren(n1, n2, el, parentComponent);
+    if (dynamicChildren && n1.dynamicChildren) {
+      // 这种情况下只更新动态子节点
+      patchBlockChildren(n1.dynamicChildren, n2.dynamicChildren, el, parentComponent);
+    } else {
+      // 更新 children(全量diff)
+      patchChildren(n1, n2, el, parentComponent);
+    }
   };
 
   /**

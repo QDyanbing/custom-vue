@@ -31,6 +31,7 @@ export interface VNode {
   appContext?: any; // 应用上下文
   /** `PatchFlags` 位组合；与编译器约定一致时，`renderer` 的 `patchElement` 可跳过全量 `patchProps` */
   patchFlag?: number; // 更新标记
+  dynamicChildren?: VNode[] | null; // 动态子节点
 }
 
 /**
@@ -172,10 +173,40 @@ export function createVNode(
     ref: normalizeRef(props?.ref),
     appContext: null, // 应用上下文
     patchFlag,
+    dynamicChildren: null,
   };
+
+  if (patchFlag > 0 && currentBlock) {
+    // 如果 currentBlock 存在，节点是动态的，需要收集到当前的block中
+    currentBlock.push(vnode);
+  }
 
   // children 的标准化 和 children 的  shapeFlag 的设置
   normalizeChildren(vnode, children);
+
+  return vnode;
+}
+
+// 当前正在收集的block
+let currentBlock = null;
+
+export function openBlock() {
+  currentBlock = [];
+}
+
+export function closeBlock() {
+  currentBlock = null;
+}
+
+function setupBlock(vnode: VNode) {
+  vnode.dynamicChildren = currentBlock;
+  closeBlock();
+}
+
+export function createElementBlock(type: any, props?: any, children?: any, patchFlag?: number) {
+  const vnode = createVNode(type, props, children, patchFlag);
+
+  setupBlock(vnode);
 
   return vnode;
 }

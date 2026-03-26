@@ -18,14 +18,20 @@
       - class/style 本示例为静态引用，更新轮次不会触发 CLASS/STYLE 的 hostPatchProp；若需演示可改为响应式对象
     -->
     <script type="module">
+      // import {
+      //   ref,
+      //   createApp,
+      //   createVNode,
+      //   openBlock,
+      //   createElementBlock,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
       import {
         ref,
         createApp,
         createVNode,
         openBlock,
         createElementBlock,
-      } from '/node_modules/vue/dist/vue.esm-browser.js';
-      // import { ref, createApp, createVNode } from '../dist/vue.esm.js';
+      } from '../dist/vue.esm.js';
 
       const App = {
         setup() {
