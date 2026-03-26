@@ -143,6 +143,7 @@ export function createVNode(
   props?: any,
   children: any = null,
   patchFlag: number = 0, // 更新标记
+  isBlock: boolean = false,
 ): VNode {
   // shapeFlag 通过位运算记录“节点类型 + 子节点类型”的组合信息
   let shapeFlag = 0;
@@ -176,7 +177,8 @@ export function createVNode(
     dynamicChildren: null,
   };
 
-  if (patchFlag > 0 && currentBlock) {
+  // 不是block的情况下，才收集到当前的block中
+  if (patchFlag > 0 && currentBlock && !isBlock) {
     // 如果 currentBlock 存在，节点是动态的，需要收集到当前的block中
     currentBlock.push(vnode);
   }
@@ -213,7 +215,7 @@ function setupBlock(vnode: VNode) {
 }
 
 export function createElementBlock(type: any, props?: any, children?: any, patchFlag?: number) {
-  const vnode = createVNode(type, props, children, patchFlag);
+  const vnode = createVNode(type, props, children, patchFlag, true);
 
   setupBlock(vnode);
 
