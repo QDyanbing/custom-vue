@@ -4,7 +4,7 @@
 
 验证 Block Tree 机制：`openBlock()` + `createElementBlock()` 配合 `createVNode` 的 `patchFlag`，实现只更新动态子节点（`dynamicChildren`），跳过静态子节点的 diff。
 
-同时演示嵌套 Block 场景：内层静态 `<p>` 包含一个带 `patchFlag` 的动态子节点，验证 `blockStack` 在嵌套时的正确收集与恢复。
+同时演示 Block 的扁平收集特性：动态 `<p>`（带 `patchFlag`）虽然嵌套在一个静态 `<p>` 内部，但仍然被收集到根 Block 的 `dynamicChildren` 中——收集不受 DOM 层级限制。
 
 ## 示例结构
 
@@ -17,6 +17,14 @@
 3. `createElementBlock` 调用 `setupBlock` 后，Block 根 VNode 的 `dynamicChildren` 仅包含带 `patchFlag` 的那个动态 `<p>`
 
 更新时 `patchElement` 检测到 `dynamicChildren` 存在，只 patch 动态节点，静态的 222、333 不参与对比。
+
+## 控制台观察
+
+打开浏览器开发者工具，在 Console 中可以看到 `console.log(vnode)` 输出的 Block 根 VNode 对象：
+
+- `dynamicChildren` 数组长度为 1，唯一元素是带 `patchFlag: 1` 的那个内层 `<p>`
+- 三个静态 `<p>`（包括外层包裹的那个）不在 `dynamicChildren` 中
+- 1 秒后 `count++` 触发更新，可以在 Elements 面板观察到只有动态文本所在的 `<p>` 内容变化
 
 ## 与 24-demo 的区别
 
