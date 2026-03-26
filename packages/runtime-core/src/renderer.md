@@ -15,9 +15,9 @@
 - [Transition 组件](#transition-组件)
 - [组件 processComponent、mountComponent 与 updateComponent](#组件-processcomponentmountcomponent-与-updatecomponent)
 - [patchElement、patchFlag 与 children 处理](#patchelementpatchflag-与-children-处理)
+- [Block Tree 与 patchBlockChildren](#block-tree-与-patchblockchildren)
 - [keyed children 与双端 diff](#keyed-children-与双端-diff)
 - [乱序 diff 与最长递增子序列（LIS）](#乱序-diff-与最长递增子序列lis)
-- [Block Tree 与 patchBlockChildren](#block-tree-与-patchblockchildren)
 - [文本节点 processText](#文本节点-processtext)
 
 在 DOM 场景里，`@vue/runtime-dom` 会准备宿主操作（创建元素、插入、设置属性等），再把这些能力通过 `options` 传给 `createRenderer`。
@@ -25,7 +25,7 @@
 `createRenderer` 接收宿主能力之后，内部会组装出一整套：
 
 - 初次挂载：`mountElement`、`mountChildren`；`type === Fragment` 走 `processFragment`（子节点直接挂到当前 `container`）；组件类型走 `mountComponent`（依赖 [component](./component.md) 的 `createComponentInstance`、`setupComponent`）
-- 更新：`patchElement`、`patchProps`、`patchChildren`；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props/slots 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` + `updateSlots` 的链路
+- 更新：`patchElement`、`patchProps`、`patchChildren`（全量 diff）/ `patchBlockChildren`（Block Tree 模式，只对比 `dynamicChildren` 中的动态节点）；组件更新由 `setupRenderEffect` 内注册的 `ReactiveEffect` 驱动：当 `setupState` 中响应式数据变化时，重新执行 render 得到新子树，再 `patch(prevSubTree, subTree)` 做子树 diff；父组件传入新 props/slots 时则走 `updateComponent` → `shouldUpdateComponent` → `updateComponentPreRender` → `updateProps` + `updateSlots` 的链路
 - 卸载：`unmount`、`unmountChildren`、`unmountComponent`；`Fragment` 无自身 DOM，只卸载其 `children`；组件卸载前/后通过 [apiLifecycle](./apiLifecycle.md) 的 `triggerHook` 触发 `beforeUnmount` / `unmounted`
 - 生命周期：在 `setupRenderEffect` 的 componentUpdateFn 中，首渲前后触发 `beforeMount` / `mounted`，更新前后触发 `beforeUpdate` / `updated`（见 [apiLifecycle.md](./apiLifecycle.md)）
 
@@ -169,6 +169,8 @@ Block Tree 是编译器与运行时配合的性能方案，核心思想是在编
 - `patchElement` 在处理完属性更新后，优先检查 `dynamicChildren`：若新旧 VNode 都携带 `dynamicChildren`，走 `patchBlockChildren`；否则走传统的 `patchChildren`（全量 diff）。
 
 这样对于一个包含 100 个静态节点和 2 个动态节点的模板，更新时只需要 patch 2 个节点，而不是遍历全部 102 个。
+
+当 `dynamicChildren` 不存在（例如手写 `h()` 未使用 Block API）时，仍然走下面的 `patchChildren` → `patchKeyedChildren` 全量 diff 路径。
 
 ### keyed children 与双端 diff
 
