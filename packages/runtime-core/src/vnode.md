@@ -97,9 +97,11 @@ Block Tree 是 Vue3 编译器与运行时配合的一套性能方案。编译器
 | `setupBlock(vnode)` | 将 `currentBlock` 赋给 `vnode.dynamicChildren`，调用 `closeBlock()`；若外层还有 Block，将当前 Block 根 VNode 收集到外层 Block |
 | `createElementBlock(type, props?, children?, patchFlag?)` | 以 `isBlock = true` 调用 `createVNode`（阻止自身被收集），再调 `setupBlock` 完成 Block 的关闭与赋值 |
 
-### 嵌套 Block
+### 扁平收集与嵌套 Block
 
-当模板中有嵌套的 Block（如 `v-if` / `v-for` 各自会生成独立 Block）时，`blockStack` 保证内层 Block 收集自己的动态子节点，关闭后内层 Block 根 VNode 被收集到外层 Block 的 `dynamicChildren` 中。
+**扁平收集**：无论动态节点在模板中嵌套多深（如 `<div>` → `<p>` → 动态 `<span>`），只要它们带 `patchFlag > 0`，都会被收集到同一个 `currentBlock` 中。`dynamicChildren` 是一个扁平数组，不反映 DOM 层级结构。
+
+**嵌套 Block**：当模板中有结构性指令（如 `v-if` / `v-for`）时，编译器会在这些位置额外生成 `openBlock()` / `createElementBlock()`，形成子 Block。`blockStack` 保证内层 Block 收集自己的动态子节点，关闭后内层 Block 根 VNode 作为一个整体被收集到外层 Block 的 `dynamicChildren` 中。
 
 ### 避免自收集
 
@@ -121,7 +123,7 @@ if (dynamicChildren && n1.dynamicChildren) {
 
 ### 手写示例
 
-见 `25-demo.html`：手动调用 `openBlock()` / `createElementBlock()` 模拟编译器输出，观察 `vnode.dynamicChildren` 仅包含带 `patchFlag` 的动态节点，静态节点不在其中。
+见 `25-demo.html`：手动调用 `openBlock()` / `createElementBlock()` 模拟编译器输出，观察 `vnode.dynamicChildren` 仅包含带 `patchFlag` 的动态节点，静态节点不在其中。该示例中动态 `<p>` 嵌套在静态 `<p>` 内部，但仍被扁平收集到根 Block 的 `dynamicChildren` 里。
 
 ## normalizeChildren(vnode, children)
 
@@ -187,7 +189,12 @@ if (isString(type)) {
   shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT;
 }
 
-const vnode = { type, props, children: null, shapeFlag, ... };
+const vnode = { type, props, children: null, shapeFlag, patchFlag, dynamicChildren: null, ... };
+
+// Block Tree 动态节点收集（isBlock 为 true 时跳过，防止 Block 根收集自身）
+if (patchFlag > 0 && currentBlock && !isBlock) {
+  currentBlock.push(vnode);
+}
 
 normalizeChildren(vnode, children);
 
