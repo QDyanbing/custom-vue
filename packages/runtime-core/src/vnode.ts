@@ -187,20 +187,29 @@ export function createVNode(
   return vnode;
 }
 
+const blockStack = [];
+
 // 当前正在收集的block
 let currentBlock = null;
 
 export function openBlock() {
   currentBlock = [];
+  blockStack.push(currentBlock);
 }
 
 export function closeBlock() {
-  currentBlock = null;
+  blockStack.pop();
+  // 拿最后一个block
+  currentBlock = blockStack.at(-1);
 }
 
 function setupBlock(vnode: VNode) {
   vnode.dynamicChildren = currentBlock;
   closeBlock();
+
+  if (currentBlock) {
+    currentBlock.push(vnode);
+  }
 }
 
 export function createElementBlock(type: any, props?: any, children?: any, patchFlag?: number) {

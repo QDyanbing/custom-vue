@@ -45,11 +45,11 @@
             openBlock();
 
             const vnode = createElementBlock('div', null, [
-              // 动态文本
-              createVNode('p', null, count.value, 1),
-
               // 静态文本
-              createVNode('p', null, 111),
+              createVNode('p', null, [
+                // 动态文本
+                createVNode('p', { key: '111' }, count.value, 1),
+              ]),
               createVNode('p', null, 222),
               createVNode('p', null, 333),
             ]);
