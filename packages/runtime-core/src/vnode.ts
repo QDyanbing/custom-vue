@@ -136,6 +136,7 @@ export function isVNode(value: any): boolean {
  * @param props 传入的属性对象
  * @param children 子节点，可以是文本 / 数组 / 单个 VNode
  * @param patchFlag `PatchFlags` 位组合（见 `@vue/shared` 的 `patchFlags.ts`）；渲染器 `patchElement` 在 `patchFlag > 0` 时按标志做定向更新，否则全量对比 props
+ * @param isBlock 是否为 Block 根节点（由 `createElementBlock` 传入 `true`）；Block 根节点自身不会被收集进 `currentBlock`，避免自己收集自己
  * @returns 创建好的虚拟节点
  */
 export function createVNode(
@@ -189,22 +190,38 @@ export function createVNode(
   return vnode;
 }
 
+/**
+ * Block 栈：支持嵌套 Block。
+ * 每次 `openBlock()` 会 push 一个新数组，`closeBlock()` 会 pop 并恢复外层 Block。
+ */
 const blockStack = [];
 
-// 当前正在收集的block
+/** 当前正在收集动态子节点的 Block 数组；`openBlock()` 创建，`closeBlock()` 弹出 */
 let currentBlock = null;
 
+/**
+ * 开启一个新的 Block 收集上下文。
+ * 后续通过 `createVNode` 创建的带 `patchFlag > 0` 的节点会被自动收集到 `currentBlock` 中。
+ * 嵌套场景下旧的 `currentBlock` 被推入 `blockStack`。
+ */
 export function openBlock() {
   currentBlock = [];
   blockStack.push(currentBlock);
 }
 
+/**
+ * 关闭当前 Block，恢复外层的 `currentBlock`。
+ */
 export function closeBlock() {
   blockStack.pop();
   // 拿最后一个block
   currentBlock = blockStack.at(-1);
 }
 
+/**
+ * 将当前收集到的动态子节点挂到 Block 根 VNode 上，然后关闭当前 Block。
+ * 若关闭后仍有外层 Block（嵌套场景），则将当前 Block 根作为动态节点收集到外层 Block 中。
+ */
 function setupBlock(vnode: VNode) {
   vnode.dynamicChildren = currentBlock;
   closeBlock();
@@ -214,6 +231,17 @@ function setupBlock(vnode: VNode) {
   }
 }
 
+/**
+ * 创建一个 Block 根元素 VNode。
+ * 与 `createVNode` 的区别：传入 `isBlock = true` 使自身不被收集进 `currentBlock`，
+ * 并在创建后调用 `setupBlock` 将收集到的动态子节点写入 `dynamicChildren`。
+ *
+ * @param type 元素类型
+ * @param props 属性
+ * @param children 子节点
+ * @param patchFlag 更新标记
+ * @returns Block 根 VNode（携带 `dynamicChildren`）
+ */
 export function createElementBlock(type: any, props?: any, children?: any, patchFlag?: number) {
   const vnode = createVNode(type, props, children, patchFlag, true);
 

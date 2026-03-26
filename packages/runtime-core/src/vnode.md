@@ -11,8 +11,9 @@
 - [Fragment 与片段根](#fragment-与片段根)
 - [normalizeVNode(vnode)](#normalizevnodevnode)
 - [normalizeChildren(vnode, children)](#normalizechildrenvnode-children)
-- [createVNode(type, props?, children?, patchFlag?)](#createvnodetype-props-children-patchflag)
+- [createVNode(type, props?, children?, patchFlag?, isBlock?)](#createvnodetype-props-children-patchflag-isblock)
 - [patchFlag 与 PatchFlags](#patchflag-与-patchflags)
+- [Block Tree 与 dynamicChildren](#block-tree-与-dynamicchildren)
 - [isVNode(value)](#isvnodevalue)
 - [isSameVNode(v1, v2)](#issamevnodev1-v2)
 
@@ -21,7 +22,10 @@
 - `Fragment`：片段类型 VNode 的 type 标记（Symbol），供 renderer 走 `processFragment`；不生成包裹 DOM
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，供 renderer 在 children 处理时统一成 VNode
 - `normalizeChildren`：在创建 VNode 时对 children 做标准化并设置对应的 shapeFlag（处理文本、数组、插槽等），供 `createVNode` 内部使用
-- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、`Fragment`（片段）、组件对象（有状态组件）或函数（函数组件）；可选第四参 `patchFlag` 写入 `PatchFlags` 位组合供 `patchElement` 定向更新
+- `createVNode`：创建 VNode 的工厂函数；`type` 可为字符串（元素）、`Text`（文本）、`Fragment`（片段）、组件对象（有状态组件）或函数（函数组件）；可选第四参 `patchFlag` 写入 `PatchFlags` 位组合供 `patchElement` 定向更新；第五参 `isBlock` 标记是否为 Block 根节点
+- `openBlock`：开启 Block 收集上下文，后续创建的动态节点会被收集到 `currentBlock`
+- `closeBlock`：关闭当前 Block，恢复外层 Block 上下文
+- `createElementBlock`：创建 Block 根元素 VNode，调用 `createVNode` 后将 `currentBlock` 写入 `dynamicChildren`
 - `isVNode`：判断一个值是否已经是 VNode
 - `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
 
@@ -46,6 +50,7 @@
 - `appContext`：应用上下文，createApp 在 mount 时挂到根 vnode 上（`vnode.appContext = context`），供 `createComponentInstance` 在创建根组件实例时使用；子组件的 appContext 从 parent 继承，不依赖 vnode
 - `transition`（运行时附加，非 `createVNode` 必填）：由 `<Transition>` 在渲染子节点时写入，值为 `{ beforeEnter, enter, leave }`；`renderer` 的 `mountElement` / `unmount` 读取后做进入、离开动画，详见 [components/Transition.md](./components/Transition.md)
 - `patchFlag`：可选的更新提示位掩码，枚举定义在 `@vue/shared` 的 `PatchFlags`。`patchFlag > 0` 时，`renderer` 的 `patchElement` 可按位只更新 `class` / `style` / 动态文本等；为 0 时走全量 `patchProps`。详见 [patchFlag 与 PatchFlags](#patchflag-与-patchflags)。
+- `dynamicChildren`：由 Block Tree 机制收集的动态子节点数组。当 `dynamicChildren` 存在时，`patchElement` 只对这些动态节点调用 `patchBlockChildren`，跳过静态子节点的 diff，从而将更新复杂度从 O(模板节点总数) 降到 O(动态节点数)。详见 [Block Tree 与 dynamicChildren](#block-tree-与-dynamicchildren)。
 
 借助 `shapeFlag`，后续在 `renderer` 里可以只通过按位与来判断当前 VNode 属于哪种形态，而不需要到处写 `typeof` / `Array.isArray` 之类的判断。
 
@@ -76,6 +81,47 @@
 - 本仓库 `renderer.ts` 中已实现：`PatchFlags.TEXT`、`CLASS`、`STYLE` 在 `patchFlag > 0` 时的分支行为；其余标志位可在后续扩展中与官方 Vue 对齐。
 
 手写 `createVNode` 时传入第四参即可带上标志，例如示例 `24-demo.html` 使用 `PatchFlags.TEXT` 标记动态文本子节点。
+
+## Block Tree 与 dynamicChildren
+
+Block Tree 是 Vue3 编译器与运行时配合的一套性能方案。编译器在模板编译时会用 `openBlock()` + `createElementBlock()` 包裹模板根节点，在 Block 作用域内创建的所有带 `patchFlag > 0` 的 VNode 都会被自动收集到 `currentBlock` 数组中；当 `createElementBlock` 调用 `setupBlock` 时，这个数组会写入 Block 根 VNode 的 `dynamicChildren` 字段。
+
+更新时，`patchElement` 检测到新旧 VNode 都携带 `dynamicChildren`，就只遍历 `dynamicChildren` 调用 `patchBlockChildren`（逐个 `patch` 对应位置的动态节点），完全跳过静态子节点的比对。
+
+### 运行时 API
+
+| API | 作用 |
+|-----|------|
+| `openBlock()` | 创建新的 `currentBlock = []` 并压入 `blockStack`；嵌套 Block 时旧的 Block 被保留在栈里 |
+| `closeBlock()` | 弹出 `blockStack` 栈顶，恢复外层 Block 为 `currentBlock` |
+| `setupBlock(vnode)` | 将 `currentBlock` 赋给 `vnode.dynamicChildren`，调用 `closeBlock()`；若外层还有 Block，将当前 Block 根 VNode 收集到外层 Block |
+| `createElementBlock(type, props?, children?, patchFlag?)` | 以 `isBlock = true` 调用 `createVNode`（阻止自身被收集），再调 `setupBlock` 完成 Block 的关闭与赋值 |
+
+### 嵌套 Block
+
+当模板中有嵌套的 Block（如 `v-if` / `v-for` 各自会生成独立 Block）时，`blockStack` 保证内层 Block 收集自己的动态子节点，关闭后内层 Block 根 VNode 被收集到外层 Block 的 `dynamicChildren` 中。
+
+### 避免自收集
+
+`createVNode` 的第五参 `isBlock` 在 `createElementBlock` 中传入 `true`。收集条件为 `patchFlag > 0 && currentBlock && !isBlock`，这防止 Block 根节点把自己收集进自己的 `currentBlock`，否则会产生循环引用。
+
+### 与 renderer 的协作
+
+`renderer.ts` 中 `patchElement` 的逻辑为：
+
+```ts
+if (dynamicChildren && n1.dynamicChildren) {
+  patchBlockChildren(n1.dynamicChildren, n2.dynamicChildren, el, parentComponent);
+} else {
+  patchChildren(n1, n2, el, parentComponent);
+}
+```
+
+有 `dynamicChildren` 时走 `patchBlockChildren`（只对比动态节点列表），否则走传统的 `patchChildren`（全量 diff）。
+
+### 手写示例
+
+见 `25-demo.html`：手动调用 `openBlock()` / `createElementBlock()` 模拟编译器输出，观察 `vnode.dynamicChildren` 仅包含带 `patchFlag` 的动态节点，静态节点不在其中。
 
 ## normalizeChildren(vnode, children)
 
@@ -110,9 +156,9 @@
 
 在渲染阶段，renderer 会把这个对象传给 `setRef(ref, vnode)`（见 [renderTemplateRef.md](./renderTemplateRef.md)），根据 `shapeFlag` 决定将 DOM 元素还是组件实例写入 ref。
 
-## createVNode(type, props?, children?, patchFlag?)
+## createVNode(type, props?, children?, patchFlag?, isBlock?)
 
-`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。第四参 `patchFlag` 默认 `0`，非 0 时写入 vnode，供 `patchElement` 使用（见上一节）。
+`createVNode` 的职责是构造一个符合 `VNode` 约定的数据结构，并在创建阶段把"节点类型 / 子节点类型"编码进 `shapeFlag`。第四参 `patchFlag` 默认 `0`，非 0 时写入 vnode，供 `patchElement` 使用（见上一节）。第五参 `isBlock` 默认 `false`，为 `true` 时阻止该节点被收集进 `currentBlock`（供 `createElementBlock` 调用）。
 
 流程分两步：
 
@@ -123,7 +169,8 @@
    - 当 `type` 是函数时：记为函数组件，`shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT`
 
 2. **标准化 children 并追加子节点类型标记**：
-   - 先创建 vnode 对象（`children` 暂为 `null`，`patchFlag` 由参数直接写入 vnode）
+   - 先创建 vnode 对象（`children` 暂为 `null`，`patchFlag` / `dynamicChildren` 由参数直接写入 vnode）
+   - 若 `patchFlag > 0 && currentBlock && !isBlock`，将 vnode 收集到 `currentBlock` 中（Block Tree 动态节点收集）
    - 调用 `normalizeChildren(vnode, children)`，由该函数根据 children 类型设置 `shapeFlag` 并写回 `children`
    - 这样 children 的 shapeFlag 设置（文本/数组/插槽）与 children 的标准化（函数转对象、number 转 string）统一在 `normalizeChildren` 中完成
 
@@ -153,6 +200,7 @@ return vnode;
 - 运行时引用：`el`（由 renderer 填充）
 - 形态标记：`shapeFlag`（节点类型 + 子节点类型的位组合）
 - 补丁提示：`patchFlag`（可选，来自第四参）
+- 动态子节点：`dynamicChildren`（由 Block Tree 机制收集，初始为 `null`，`setupBlock` 时写入）
 - 模板引用：`ref`（若 `props.ref` 存在，则由 `normalizeRef` 生成），供 `setRef` 在渲染阶段写入 DOM / 组件实例
 
 ## isVNode(value)
