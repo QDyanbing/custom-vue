@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <style>
+      #app {
+        padding: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!--
+      演示 createVNode 第四参 patchFlag + 动态文本 + 静态 class/style：
+      - createVNode(..., count.value, 1)：第四参为 1，即 PatchFlags.TEXT，标记动态文本子节点
+      - 1s 后 count++，patchElement 在 patchFlag & TEXT 分支里 hostSetElementText，跳过后续 patchChildren
+      - class/style 本示例为静态引用，更新轮次不会触发 CLASS/STYLE 的 hostPatchProp；若需演示可改为响应式对象
+    -->
+    <script type="module">
+      import {
+        ref,
+        createApp,
+        createVNode,
+        openBlock,
+        createElementBlock,
+      } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // import { ref, createApp, createVNode } from '../dist/vue.esm.js';
+
+      const App = {
+        setup() {
+          const count = ref(0);
+
+          setTimeout(() => {
+            count.value++;
+          }, 1000);
+
+          return () => {
+            openBlock();
+
+            const vnode = createElementBlock('div', null, [
+              // 动态文本
+              createVNode('p', null, count.value, 1),
+
+              // 静态文本
+              createVNode('p', null, 111),
+              createVNode('p', null, 222),
+              createVNode('p', null, 333),
+            ]);
+
+            console.log(vnode);
+
+            return vnode;
+          };
+        },
+      };
+
+      const app = createApp(App);
+      app.mount('#app');
+    </script>
+  </body>
+</html>
