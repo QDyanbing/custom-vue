@@ -31,7 +31,8 @@ export interface VNode {
   appContext?: any; // 应用上下文
   /** `PatchFlags` 位组合；与编译器约定一致时，`renderer` 的 `patchElement` 可跳过全量 `patchProps` */
   patchFlag?: number; // 更新标记
-  dynamicChildren?: VNode[] | null; // 动态子节点
+  /** Block Tree 收集到的动态子节点；存在时 `patchElement` 走 `patchBlockChildren` 跳过静态子节点 diff */
+  dynamicChildren?: VNode[] | null;
 }
 
 /**
@@ -119,6 +120,7 @@ export function normalizeRef(ref) {
     i: getCurrentRenderingInstance(),
   };
 }
+
 /**
  * 判断一个值是否为 VNode。
  *
@@ -184,7 +186,7 @@ export function createVNode(
     currentBlock.push(vnode);
   }
 
-  // children 的标准化 和 children 的  shapeFlag 的设置
+  // children 的标准化 和 children 的 shapeFlag 的设置
   normalizeChildren(vnode, children);
 
   return vnode;
@@ -194,10 +196,10 @@ export function createVNode(
  * Block 栈：支持嵌套 Block。
  * 每次 `openBlock()` 会 push 一个新数组，`closeBlock()` 会 pop 并恢复外层 Block。
  */
-const blockStack = [];
+const blockStack: VNode[][] = [];
 
 /** 当前正在收集动态子节点的 Block 数组；`openBlock()` 创建，`closeBlock()` 弹出 */
-let currentBlock = null;
+let currentBlock: VNode[] | null = null;
 
 /**
  * 开启一个新的 Block 收集上下文。
