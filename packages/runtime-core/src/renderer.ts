@@ -760,9 +760,17 @@ export function createRenderer(options) {
    * @param parentComponent 父组件实例，沿子节点 patch 链传递
    */
   const processFragment = (n1, n2, container, parentComponent = null) => {
+    const { patchFlag, dynamicChildren } = n2;
     if (n1 == null) {
       mountChildren(n2.children, container, parentComponent);
     } else {
+      if (dynamicChildren && n1.dynamicChildren && patchFlag & PatchFlags.STABLE_FRAGMENT) {
+        // 这种情况下只更新动态子节点
+        patchBlockChildren(n1.dynamicChildren, n2.dynamicChildren, container, parentComponent);
+
+        return;
+      }
+
       patchChildren(n1, n2, container, parentComponent);
     }
   };
