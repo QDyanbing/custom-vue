@@ -448,7 +448,7 @@ export function createRenderer(options) {
    * @param parentComponent 父组件实例
    */
   const patchBlockChildren = (c1, c2, container, parentComponent = null) => {
-    // 只对比当前block的动态子节点
+    // 以新列表长度为准，避免旧列表更长时出现越界访问
     for (let i = 0; i < c2.length; i++) {
       patch(c1[i], c2[i], container, null, parentComponent);
     }
@@ -753,6 +753,7 @@ export function createRenderer(options) {
 
   /**
    * 处理 `type === Fragment` 的 VNode：片段自身不占 DOM，只对其 `children` 做挂载或 `patchChildren` 更新。
+   * 当命中 `STABLE_FRAGMENT` 且新旧都带 `dynamicChildren` 时，走 Block 快路径，仅更新动态子节点。
    *
    * @param n1 旧片段 VNode；`null` 表示初次挂载
    * @param n2 新片段 VNode
