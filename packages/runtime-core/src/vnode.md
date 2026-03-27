@@ -12,6 +12,8 @@
 - [normalizeVNode(vnode)](#normalizevnodevnode)
 - [normalizeChildren(vnode, children)](#normalizechildrenvnode-children)
 - [createVNode(type, props?, children?, patchFlag?, isBlock?)](#createvnodetype-props-children-patchflag-isblock)
+- [renderList(list, cb)](#renderlistlist-cb)
+- [toDisplayString(value)](#todisplaystringvalue)
 - [patchFlag 与 PatchFlags](#patchflag-与-patchflags)
 - [Block Tree 与 dynamicChildren](#block-tree-与-dynamicchildren)
 - [isVNode(value)](#isvnodevalue)
@@ -209,6 +211,28 @@ return vnode;
 - 补丁提示：`patchFlag`（可选，来自第四参）
 - 动态子节点：`dynamicChildren`（由 Block Tree 机制收集，初始为 `null`，`setupBlock` 时写入）
 - 模板引用：`ref`（若 `props.ref` 存在，则由 `normalizeRef` 生成），供 `setRef` 在渲染阶段写入 DOM / 组件实例
+
+## renderList(list, cb)
+
+`renderList` 是列表渲染辅助函数，行为等价于 `Array.prototype.map`：
+
+- 入参 `list` 为源数组
+- 入参 `cb(item, index)` 为映射回调
+- 返回值是回调结果组成的新数组（通常是一组 VNode）
+
+在示例 `26-demo.html` 中，它用于把 `list.value` 转成 `createVNode('div', { key: item }, ...)` 的节点数组，供 `Fragment` 直接渲染。
+
+## toDisplayString(value)
+
+`toDisplayString` 用于把渲染值统一转换成可展示字符串，规则如下：
+
+- `null / undefined` -> `''`
+- `string` -> 原值
+- `Ref` -> `ref.value`
+- `object` -> `JSON.stringify(value)`
+- 其他类型 -> `String(value)`
+
+这个函数主要服务于模板插值语义，保证文本节点写入时拿到稳定的字符串结果。
 
 ## isVNode(value)
 
