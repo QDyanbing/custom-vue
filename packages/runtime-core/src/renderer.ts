@@ -449,7 +449,7 @@ export function createRenderer(options) {
    */
   const patchBlockChildren = (c1, c2, container, parentComponent = null) => {
     // 只对比当前block的动态子节点
-    for (let i = 0; i < c1.length; i++) {
+    for (let i = 0; i < c2.length; i++) {
       patch(c1[i], c2[i], container, null, parentComponent);
     }
   };
