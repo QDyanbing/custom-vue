@@ -252,10 +252,22 @@ export function createElementBlock(type: any, props?: any, children?: any, patch
   return vnode;
 }
 
+/**
+ * 运行时版的列表渲染辅助函数。
+ * 与模板编译产物中的 `renderList` 用法一致：遍历列表并返回一组 VNode。
+ */
 export function renderList(list: any[], cb: (item: any, index: number) => any) {
   return list.map(cb);
 }
 
+/**
+ * 将任意值转换成可展示字符串。
+ * - `null/undefined` -> ''
+ * - `string` -> 原值
+ * - `ref` -> `ref.value`
+ * - `object` -> `JSON.stringify`
+ * - 其他基础类型 -> `String(value)`
+ */
 export function toDisplayString(value: any) {
   if (value === null || value === undefined) {
     return '';
