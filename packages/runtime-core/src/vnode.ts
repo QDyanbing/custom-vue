@@ -1,4 +1,4 @@
-import { Ref } from '@vue/reactivity';
+import { isRef, Ref } from '@vue/reactivity';
 import { ShapeFlags, isArray, isString, isNumber, isObject, isFunction } from '@vue/shared';
 import { getCurrentRenderingInstance } from './component';
 import { isTeleport } from './components/Teleport';
@@ -250,4 +250,28 @@ export function createElementBlock(type: any, props?: any, children?: any, patch
   setupBlock(vnode);
 
   return vnode;
+}
+
+export function renderList(list: any[], cb: (item: any, index: number) => any) {
+  return list.map(cb);
+}
+
+export function toDisplayString(value: any) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (isString(value)) {
+    return value;
+  }
+
+  if (isRef(value)) {
+    return value.value;
+  }
+
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
 }
