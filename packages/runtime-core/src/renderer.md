@@ -88,7 +88,7 @@ container._vnode = vnode;
 `patch` 在确定"同一节点需要更新"后，先根据 `n2.type` 判断是否为 `Text` 或 `Fragment`，再根据 `n2.shapeFlag` 分发到元素或组件：
 
 - `n2.type === Text`：走 `processText`，处理文本节点的挂载与更新。
-- `n2.type === Fragment`：走 `processFragment`。`n1 == null` 时对 `n2.children` 做 `mountChildren`；否则对两棵片段的子列表走 `patchChildren`（片段本身不占 DOM，不创建/复用 `el`）。
+- `n2.type === Fragment`：走 `processFragment`。`n1 == null` 时对 `n2.children` 做 `mountChildren`；更新时若命中 `PatchFlags.STABLE_FRAGMENT` 且新旧都带 `dynamicChildren`，则走 `patchBlockChildren` 只更新动态子节点，否则走 `patchChildren`（片段本身不占 DOM，不创建/复用 `el`）。
 - `n2.shapeFlag & ELEMENT`：走 `processElement`（即 `mountElement` / `patchElement`）。
 - `n2.shapeFlag & COMPONENT`：走 `processComponent`（挂载时调 `mountComponent`；已挂载的组件走 `updateComponent` 判断是否需要更新 props 并触发子树 diff）。
 - `n2.shapeFlag & TELEPORT`：走 Teleport 组件的 `process`（根据 `props.to / props.disabled` 把 children 挂到目标容器；`to / disabled` 变化时迁移）。
@@ -165,7 +165,7 @@ Block Tree 是编译器与运行时配合的性能方案，核心思想是在编
 
 在 `renderer.ts` 中的体现：
 
-- `patchBlockChildren(c1, c2, container, parentComponent)`：遍历 `dynamicChildren` 数组，对每对 `c1[i]` / `c2[i]` 调用 `patch`。由于编译器保证新旧 Block 的 `dynamicChildren` 长度和位置一一对应，因此只需按下标逐个 patch，不需要 key-based diff。
+- `patchBlockChildren(c1, c2, container, parentComponent)`：遍历 `dynamicChildren` 数组（以新列表 `c2.length` 为准），对每对 `c1[i]` / `c2[i]` 调用 `patch`。由于编译器保证新旧 Block 的 `dynamicChildren` 长度和位置一一对应，因此只需按下标逐个 patch，不需要 key-based diff。
 - `patchElement` 在处理完属性更新后，优先检查 `dynamicChildren`：若新旧 VNode 都携带 `dynamicChildren`，走 `patchBlockChildren`；否则走传统的 `patchChildren`（全量 diff）。
 
 这样对于一个包含 100 个静态节点和 2 个动态节点的模板，更新时只需要 patch 2 个节点，而不是遍历全部 102 个。
