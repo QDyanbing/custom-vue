@@ -174,3 +174,12 @@ const root = {
 stack = []
 
 <div><span>hello</span></div>
+
+## 当前实现（与本包源码同步）
+
+- **词法**：`src/tokenize.ts` 中 `Tokenizer` + `State` 状态机已搭好枚举与类结构；主循环里目前仅处理收尾时的纯文本，通过 `cleanup` → `onText` 输出区间。
+- **语法**：`src/parser.ts` 的 `parse` 创建 `ROOT`，将 `onText` 转成 `NodeTypes.TEXT` 子节点，并带上 `loc`（`getPos` 行列信息为简化版）。
+- **类型**：`src/ast.ts` 的 `NodeTypes` 与官方对齐，便于后续扩展；当前实际用到 `ROOT`、`TEXT`。
+- **入口**：`src/index.ts` 导出 `parse`。
+
+更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`index.md`）。浏览器示例见 `examples/01-demo.html` 与 `examples/01-demo.md`。
