@@ -1,6 +1,11 @@
+/**
+ * 将模板字符串交给 `Tokenizer` 扫描，并把回调里得到的片段组装成 AST。
+ * 当前实现：纯文本 → `ROOT` 下挂若干 `TEXT` 子节点（见 `tokenize` 的 `cleanup`）。
+ */
 import { NodeTypes } from './ast';
 import { Tokenizer } from './tokenize';
 
+// 与词法分析共享的输入与根节点（由 parse 每次调用时重置）
 let currentInput = '';
 let currentRoot = null;
 
