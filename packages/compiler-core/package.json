@@ -1,10 +1,11 @@
 {
   "name": "@vue/compiler-core",
   "version": "1.0.0",
-  "description": "编译器核心",
+  "description": "编译时",
   "main": "dist/compiler-core.cjs.js",
   "module": "dist/compiler-core.esm.js",
   "files": [
+    "index.js",
     "dist"
   ],
   "sideEffects": false,
@@ -16,5 +17,6 @@
       "cjs",
       "global"
     ]
-  }
+  },
+  "dependencies": {}
 }
