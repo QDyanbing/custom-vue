@@ -1,3 +1,7 @@
+/**
+ * 模板词法分析的状态枚举；与 Vue compiler-core  tokenizer 的分状态命名一致，
+ * 后续在 `switch (state)` 中逐步补全各分支，目前仅 `Text` 与 `cleanup` 参与产出 token。
+ */
 export enum State {
   /** 普通文本状态，处理标签和插值表达式之外的内容 */
   Text = 1,
@@ -64,6 +68,7 @@ export class Tokenizer {
   // 用来保存当前正在解析的字符串
   buffer: string = '';
 
+  /** `cbs` 与 Vue tokenizer 类似，例如 `onText(start, end)` 表示一段文本的字节区间。 */
   constructor(public cbs) {}
 
   parse(input: string) {
@@ -98,7 +103,7 @@ export class Tokenizer {
   getPos(index: number) {
     return {
       line: index + 1,
-      column: 1, //暂时不考虑多行文本
+      column: 1, // 暂时不考虑多行文本
       offset: index, // 偏移量
     };
   }
