@@ -8,6 +8,7 @@
 - `packages/runtime-core` — 平台无关的 VNode、h、createRenderer
 - `packages/runtime-dom` — 浏览器 DOM 的 nodeOps、patchProp，并组装 render
 - `packages/vue` — 对外统一入口，打包并导出
+- `packages/compiler-core` — 编译时（模板解析为 AST，当前实现纯文本 → `ROOT` + `TEXT`）
 
 ## 开发
 
@@ -24,6 +25,7 @@ pnpm dev
 - 各包说明在对应 `src` 下的 `*.md`：
   - `packages/reactivity/src/*.md`
   - `packages/runtime-core/src/*.md`
+  - `packages/compiler-core/src/*.md`（另有包级说明 `packages/compiler-core/README.md`）
 
 ## License
 
