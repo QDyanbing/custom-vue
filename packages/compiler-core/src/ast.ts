@@ -1,3 +1,7 @@
+/**
+ * 模板 AST 节点类型枚举，与 Vue 3 compiler 中的 `NodeTypes` 对齐，
+ * 便于后续扩展元素、插值、指令等节点时沿用同一套分类。
+ */
 export enum NodeTypes {
   // 根节点
   ROOT,
@@ -15,7 +19,6 @@ export enum NodeTypes {
   ATTRIBUTE,
   // 指令节点，例如 v-if、v-for 等
   DIRECTIVE,
-  // 容器节点
   // 复合表达式节点，包含多个子表达式
   COMPOUND_EXPRESSION,
   // if 条件节点
