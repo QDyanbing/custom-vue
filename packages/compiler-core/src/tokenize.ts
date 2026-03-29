@@ -1,6 +1,6 @@
 /**
- * 模板词法分析的状态枚举；与 Vue compiler-core  tokenizer 的分状态命名一致，
- * 后续在 `switch (state)` 中逐步补全各分支，目前仅 `Text` 与 `cleanup` 参与产出 token。
+ * 模板词法分析的状态枚举；与 Vue compiler-core tokenizer 的分状态命名一致。
+ * `Tokenizer.parse` 的 `switch` 已接入文本、开始/结束标签名、双引号属性值等；其余枚举留待与官方行为对齐时补全。
  */
 export enum State {
   /** 普通文本状态，处理标签和插值表达式之外的内容 */
@@ -221,8 +221,8 @@ export class Tokenizer {
       this.state = State.BeforeTagName;
       // 移动开始位置
       this.sectionStart = this.index + 1;
+      // 证明需要开始解析标签了
     }
-    // 证明需要开始解析标签了
   }
 
   cleanup() {
