@@ -51,13 +51,13 @@ function setLocEnd(loc: Loc, end: number) {
 
 const tokenize = new Tokenizer({
   onText: (start: number, end: number) => {
-    const textNode = {
+    const textNode: any = {
       content: getSlice(start, end),
       type: NodeTypes.TEXT,
       loc: getLoc(start, end),
     };
 
-    currentRoot.children.push(textNode);
+    addNode(textNode);
   },
   onOpenTagName: (start: number, end: number) => {
     const tag = getSlice(start, end);
