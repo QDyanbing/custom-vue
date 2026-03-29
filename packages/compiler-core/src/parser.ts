@@ -50,6 +50,14 @@ const tokenize = new Tokenizer({
     currentRoot.children.push(currentOpenTag);
     currentOpenTag = null;
   },
+  onCloseTag: (start: number, end: number) => {
+    const tag = getSlice(start, end);
+    currentOpenTag.children.push({
+      type: NodeTypes.TEXT,
+      content: tag,
+      loc: getLoc(start, end),
+    });
+  },
 });
 
 function createRoot(source: string) {

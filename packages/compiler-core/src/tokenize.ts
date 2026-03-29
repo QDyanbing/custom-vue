@@ -97,10 +97,14 @@ export class Tokenizer {
           this.stateInTagName(str);
           break;
         }
-
         case State.BeforeAttrName: {
           // 解析属性名之前
           this.stateBeforeAttrName(str);
+          break;
+        }
+        case State.InClosingTagName: {
+          // 解析结束标签
+          this.stateInClosingTagName(str);
           break;
         }
       }
@@ -109,6 +113,16 @@ export class Tokenizer {
     }
 
     this.cleanup();
+  }
+
+  private stateInClosingTagName(str: string) {
+    if (str === '>') {
+      // 结束标签解析完了
+      this.cbs.onCloseTag(this.sectionStart, this.index);
+      this.sectionStart = this.index + 1;
+      // 继续解析文本
+      this.state = State.Text;
+    }
   }
 
   private stateBeforeAttrName(str: string) {
@@ -138,7 +152,9 @@ export class Tokenizer {
       this.state = State.InTagName;
       this.sectionStart = this.index;
     } else if (str === '/') {
-      // @TODO 处理结束标签
+      // 处理结束标签
+      this.state = State.InClosingTagName;
+      this.sectionStart = this.index + 1;
     } else {
       // 都不是则认为是普通文本
       this.state = State.Text;
