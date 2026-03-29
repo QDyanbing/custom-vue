@@ -2,18 +2,21 @@
 
 ## 作用
 
-`State` 描述 HTML/模板扫描过程中的状态机状态（命名与 Vue compiler-core tokenizer 对齐）。`Tokenizer` 按字符推进 `index`，在状态切换或结束时通过回调（如 `onText`）把区间 `[sectionStart, index)` 交给上层。
+`State` 描述 HTML/模板扫描过程中的状态机状态（命名与 Vue compiler-core tokenizer 对齐）。`Tokenizer` 按字符推进 `index`，在状态切换或结束时通过回调把区间交给上层（如 `onText`、`onOpenTagName`）。
 
 ## 当前实现范围
 
-- `parse` 主循环里仅对 `State.Text` 占位；未遇标签或插值时，整段输入仍以文本形式存在。
-- `cleanup`：若末尾仍有未提交的区间且状态为 `Text`，调用 `cbs.onText(sectionStart, index)`，从而把纯文本模板变成一段 `TEXT` token 区间。
-- `getPos`：为 AST `loc` 提供行列与 `offset`（列号目前简化为 1，多行文本未细化）。
+主循环 `switch` 已接入的分支：
 
-## 后续扩展
+- **文本与标签入口**：`Text` 遇到 `<` 时先按区间调用 `onText`，再进入 `BeforeTagName`；`BeforeTagName` 区分开始标签字母、`/` 结束标签、其它回落到 `Text`。
+- **开始标签**：`InTagName` 在 `>` 或空白处结束标签名，调用 `onOpenTagName`，转入 `BeforeAttrName` 并复用当前字符继续处理。
+- **属性（当前仅双引号值）**：`BeforeAttrName` 遇 `>` 调用 `onOpenTagEnd` 后回到 `Text`；非空白进入 `InAttrName`；`InAttrName` 遇 `=` 调用 `onAttrName` 后进入 `AfterAttrName`；`AfterAttrName` 遇 `"` 进入 `InAttrValueDq`；`InAttrValueDq` 遇结束 `"` 调用 `onAttrValue` 再回到 `BeforeAttrName`。
+- **结束标签**：`InClosingTagName` 遇 `>` 调用 `onCloseTag` 后回到 `Text`。
+- **`cleanup`**：解析结束后若仍有未提交区间且状态为 `Text`，调用 `onText`。
+- **`getPos`**：为 AST `loc` 提供行列与 `offset`（列号目前简化为 1，多行文本未细化）。
 
-在 `switch (this.state)` 中补全 `Interpolation*`、`BeforeTagName` 等分支后，可逐步产出元素、插值等 token，与官方 tokenizer 行为对齐。
+未接入的状态枚举仍保留，便于后续与官方 tokenizer 对齐补全。
 
 ## 相关文件
 
-- [parser.md](./parser.md) — 谁消费 `onText` 并生成 AST
+- [parser.md](./parser.md) — 谁消费上述回调并生成 AST
