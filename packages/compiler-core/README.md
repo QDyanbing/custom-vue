@@ -177,9 +177,9 @@ stack = []
 
 ## 当前实现（与本包源码同步）
 
-- **词法**：`src/tokenize.ts` 中 `Tokenizer` + `State` 状态机已搭好枚举与类结构；主循环里目前仅处理收尾时的纯文本，通过 `cleanup` → `onText` 输出区间。
-- **语法**：`src/parser.ts` 的 `parse` 创建 `ROOT`，将 `onText` 转成 `NodeTypes.TEXT` 子节点，并带上 `loc`（`getPos` 行列信息为简化版）。
-- **类型**：`src/ast.ts` 的 `NodeTypes` 与官方对齐，便于后续扩展；当前实际用到 `ROOT`、`TEXT`。
+- **词法**：`src/tokenize.ts` 中 `Tokenizer` 在 `Text`、`BeforeTagName`、`InTagName`、`BeforeAttrName`、`InClosingTagName`、`InAttrName`、`AfterAttrName`、`InAttrValueDq` 等状态间切换；产出 `onText`、`onOpenTagName`、`onOpenTagEnd`、`onCloseTag`、`onAttrName`、`onAttrValue` 等区间回调，末尾 `cleanup` 仍处理尾部纯文本。
+- **语法**：`src/parser.ts` 的 `parse` 创建 `ROOT`，用栈嵌套子节点，将回调转为 `TEXT` / `ELEMENT`（含双引号属性）与 `loc`（`getPos` 行列信息为简化版）。
+- **类型**：`src/ast.ts` 的 `NodeTypes` 与官方对齐；当前实际用到 `ROOT`、`TEXT`、`ELEMENT`。
 - **入口**：`src/index.ts` 导出 `parse`。
 
-更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`index.md`）。浏览器示例见 `examples/01-demo.html` 与 `examples/01-demo.md`。
+更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`index.md`）。浏览器示例见 `examples/01-demo.html`、`02-demo.html`、`03-demo.html` 及同目录下对应 `*.md`。
