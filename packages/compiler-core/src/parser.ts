@@ -1,6 +1,6 @@
 /**
  * 将模板字符串交给 `Tokenizer` 扫描，并把回调里得到的片段组装成 AST。
- * 当前实现：纯文本 → `ROOT` 下挂若干 `TEXT` 子节点（见 `tokenize` 的 `cleanup`）。
+ * 当前实现：`ROOT` 下含 `TEXT`、嵌套 `ELEMENT`（双引号属性）；闭合与 `loc` 由 `onCloseTag`、`setLocEnd` 与栈配合；尾部纯文本仍依赖 `tokenize` 的 `cleanup`。
  */
 import { NodeTypes } from './ast';
 import { Tokenizer } from './tokenize';
@@ -64,7 +64,7 @@ const tokenize = new Tokenizer({
     const tag = getSlice(start, end);
 
     // 把当前正在解析的开始标签赋值给 currentOpenTag
-    // 只所以放在全局变量，是因为在解析属性时需要用到
+    // 之所以放在全局变量，是因为在解析属性时需要用到
     currentOpenTag = {
       type: NodeTypes.ELEMENT,
       tag,
