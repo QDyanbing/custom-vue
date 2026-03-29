@@ -31,6 +31,11 @@ const tokenize = new Tokenizer({
 
     currentRoot.children.push(textNode);
   },
+  onOpenTagName: (start: number, end: number) => {
+    const name = getSlice(start, end);
+
+    console.log(name);
+  },
 });
 
 function createRoot(source: string) {

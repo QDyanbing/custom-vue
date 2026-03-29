@@ -58,6 +58,10 @@ export enum State {
   InSFCRootTagName, // 解析单文件组件根标签名
 }
 
+function isTagStart(str: string) {
+  return /[a-zA-Z]/.test(str);
+}
+
 export class Tokenizer {
   // 状态机的状态
   state: State = State.Text;
@@ -79,6 +83,18 @@ export class Tokenizer {
 
       switch (this.state) {
         case State.Text: {
+          // 解析文本
+          this.stateText(str);
+          break;
+        }
+        case State.BeforeTagName: {
+          // 解析标签名之前
+          this.stateBeforeTagName(str);
+          break;
+        }
+        case State.InTagName: {
+          // 解析标签名
+          this.stateInTagName(str);
           break;
         }
       }
@@ -87,6 +103,40 @@ export class Tokenizer {
     }
 
     this.cleanup();
+  }
+
+  private stateInTagName(str: string) {
+    if (str === '>' || str === ' ') {
+      // 标签名结束了
+      this.cbs.onOpenTagName(this.sectionStart, this.index);
+    }
+  }
+
+  private stateBeforeTagName(str: string) {
+    if (isTagStart(str)) {
+      // 匹配到开始标签了
+      this.state = State.InTagName;
+      this.sectionStart = this.index;
+    } else if (str === '/') {
+      // @TODO 处理结束标签
+    } else {
+      // 都不是则认为是普通文本
+      this.state = State.Text;
+    }
+  }
+
+  private stateText(str: string) {
+    if (str === '<') {
+      if (this.sectionStart < this.index) {
+        // 解析标签前需要把之前的文本解析出来；
+        this.cbs.onText(this.sectionStart, this.index);
+      }
+      // 切换到标签名状态
+      this.state = State.BeforeTagName;
+      // 移动开始位置
+      this.sectionStart = this.index + 1;
+    }
+    // 证明需要开始解析标签了
   }
 
   cleanup() {
