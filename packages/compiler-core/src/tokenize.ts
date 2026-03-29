@@ -62,6 +62,10 @@ function isTagStart(str: string) {
   return /[a-zA-Z]/.test(str);
 }
 
+function isWhiteSpace(str: string) {
+  return str === ' ' || str === '\t' || str === '\n' || str === '\r';
+}
+
 export class Tokenizer {
   // 状态机的状态
   state: State = State.Text;
@@ -107,6 +111,21 @@ export class Tokenizer {
           this.stateInClosingTagName(str);
           break;
         }
+        case State.InAttrName: {
+          // 解析属性名
+          this.stateInAttrName(str);
+          break;
+        }
+        case State.AfterAttrName: {
+          // 解析属性值
+          this.stateAfterAttrName(str);
+          break;
+        }
+        case State.InAttrValueDq: {
+          // 解析双引号属性值
+          this.stateInAttrValueDq(str);
+          break;
+        }
       }
 
       this.index++;
@@ -132,11 +151,42 @@ export class Tokenizer {
       this.sectionStart = this.index + 1;
       // 继续解析文本
       this.state = State.Text;
+    } else if (!isWhiteSpace(str)) {
+      // 开始解析属性名
+      this.state = State.InAttrName;
+      this.sectionStart = this.index;
+    }
+  }
+
+  private stateInAttrName(str: string) {
+    if (str === '=') {
+      // 属性名等于号，属性名结束了
+      this.cbs.onAttrName(this.sectionStart, this.index);
+      // 继续解析属性值
+      this.state = State.AfterAttrName;
+    }
+  }
+
+  private stateAfterAttrName(str: string) {
+    if (str === '"') {
+      // 开始解析属性值了
+      this.state = State.InAttrValueDq;
+      this.sectionStart = this.index + 1;
+    }
+  }
+
+  private stateInAttrValueDq(str: string) {
+    if (str === '"') {
+      // 双引号属性值结束了
+      this.cbs.onAttrValue(this.sectionStart, this.index);
+      // 继续解析文本
+      this.state = State.BeforeAttrName;
+      this.sectionStart = this.index;
     }
   }
 
   private stateInTagName(str: string) {
-    if (str === '>' || str === ' ') {
+    if (str === '>' || isWhiteSpace(str)) {
       // 标签名结束了
       this.cbs.onOpenTagName(this.sectionStart, this.index);
 

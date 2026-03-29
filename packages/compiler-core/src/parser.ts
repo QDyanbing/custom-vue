@@ -8,9 +8,10 @@ import { Tokenizer } from './tokenize';
 // 与词法分析共享的输入与根节点（由 parse 每次调用时重置）
 let currentInput = '';
 let currentRoot = null;
-
 // 当前正在解析的开始标签
 let currentOpenTag = null;
+// 当前正在解析的属性
+let currentProp = null;
 
 function getSlice(start: number, end: number) {
   return currentInput.slice(start, end);
@@ -84,6 +85,28 @@ const tokenize = new Tokenizer({
     } else {
       throw new Error(`${tag} is not match ${last.tag}`);
     }
+  },
+  onAttrName: (start: number, end: number) => {
+    currentProp = {
+      name: getSlice(start, end),
+      loc: getLoc(start, end),
+      value: undefined,
+    };
+  },
+  onAttrValue: (start: number, end: number) => {
+    const value = getSlice(start, end);
+    currentProp.value = value;
+    setLocEnd(currentProp.loc, end + 1);
+
+    if (currentOpenTag) {
+      if (!currentOpenTag.props) {
+        currentOpenTag.props = [];
+      }
+
+      currentOpenTag.props.push(currentProp);
+    }
+
+    currentProp = null;
   },
 });
 
