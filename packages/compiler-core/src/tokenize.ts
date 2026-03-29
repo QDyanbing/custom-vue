@@ -129,7 +129,7 @@ export class Tokenizer {
     if (str === '>') {
       // 开始标签解析完了
       this.cbs.onOpenTagEnd();
-      this.sectionStart = this.index;
+      this.sectionStart = this.index + 1;
       // 继续解析文本
       this.state = State.Text;
     }

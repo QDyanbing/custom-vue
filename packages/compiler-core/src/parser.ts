@@ -16,12 +16,37 @@ function getSlice(start: number, end: number) {
   return currentInput.slice(start, end);
 }
 
+interface Loc {
+  start: {
+    line: number;
+    column: number;
+    offset: number;
+  };
+  end: {
+    line: number;
+    column: number;
+    offset: number;
+  };
+  source: string;
+}
+
 function getLoc(start: number, end: number) {
   return {
     start: tokenize.getPos(start),
     end: tokenize.getPos(end),
     source: getSlice(start, end),
   };
+}
+
+const stack = [];
+function addNode(node: Node) {
+  // 如果栈顶有节点，则把节点添加到栈顶节点的子节点中，否则添加到根节点的子节点中
+  (stack.at(-1) || currentRoot).children.push(node);
+}
+
+function setLocEnd(loc: Loc, end: number) {
+  loc.source = getSlice(loc.start.offset, end);
+  loc.end = tokenize.getPos(end);
 }
 
 const tokenize = new Tokenizer({
@@ -47,16 +72,18 @@ const tokenize = new Tokenizer({
     };
   },
   onOpenTagEnd: () => {
-    currentRoot.children.push(currentOpenTag);
+    addNode(currentOpenTag);
+    stack.push(currentOpenTag);
     currentOpenTag = null;
   },
   onCloseTag: (start: number, end: number) => {
     const tag = getSlice(start, end);
-    currentOpenTag.children.push({
-      type: NodeTypes.TEXT,
-      content: tag,
-      loc: getLoc(start, end),
-    });
+    const last = stack.pop();
+    if (last.tag === tag) {
+      setLocEnd(last.loc, end + 1);
+    } else {
+      throw new Error(`${tag} is not match ${last.tag}`);
+    }
   },
 });
 
