@@ -97,6 +97,12 @@ export class Tokenizer {
           this.stateInTagName(str);
           break;
         }
+
+        case State.BeforeAttrName: {
+          // 解析属性名之前
+          this.stateBeforeAttrName(str);
+          break;
+        }
       }
 
       this.index++;
@@ -105,10 +111,24 @@ export class Tokenizer {
     this.cleanup();
   }
 
+  private stateBeforeAttrName(str: string) {
+    if (str === '>') {
+      // 开始标签解析完了
+      this.cbs.onOpenTagEnd();
+      this.sectionStart = this.index;
+      // 继续解析文本
+      this.state = State.Text;
+    }
+  }
+
   private stateInTagName(str: string) {
     if (str === '>' || str === ' ') {
       // 标签名结束了
       this.cbs.onOpenTagName(this.sectionStart, this.index);
+
+      this.state = State.BeforeAttrName;
+      this.sectionStart = this.index;
+      this.stateBeforeAttrName(str);
     }
   }
 

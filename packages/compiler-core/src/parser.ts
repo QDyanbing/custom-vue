@@ -9,6 +9,9 @@ import { Tokenizer } from './tokenize';
 let currentInput = '';
 let currentRoot = null;
 
+// 当前正在解析的开始标签
+let currentOpenTag = null;
+
 function getSlice(start: number, end: number) {
   return currentInput.slice(start, end);
 }
@@ -32,9 +35,20 @@ const tokenize = new Tokenizer({
     currentRoot.children.push(textNode);
   },
   onOpenTagName: (start: number, end: number) => {
-    const name = getSlice(start, end);
+    const tag = getSlice(start, end);
 
-    console.log(name);
+    // 把当前正在解析的开始标签赋值给 currentOpenTag
+    // 只所以放在全局变量，是因为在解析属性时需要用到
+    currentOpenTag = {
+      type: NodeTypes.ELEMENT,
+      tag,
+      loc: getLoc(start - 1, end),
+      children: [],
+    };
+  },
+  onOpenTagEnd: () => {
+    currentRoot.children.push(currentOpenTag);
+    currentOpenTag = null;
   },
 });
 
