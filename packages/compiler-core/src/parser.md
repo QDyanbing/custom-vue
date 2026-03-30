@@ -13,7 +13,8 @@
 5. **`onOpenTagEnd`**：将元素节点 `addNode` 入树，再 `stack.push` 作为新的父节点上下文。
 6. **`onCloseTag`**：弹出栈顶，校验标签名一致后用 `setLocEnd` 修正元素 `loc` 的 `end` 与 `source`。
 7. **`onAttrName` / `onAttrValue`**：在 `currentProp` 上记录名、值与 `loc`，挂到尚未闭合的 `currentOpenTag.props`（若存在）。
-8. 返回根节点。
+8. **`onInterpolation`**：用 `getLoc` 生成 `INTERPOLATION` 节点；在去掉外层 `{{` / `}}` 后，对剩余子串首尾用 `isWhiteSpace` 跳过空白，得到 `innerStart` / `innerEnd`，子节点为 `SIMPLE_EXPRESSION`（`content` 与 `loc` 均基于裁切后的区间）。
+9. 返回根节点。
 
 模块级变量 `stack`、`currentOpenTag`、`currentProp` 与 `currentInput` 配合，仅在单次 `parse` 调用内有效（每次 `parse` 会重置根与输入）。
 
