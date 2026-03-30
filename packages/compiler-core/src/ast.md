@@ -9,8 +9,10 @@
 - `ROOT`：整段模板的根
 - `TEXT`：纯文本片段（由 `Tokenizer` 在 `Text` 状态结束时通过 `onText` 产出）
 - `ELEMENT`：元素节点（`onOpenTagName` / `onOpenTagEnd` 创建；子节点由栈嵌套；双引号属性写入 `props`）
+- `INTERPOLATION`：插值节点（`onInterpolation` 创建；子表达式为 `SIMPLE_EXPRESSION`）
+- `SIMPLE_EXPRESSION`：插值内部的简单表达式字符串（首尾空白在 parser 中已裁切）
 
-其余枚举成员为预留，与官方编译器节点种类对齐，待插值、指令等解析补齐后使用。
+其余枚举成员为预留，与官方编译器节点种类对齐，待指令等解析补齐后使用。
 
 ## 相关文件
 
