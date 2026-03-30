@@ -1,6 +1,6 @@
 /**
  * 将模板字符串交给 `Tokenizer` 扫描，并把回调里得到的片段组装成 AST。
- * 当前实现：`ROOT` 下含 `TEXT`、嵌套 `ELEMENT`（双引号属性）；闭合与 `loc` 由 `onCloseTag`、`setLocEnd` 与栈配合；尾部纯文本仍依赖 `tokenize` 的 `cleanup`。
+ * 当前实现：`ROOT` 下含 `TEXT`、`INTERPOLATION`（内层 `SIMPLE_EXPRESSION`，首尾空白在回调内裁切）、嵌套 `ELEMENT`（双引号属性）；闭合与 `loc` 由 `onCloseTag`、`setLocEnd` 与栈配合；尾部纯文本仍依赖 `tokenize` 的 `cleanup`。
  */
 import { NodeTypes } from './ast';
 import { Tokenizer } from './tokenize';
