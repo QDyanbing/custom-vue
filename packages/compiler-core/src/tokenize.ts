@@ -62,7 +62,7 @@ function isTagStart(str: string) {
   return /[a-zA-Z]/.test(str);
 }
 
-function isWhiteSpace(str: string) {
+export function isWhiteSpace(str: string) {
   return str === ' ' || str === '\t' || str === '\n' || str === '\r';
 }
 
@@ -126,12 +126,30 @@ export class Tokenizer {
           this.stateInAttrValueDq(str);
           break;
         }
+        case State.Interpolation: {
+          // 解析插值表达式
+          this.stateInterpolation(str);
+          break;
+        }
       }
 
       this.index++;
     }
 
     this.cleanup();
+  }
+
+  private stateInterpolation(str: string) {
+    if (str === '}') {
+      // 可能是插值表达式结束
+      if (this.buffer[this.index + 1] === '}') {
+        // 确实是插值表达式结束
+        this.index++;
+        this.cbs.onInterpolation(this.sectionStart, this.index + 1);
+        this.state = State.InterpolationClose;
+        this.sectionStart = this.index + 1;
+      }
+    }
   }
 
   private stateInClosingTagName(str: string) {
@@ -222,6 +240,20 @@ export class Tokenizer {
       // 移动开始位置
       this.sectionStart = this.index + 1;
       // 证明需要开始解析标签了
+    } else if (str === '{') {
+      // 可能是插值表达式开始
+
+      if (this.buffer[this.index + 1] === '{') {
+        // 确实是插值表达式开始
+        if (this.sectionStart < this.index) {
+          // 解析标签前需要把之前的文本解析出来；
+          this.cbs.onText(this.sectionStart, this.index);
+        }
+        // 切换状态
+        this.state = State.Interpolation;
+        // 移动开始位置
+        this.sectionStart = this.index;
+      }
     }
   }
 
