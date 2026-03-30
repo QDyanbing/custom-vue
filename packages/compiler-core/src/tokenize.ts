@@ -1,6 +1,6 @@
 /**
  * 模板词法分析的状态枚举；与 Vue compiler-core tokenizer 的分状态命名一致。
- * `Tokenizer.parse` 的 `switch` 已接入文本、开始/结束标签名、双引号属性值等；其余枚举留待与官方行为对齐时补全。
+ * `Tokenizer.parse` 的 `switch` 已接入文本、插值（`Interpolation`）、开始/结束标签名、双引号属性值等；其余枚举留待与官方行为对齐时补全。
  */
 export enum State {
   /** 普通文本状态，处理标签和插值表达式之外的内容 */
@@ -139,6 +139,7 @@ export class Tokenizer {
     this.cleanup();
   }
 
+  /** 在 `{{` 与 `}}` 之间扫描；遇 `}}` 时提交整段区间（含双花括号）并交给 `onInterpolation`。 */
   private stateInterpolation(str: string) {
     if (str === '}') {
       // 可能是插值表达式结束
@@ -246,7 +247,7 @@ export class Tokenizer {
       if (this.buffer[this.index + 1] === '{') {
         // 确实是插值表达式开始
         if (this.sectionStart < this.index) {
-          // 解析标签前需要把之前的文本解析出来；
+          // 进入插值前先把前置文本交给 onText
           this.cbs.onText(this.sectionStart, this.index);
         }
         // 切换状态
