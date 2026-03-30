@@ -4,6 +4,7 @@
  */
 import { NodeTypes } from './ast';
 import { Tokenizer } from './tokenize';
+import { isWhiteSpace } from './tokenize';
 
 // 与词法分析共享的输入与根节点（由 parse 每次调用时重置）
 let currentInput = '';
@@ -107,6 +108,28 @@ const tokenize = new Tokenizer({
     }
 
     currentProp = null;
+  },
+  onInterpolation: (start: number, end: number) => {
+    let innerStart = start + 2;
+    let innerEnd = end - 2;
+    // 跳过开头的空格
+    while (isWhiteSpace(currentInput[innerStart])) {
+      innerStart++;
+    }
+    // 跳过结尾的空格
+    while (isWhiteSpace(currentInput[innerEnd - 1])) {
+      innerEnd--;
+    }
+
+    addNode({
+      type: NodeTypes.INTERPOLATION,
+      loc: getLoc(start, end),
+      content: {
+        type: NodeTypes.SIMPLE_EXPRESSION,
+        content: getSlice(innerStart, innerEnd),
+        loc: getLoc(innerStart, innerEnd),
+      },
+    } as any);
   },
 });
 
