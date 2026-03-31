@@ -9,17 +9,18 @@
     <div id="app"></div>
     <!-- 需先构建 compiler-core，使 ../dist 下存在 ESM 产物；说明见 04-demo.md -->
     <script type="module">
-      // import { parse } from '/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.js';
+      import { parse as vueParse } from '/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.js';
       import { parse } from '../dist/compiler-core.esm.js';
 
       const template = `<div>
-{{msg}}
+{{ msg }}
 
 
+</div>
+`;
 
-</div>`;
-
-      console.log(parse(template));
+      console.log(parse(template).children[0]);
+      console.log(vueParse(template).children[0]);
     </script>
   </body>
 </html>

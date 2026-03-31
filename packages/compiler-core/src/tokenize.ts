@@ -147,7 +147,7 @@ export class Tokenizer {
         // 确实是插值表达式结束
         this.index++;
         this.cbs.onInterpolation(this.sectionStart, this.index + 1);
-        this.state = State.InterpolationClose;
+        this.state = State.Text;
         this.sectionStart = this.index + 1;
       }
     }
