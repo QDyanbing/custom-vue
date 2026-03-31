@@ -67,8 +67,13 @@ function condenseWhitespace(children: any[]) {
     if (node.type === NodeTypes.TEXT) {
       // 如果节点是文本节点，则检查是否全是空白
       if (isAllWhitespace(node.content)) {
-        // 全是空白，则删除这个节点
-        _children[i] = null;
+        if (i === 0 || i === _children.length - 1) {
+          // 如果节点是第一个或最后一个，则删除这个节点
+          _children[i] = null;
+        } else {
+          // 如果节点是中间的，则设置为空字符串
+          node.content = ' ';
+        }
       }
     }
   }
