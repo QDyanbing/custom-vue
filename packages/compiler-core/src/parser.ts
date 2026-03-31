@@ -65,13 +65,13 @@ function condenseWhitespace(children: any[]) {
   for (let i = 0; i < _children.length; i++) {
     const node = _children[i];
     if (node.type === NodeTypes.TEXT) {
-      // 如果节点是文本节点，则检查是否全是空白
+      // 只处理“全空白文本节点”：首尾删除，中间压成单空格
       if (isAllWhitespace(node.content)) {
         if (i === 0 || i === _children.length - 1) {
-          // 如果节点是第一个或最后一个，则删除这个节点
+          // 元素内首尾纯空白通常不参与渲染，直接丢弃
           _children[i] = null;
         } else {
-          // 如果节点是中间的，则设置为空字符串
+          // 中间位置保留一个空格，避免文本意外粘连
           node.content = ' ';
         }
       }
