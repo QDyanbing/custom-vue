@@ -51,6 +51,31 @@ function setLocEnd(loc: Loc, end: number) {
   loc.end = tokenize.getPos(end);
 }
 
+function isAllWhitespace(str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    if (!isWhiteSpace(str[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function condenseWhitespace(children: any[]) {
+  let _children = [...children];
+  for (let i = 0; i < _children.length; i++) {
+    const node = _children[i];
+    if (node.type === NodeTypes.TEXT) {
+      // 如果节点是文本节点，则检查是否全是空白
+      if (isAllWhitespace(node.content)) {
+        // 全是空白，则删除这个节点
+        _children[i] = null;
+      }
+    }
+  }
+
+  return _children.filter(Boolean);
+}
+
 const tokenize = new Tokenizer({
   onText: (start: number, end: number) => {
     const textNode: any = {
@@ -86,6 +111,8 @@ const tokenize = new Tokenizer({
     } else {
       throw new Error(`${tag} is not match ${last.tag}`);
     }
+
+    last.children = condenseWhitespace(last.children);
   },
   onAttrName: (start: number, end: number) => {
     currentProp = {
