@@ -75,6 +75,8 @@ export class Tokenizer {
   sectionStart: number = 0;
   // 用来保存当前正在解析的字符串
   buffer: string = '';
+  // 保存所有换行符的位置
+  newLines = [];
 
   /** `cbs` 与 Vue tokenizer 类似，例如 `onText(start, end)` 表示一段文本的字节区间。 */
   constructor(public cbs) {}
@@ -84,6 +86,11 @@ export class Tokenizer {
 
     while (this.index < this.buffer.length) {
       const str = this.buffer[this.index];
+
+      if (str === '\n') {
+        // 如果遇到换行符，则保存当前索引
+        this.newLines.push(this.index);
+      }
 
       switch (this.state) {
         case State.Text: {
@@ -270,9 +277,21 @@ export class Tokenizer {
   }
 
   getPos(index: number) {
+    let column = index + 1;
+    let line = 1;
+
+    for (let i = this.newLines.length - 1; i >= 0; i--) {
+      const newLineIndex = this.newLines[i];
+      if (index > newLineIndex) {
+        line = i + 2; // 行数
+        column = index - newLineIndex; //列数
+        break;
+      }
+    }
+
     return {
-      line: index + 1,
-      column: 1, // 暂时不考虑多行文本
+      column,
+      line,
       offset: index, // 偏移量
     };
   }
