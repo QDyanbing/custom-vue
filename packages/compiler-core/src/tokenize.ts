@@ -277,6 +277,7 @@ export class Tokenizer {
   }
 
   getPos(index: number) {
+    // 默认按首行计算；若命中某个换行点，再换算成该行内列号
     let column = index + 1;
     let line = 1;
 
@@ -284,7 +285,7 @@ export class Tokenizer {
       const newLineIndex = this.newLines[i];
       if (index > newLineIndex) {
         line = i + 2; // 行数
-        column = index - newLineIndex; //列数
+        column = index - newLineIndex; // 列数（1-based）
         break;
       }
     }
