@@ -1,5 +1,6 @@
 import { NodeTypes } from './ast';
 import { parse } from './parser';
+import { TO_DISPLAY_STRING } from './runtime-helper';
 
 function traverseChildren(node, ctx) {
   node.children.forEach(child => {
@@ -21,6 +22,10 @@ function traverseNode(node, ctx) {
     case NodeTypes.ROOT:
     case NodeTypes.ELEMENT: {
       traverseChildren(node, ctx);
+      break;
+    }
+    case NodeTypes.INTERPOLATION: {
+      ctx.helper(TO_DISPLAY_STRING);
       break;
     }
   }
@@ -57,6 +62,9 @@ function transformText(node, ctx) {
 function transformExpression(node, ctx) {
   if (node.type === NodeTypes.INTERPOLATION) {
     // 是个插值
+    node.content.content = `_ctx.${node.content.content}`;
+
+    console.log('处理插值', node);
   }
 }
 
