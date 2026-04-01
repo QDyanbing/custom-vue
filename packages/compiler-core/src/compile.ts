@@ -1,3 +1,8 @@
+/**
+ * `compile`：在 `parse` 得到 AST 后执行 `transform`。
+ * 深度优先遍历；遇 `INTERPOLATION` 时登记 `TO_DISPLAY_STRING`，并把简单表达式改为 `_ctx.` 前缀（见 `runtime-helper.ts`）。
+ * 当前不生成最终渲染代码，只串联解析与变换。
+ */
 import { NodeTypes } from './ast';
 import { parse } from './parser';
 import { TO_DISPLAY_STRING } from './runtime-helper';
