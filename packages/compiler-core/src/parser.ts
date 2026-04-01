@@ -14,6 +14,13 @@ let currentOpenTag = null;
 // 当前正在解析的属性
 let currentProp = null;
 
+function reset() {
+  currentInput = '';
+  currentRoot = undefined;
+  currentOpenTag = undefined;
+  currentProp = undefined;
+}
+
 function getSlice(start: number, end: number) {
   return currentInput.slice(start, end);
 }
@@ -174,6 +181,7 @@ function createRoot(source: string) {
 }
 
 export function parse(input: string) {
+  reset();
   currentInput = input;
   const root = createRoot(input);
   currentRoot = root;
