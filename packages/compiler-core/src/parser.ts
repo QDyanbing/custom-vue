@@ -181,5 +181,8 @@ export function parse(input: string) {
   // 开始解析
   tokenize.parse(input);
 
+  // 对根节点的子节点进行空白收敛
+  root.children = condenseWhitespace(root.children);
+
   return root;
 }
