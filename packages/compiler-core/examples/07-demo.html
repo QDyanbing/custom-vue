@@ -12,6 +12,9 @@
       // import { parse as vueParse } from '/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.js';
       import { compile } from '../dist/compiler-core.esm.js';
 
+      // 这个模板同时覆盖了：
+      // 1. 相邻文本 + 插值的合并
+      // 2. 中间插入元素节点后，合并在元素两侧各自独立发生
       const template = `<div>aa {{ msg }} <p></p> bb {{ c }}</div>`;
 
       console.log(compile(template));
