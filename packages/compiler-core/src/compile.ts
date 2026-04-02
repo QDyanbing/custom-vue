@@ -78,7 +78,7 @@ function transformText(node, ctx) {
             };
           }
 
-          _children[_children.length - 1].push('+', child);
+          _children[_children.length - 1].children.push('+', child);
         } else {
           _children.push(child);
         }
