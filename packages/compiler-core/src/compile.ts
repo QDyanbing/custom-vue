@@ -66,11 +66,17 @@ function transformText(node, ctx) {
       const _children = [];
       for (const child of children) {
         const last = _children.at(-1);
-        if (last && isText(last) && isText(child)) {
-          _children[_children.length - 1] = {
-            type: NodeTypes.COMPOUND_EXPRESSION,
-            children: [last],
-          };
+        if (
+          last &&
+          isText(child) &&
+          (isText(last) || last.type === NodeTypes.COMPOUND_EXPRESSION)
+        ) {
+          if (last.type !== NodeTypes.COMPOUND_EXPRESSION) {
+            _children[_children.length - 1] = {
+              type: NodeTypes.COMPOUND_EXPRESSION,
+              children: [last],
+            };
+          }
 
           _children[_children.length - 1].push('+', child);
         } else {
