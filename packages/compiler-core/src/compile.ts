@@ -64,6 +64,7 @@ function transformText(node, ctx) {
     return () => {
       const children = node.children;
       const _children = [];
+
       for (const child of children) {
         const last = _children.at(-1);
         if (
@@ -83,6 +84,8 @@ function transformText(node, ctx) {
           _children.push(child);
         }
       }
+
+      node.children = _children;
     };
   }
 }
