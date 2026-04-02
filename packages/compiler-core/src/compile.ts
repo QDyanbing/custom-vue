@@ -9,6 +9,7 @@ import { TO_DISPLAY_STRING } from './runtime-helper';
 
 function traverseChildren(node, ctx) {
   node.children.forEach(child => {
+    // 记录父节点，方便后续变换阶段拿到父子关系。
     child.parentNode = node;
     traverseNode(child, ctx);
   });
@@ -59,7 +60,7 @@ function isText(node: any) {
 
 function transformText(node, ctx) {
   if (node.type === NodeTypes.ELEMENT) {
-    // 是个文本
+    // 文本合并发生在父元素退出阶段：这样能拿到已经变换完成的整段 children。
     console.log('开始处理文本', node);
     return () => {
       const children = node.children;
@@ -72,6 +73,8 @@ function transformText(node, ctx) {
           isText(child) &&
           (isText(last) || last.type === NodeTypes.COMPOUND_EXPRESSION)
         ) {
+          // 首次命中时，把上一个文本节点包装成 COMPOUND_EXPRESSION，
+          // 之后继续把相邻文本 / 插值以 "+" 的形式追加进去。
           if (last.type !== NodeTypes.COMPOUND_EXPRESSION) {
             _children[_children.length - 1] = {
               type: NodeTypes.COMPOUND_EXPRESSION,
@@ -104,6 +107,7 @@ const createTransformContext = root => {
     root,
     currentNode: root,
     parentNode: null,
+    // 变换顺序会影响 exit 阶段的执行结果，这里先处理元素，再处理文本与插值。
     nodeTransforms: [transformElement, transformText, transformExpression],
     helpers: new Set(),
     helper(name: string) {
