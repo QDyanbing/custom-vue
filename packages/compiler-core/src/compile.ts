@@ -124,4 +124,6 @@ export function compile(template: string) {
   const ast = parse(template);
 
   transform(ast);
+
+  return ast;
 }
