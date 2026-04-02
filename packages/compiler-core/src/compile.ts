@@ -58,7 +58,7 @@ function isText(node: any) {
 }
 
 function transformText(node, ctx) {
-  if (node.type === NodeTypes.TEXT) {
+  if (node.type === NodeTypes.ELEMENT) {
     // 是个文本
     console.log('开始处理文本', node);
     return () => {
