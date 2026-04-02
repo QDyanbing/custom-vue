@@ -53,13 +53,30 @@ function transformElement(node, ctx) {
   }
 }
 
+function isText(node: any) {
+  return node.type === NodeTypes.TEXT || node.type === NodeTypes.INTERPOLATION;
+}
+
 function transformText(node, ctx) {
   if (node.type === NodeTypes.TEXT) {
     // 是个文本
     console.log('开始处理文本', node);
     return () => {
-      // 文本处理完了
-      console.log('结束处理文本', node);
+      const children = node.children;
+      const _children = [];
+      for (const child of children) {
+        const last = _children.at(-1);
+        if (last && isText(last) && isText(child)) {
+          _children[_children.length - 1] = {
+            type: NodeTypes.COMPOUND_EXPRESSION,
+            children: [last],
+          };
+
+          _children[_children.length - 1].push('+', child);
+        } else {
+          _children.push(child);
+        }
+      }
     };
   }
 }
