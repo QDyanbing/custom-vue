@@ -92,7 +92,6 @@ function transformText(node, ctx) {
         }
       }
 
-      node.children = _children;
       const l = _children.length;
 
       // 存在文本节点，并且有多个节点，才需要处理
@@ -116,6 +115,8 @@ function transformText(node, ctx) {
           }
         }
       }
+
+      node.children = _children;
     };
   }
 }
