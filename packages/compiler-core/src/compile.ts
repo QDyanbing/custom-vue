@@ -5,7 +5,8 @@
  */
 import { NodeTypes } from './ast';
 import { parse } from './parser';
-import { TO_DISPLAY_STRING } from './runtime-helper';
+import { CREATE_TEXT, TO_DISPLAY_STRING } from './runtime-helper';
+import { creareCallExpression } from './ast';
 
 function traverseChildren(node, ctx) {
   node.children.forEach(child => {
@@ -65,6 +66,7 @@ function transformText(node, ctx) {
     return () => {
       const children = node.children;
       const _children = [];
+      let hasText = false;
 
       for (const child of children) {
         const last = _children.at(-1);
@@ -73,6 +75,7 @@ function transformText(node, ctx) {
           isText(child) &&
           (isText(last) || last.type === NodeTypes.COMPOUND_EXPRESSION)
         ) {
+          hasText = true;
           // 首次命中时，把上一个文本节点包装成 COMPOUND_EXPRESSION，
           // 之后继续把相邻文本 / 插值以 "+" 的形式追加进去。
           if (last.type !== NodeTypes.COMPOUND_EXPRESSION) {
@@ -89,6 +92,23 @@ function transformText(node, ctx) {
       }
 
       node.children = _children;
+      const l = _children.length;
+
+      // 存在文本节点，并且有多个节点，才需要处理
+      if (hasText && l > 1) {
+        for (let i = 0; i < l; i++) {
+          const child = _children[i];
+
+          if (isText(child) || child.type === NodeTypes.COMPOUND_EXPRESSION) {
+            const args = [child];
+            _children[i] = {
+              type: NodeTypes.TEXT_CALL,
+              content: child,
+              codegenNode: creareCallExpression(ctx.helper(CREATE_TEXT), args),
+            };
+          }
+        }
+      }
     };
   }
 }
@@ -112,6 +132,8 @@ const createTransformContext = root => {
     helpers: new Set(),
     helper(name: string) {
       ctx.helpers.add(name);
+
+      return name;
     },
   };
 
