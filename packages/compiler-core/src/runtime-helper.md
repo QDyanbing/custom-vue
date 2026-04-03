@@ -7,8 +7,9 @@
 ## 当前导出
 
 - `TO_DISPLAY_STRING`：`Symbol('toDisplayString')`，在变换遇到插值表达式时由 `ctx.helper` 登记。
+- `CREATE_TEXT`：`Symbol('createText')`，在 `transformText` 把文本节点包装成 `TEXT_CALL` 时由 `ctx.helper` 登记。
 - `helperMap`：从 Symbol 到字符串名的映射，供后续代码生成阶段拼接 import 或运行时解析。
 
 ## 相关文件
 
-- [compile.md](./compile.md) — 在 `transform` 中如何调用 `helper(TO_DISPLAY_STRING)`
+- [compile.md](./compile.md) — 在 `transform` 中如何调用 `helper(TO_DISPLAY_STRING)` 与 `helper(CREATE_TEXT)`
