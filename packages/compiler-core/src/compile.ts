@@ -7,6 +7,7 @@ import { NodeTypes } from './ast';
 import { parse } from './parser';
 import { CREATE_TEXT, TO_DISPLAY_STRING } from './runtime-helper';
 import { creareCallExpression } from './ast';
+import { PatchFlags } from '@vue/shared';
 
 function traverseChildren(node, ctx) {
   node.children.forEach(child => {
@@ -101,6 +102,12 @@ function transformText(node, ctx) {
 
           if (isText(child) || child.type === NodeTypes.COMPOUND_EXPRESSION) {
             const args = [child];
+
+            // 只要不是纯文本节点，就是动态节点
+            if (child.type !== NodeTypes.TEXT) {
+              args.push(PatchFlags.TEXT);
+            }
+
             _children[i] = {
               type: NodeTypes.TEXT_CALL,
               content: child,
