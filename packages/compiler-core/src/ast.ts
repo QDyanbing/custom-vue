@@ -72,3 +72,10 @@ export function createObjectProperty(key: any, value: any) {
     value,
   };
 }
+
+export function createObjectExpression(properties: any[]) {
+  return {
+    type: NodeTypes.JS_OBJECT_EXPRESSION,
+    properties,
+  };
+}

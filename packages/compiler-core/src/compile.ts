@@ -4,7 +4,12 @@
  * 文本合并后会把相邻文本 / 插值包装成 `TEXT_CALL`，供后续代码生成阶段消费。
  * 当前不生成最终渲染代码，只串联解析与变换。
  */
-import { createObjectProperty, createSimpleExpression, NodeTypes } from './ast';
+import {
+  createObjectExpression,
+  createObjectProperty,
+  createSimpleExpression,
+  NodeTypes,
+} from './ast';
 import { parse } from './parser';
 import { CREATE_TEXT, TO_DISPLAY_STRING } from './runtime-helper';
 import { createCallExpression } from './ast';
@@ -75,7 +80,7 @@ function buildProps(props) {
     return acc;
   }, {});
 
-  return properties;
+  return createObjectExpression(properties);
 }
 
 function isText(node: any) {
