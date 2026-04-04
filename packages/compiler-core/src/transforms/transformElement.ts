@@ -3,7 +3,9 @@ import {
   createSimpleExpression,
   createObjectProperty,
   createObjectExpression,
+  createVNodeCall,
 } from '../ast';
+import { CREATE_VNODE } from '../runtime-helper';
 
 export function transformElement(node, ctx) {
   if (node.type === NodeTypes.ELEMENT) {
@@ -14,15 +16,11 @@ export function transformElement(node, ctx) {
 
       const _props = buildProps(props);
 
-      node.codegenNode = {
-        type: NodeTypes.ELEMENT,
-        tag,
-        props: _props,
-        children,
-      };
+      node.codegenNode = createVNodeCall(ctx.helper(CREATE_VNODE), tag, _props, children);
     };
   }
 }
+
 function buildProps(props) {
   if (!props) return;
 

@@ -79,3 +79,13 @@ export function createObjectExpression(properties: any[]) {
     properties,
   };
 }
+
+export function createVNodeCall(callee, tag, props, children) {
+  return {
+    type: NodeTypes.VNODE_CALL,
+    callee,
+    tag,
+    props,
+    children,
+  };
+}
