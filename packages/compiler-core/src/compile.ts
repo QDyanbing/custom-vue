@@ -9,6 +9,7 @@ import {
 } from './ast';
 import { parse } from './parser';
 import { TO_DISPLAY_STRING } from './runtime-helper';
+import { transformExpression } from './transforms/transformExpression';
 import { transformElement } from './transforms/transformElement';
 import { transformText } from './transforms/transformText';
 
@@ -44,13 +45,6 @@ function traverseNode(node, ctx) {
   ctx.currentNode = node;
   while (exits.length) {
     exits.pop()();
-  }
-}
-
-function transformExpression(node, ctx) {
-  if (node.type === NodeTypes.INTERPOLATION) {
-    // 是个插值
-    node.content.content = `_ctx.${node.content.content}`;
   }
 }
 
