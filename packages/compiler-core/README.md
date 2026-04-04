@@ -179,8 +179,8 @@ stack = []
 
 - **词法**：`src/tokenize.ts` 中 `Tokenizer` 在 `Text`、`BeforeTagName`、`InTagName`、`BeforeAttrName`、`InClosingTagName`、`InAttrName`、`AfterAttrName`、`InAttrValueDq`、`Interpolation` 等状态间切换；产出 `onText`、`onOpenTagName`、`onOpenTagEnd`、`onCloseTag`、`onAttrName`、`onAttrValue`、`onInterpolation` 等区间回调，末尾 `cleanup` 仍处理尾部纯文本。
 - **语法**：`src/parser.ts` 的 `parse` 在每次调用时 `reset` 模块状态，创建 `ROOT`，用栈嵌套子节点，将回调转为 `TEXT` / `INTERPOLATION`（内层 `SIMPLE_EXPRESSION`）/ `ELEMENT`（含双引号属性）与 `loc`（`getPos` 行列信息为简化版）；闭合元素与根节点的 `children` 均会经 `condenseWhitespace` 收敛首尾纯空白。
-- **类型**：`src/ast.ts` 的 `NodeTypes` 与官方对齐；当前实际用到 `ROOT`、`TEXT`、`ELEMENT`、`INTERPOLATION`、`SIMPLE_EXPRESSION`。
+- **类型**：`src/ast.ts` 的 `NodeTypes` 与官方对齐；变换阶段还会用到 `COMPOUND_EXPRESSION`、`TEXT_CALL`、`VNODE_CALL`、`JS_CALL_EXPRESSION`、`JS_OBJECT_EXPRESSION`、`JS_PROPERTY` 等。
 - **入口**：`src/index.ts` 导出 `parse`、`compile`。
-- **变换**：`src/compile.ts` 在 `parse` 之后遍历 AST（`nodeTransforms`、插值改写为 `_ctx.*`、登记 `TO_DISPLAY_STRING`）；`src/runtime-helper.ts` 提供 Symbol 与 `helperMap`。
+- **变换**：`src/compile.ts` 在 `parse` 之后遍历 AST：`nodeTransforms` 依次为 `transformElement`、`transformText`、`transformExpression`；元素 exit 阶段挂 `VNODE_CALL`，文本合并与 `TEXT_CALL` 在 `transformText` 的 exit 中完成，插值改写为 `_ctx.*` 并登记 `TO_DISPLAY_STRING` / `CREATE_TEXT` / `CREATE_VNODE`；`src/runtime-helper.ts` 提供 Symbol 与 `helperMap`。
 
-更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`compile.md`、`runtime-helper.md`、`index.md`）。浏览器示例见 `examples/01-demo.html`～`06-demo.html` 及同目录下对应 `*.md`。
+更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`compile.md`、`runtime-helper.md`、`index.md`），以及 `src/transforms/` 下 `transformElement.md`、`transformText.md`、`transformExpression.md`。浏览器示例见 `examples/01-demo.html`～`07-demo.html` 及同目录下对应 `*.md`。
