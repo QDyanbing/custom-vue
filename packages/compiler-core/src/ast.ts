@@ -48,7 +48,7 @@ export enum NodeTypes {
   JS_CACHE_EXPRESSION,
 }
 
-// 创建一个通用的 JS 调用表达式节点，供 transform 阶段挂到 `codegenNode` 上。
+/** 通用 `JS_CALL_EXPRESSION` 工厂，供 transform 把目标 helper 与参数挂在 AST 上（例如 `TEXT_CALL.codegenNode`）。 */
 export function createCallExpression(callee: string, args: any[]) {
   return {
     type: NodeTypes.JS_CALL_EXPRESSION,
@@ -57,6 +57,7 @@ export function createCallExpression(callee: string, args: any[]) {
   };
 }
 
+/** `SIMPLE_EXPRESSION` 工厂；`isStatic` 与属性是否静态绑定等场景对应。 */
 export function createSimpleExpression(content: string, isStatic: boolean = true) {
   return {
     type: NodeTypes.SIMPLE_EXPRESSION,
@@ -65,6 +66,7 @@ export function createSimpleExpression(content: string, isStatic: boolean = true
   };
 }
 
+/** `JS_PROPERTY` 工厂，`key` / `value` 一般为表达式子节点。 */
 export function createObjectProperty(key: any, value: any) {
   return {
     type: NodeTypes.JS_PROPERTY,
@@ -73,6 +75,7 @@ export function createObjectProperty(key: any, value: any) {
   };
 }
 
+/** `JS_OBJECT_EXPRESSION` 工厂，`properties` 为 `JS_PROPERTY` 数组。 */
 export function createObjectExpression(properties: any[]) {
   return {
     type: NodeTypes.JS_OBJECT_EXPRESSION,
@@ -80,6 +83,7 @@ export function createObjectExpression(properties: any[]) {
   };
 }
 
+/** `VNODE_CALL` 工厂；`callee` 多为 `CREATE_VNODE` 对应的 helper，`props` 可为 `JS_OBJECT_EXPRESSION` 或省略。 */
 export function createVNodeCall(callee, tag, props, children) {
   return {
     type: NodeTypes.VNODE_CALL,
