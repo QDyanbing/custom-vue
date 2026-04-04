@@ -1,3 +1,7 @@
+/**
+ * 元素节点变换：在 `ELEMENT` 的 exit 阶段生成 `codegenNode`（`VNODE_CALL`），
+ * `props` 经 `buildProps` 转为 `JS_OBJECT_EXPRESSION`，callee 使用 `CREATE_VNODE` 在 `ctx.helper` 中的登记结果。
+ */
 import {
   NodeTypes,
   createSimpleExpression,
