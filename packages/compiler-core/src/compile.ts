@@ -4,7 +4,7 @@
  * 文本合并后会把相邻文本 / 插值包装成 `TEXT_CALL`，供后续代码生成阶段消费。
  * 当前不生成最终渲染代码，只串联解析与变换。
  */
-import { NodeTypes } from './ast';
+import { createObjectProperty, createSimpleExpression, NodeTypes } from './ast';
 import { parse } from './parser';
 import { CREATE_TEXT, TO_DISPLAY_STRING } from './runtime-helper';
 import { createCallExpression } from './ast';
@@ -69,18 +69,9 @@ function buildProps(props) {
   if (!props) return;
 
   const properties = props.reduce((acc, current) => {
-    acc.push({
-      key: {
-        type: 4,
-        content: current.name.replace(/^:/, ''),
-      },
-      value: {
-        type: 4,
-        content: current.value,
-        isStatic: !current.name.startsWith(':'),
-      },
-      type: 16,
-    });
+    const key = createSimpleExpression(current.name.replace(/^:/, ''));
+    const value = createSimpleExpression(current.value, !current.name.startsWith(':'));
+    acc.push(createObjectProperty(key, value));
     return acc;
   }, {});
 

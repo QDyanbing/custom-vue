@@ -56,3 +56,19 @@ export function createCallExpression(callee: string, args: any[]) {
     arguments: args,
   };
 }
+
+export function createSimpleExpression(content: string, isStatic: boolean = true) {
+  return {
+    type: NodeTypes.SIMPLE_EXPRESSION,
+    content,
+    isStatic,
+  };
+}
+
+export function createObjectProperty(key: any, value: any) {
+  return {
+    type: NodeTypes.JS_PROPERTY,
+    key,
+    value,
+  };
+}
