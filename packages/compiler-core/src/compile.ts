@@ -48,11 +48,9 @@ function traverseNode(node, ctx) {
 function transformElement(node, ctx) {
   if (node.type === NodeTypes.ELEMENT) {
     // 是个元素
-    console.log('开始处理元素', node);
 
     return () => {
       // 元素处理完了
-      console.log('结束处理元素', node);
     };
   }
 }
@@ -64,7 +62,6 @@ function isText(node: any) {
 function transformText(node, ctx) {
   if (node.type === NodeTypes.ELEMENT) {
     // 文本合并发生在父元素退出阶段：这样能拿到已经变换完成的整段 children。
-    console.log('开始处理文本', node);
     return () => {
       const children = node.children;
       const _children = [];
@@ -127,8 +124,6 @@ function transformExpression(node, ctx) {
   if (node.type === NodeTypes.INTERPOLATION) {
     // 是个插值
     node.content.content = `_ctx.${node.content.content}`;
-
-    console.log('处理插值', node);
   }
 }
 
