@@ -7,7 +7,7 @@
 import { NodeTypes } from './ast';
 import { parse } from './parser';
 import { CREATE_TEXT, TO_DISPLAY_STRING } from './runtime-helper';
-import { creareCallExpression } from './ast';
+import { createCallExpression } from './ast';
 import { PatchFlags } from '@vue/shared';
 
 function traverseChildren(node, ctx) {
@@ -73,11 +73,11 @@ function buildProps(props) {
       key: {
         type: 4,
         content: current.name.replace(/^:/, ''),
-        isStatic: !current.name.startsWith(':'),
       },
       value: {
         type: 4,
         content: current.value,
+        isStatic: !current.name.startsWith(':'),
       },
       type: 16,
     });
@@ -140,7 +140,7 @@ function transformText(node, ctx) {
             _children[i] = {
               type: NodeTypes.TEXT_CALL,
               content: child,
-              codegenNode: creareCallExpression(ctx.helper(CREATE_TEXT), args),
+              codegenNode: createCallExpression(ctx.helper(CREATE_TEXT), args),
             };
           }
         }

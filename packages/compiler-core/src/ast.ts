@@ -49,7 +49,7 @@ export enum NodeTypes {
 }
 
 // 创建一个通用的 JS 调用表达式节点，供 transform 阶段挂到 `codegenNode` 上。
-export function creareCallExpression(callee: string, args: any[]) {
+export function createCallExpression(callee: string, args: any[]) {
   return {
     type: NodeTypes.JS_CALL_EXPRESSION,
     callee,
