@@ -51,8 +51,40 @@ function transformElement(node, ctx) {
 
     return () => {
       // 元素处理完了
+      const { tag, props, children } = node;
+
+      const _props = buildProps(props);
+
+      node.codegenNode = {
+        type: NodeTypes.ELEMENT,
+        tag,
+        props: _props,
+        children,
+      };
     };
   }
+}
+
+function buildProps(props) {
+  if (!props) return;
+
+  const properties = props.reduce((acc, current) => {
+    acc.push({
+      key: {
+        type: 4,
+        content: current.name.replace(/^:/, ''),
+        isStatic: !current.name.startsWith(':'),
+      },
+      value: {
+        type: 4,
+        content: current.value,
+      },
+      type: 16,
+    });
+    return acc;
+  }, {});
+
+  return properties;
 }
 
 function isText(node: any) {
