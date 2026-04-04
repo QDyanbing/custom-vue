@@ -1,3 +1,6 @@
+/**
+ * 文本变换：在父 `ELEMENT` 的 exit 阶段合并相邻文本 / 插值，必要时包装为 `TEXT_CALL` 并挂上 `createText` 的 `codegenNode`。
+ */
 import { PatchFlags } from '@vue/shared';
 import { NodeTypes, createCallExpression } from '../ast';
 import { CREATE_TEXT } from '../runtime-helper';
