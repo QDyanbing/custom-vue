@@ -95,6 +95,8 @@ export function createRootCodegenNode(root, ctx) {
       const codegenNode = child.codegenNode;
 
       coverToBlock(codegenNode, ctx);
+
+      root.codegenNode = codegenNode;
     } else {
       root.codegenNode = child;
     }
