@@ -5,6 +5,7 @@
  * 文本合并后会把相邻文本 / 插值包装成 `TEXT_CALL`，供后续代码生成阶段消费。
  * 当前不生成最终渲染代码，只串联解析与变换。
  */
+import { generate } from './codegen';
 import { parse } from './parser';
 import { transform } from './transform';
 
@@ -13,5 +14,5 @@ export function compile(template: string) {
 
   transform(ast);
 
-  return ast;
+  return generate(ast);
 }
