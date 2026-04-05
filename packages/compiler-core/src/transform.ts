@@ -1,3 +1,7 @@
+/**
+ * AST 变换：深度优先遍历并执行 `transformElement` / `transformText` / `transformExpression`，
+ * 收集 `helpers`；结束时 `createRootCodegenNode` 为根节点挂上 `codegenNode`（单根元素或 Fragment 多根）。
+ */
 import { coverToBlock, createVNodeCall, NodeTypes } from './ast';
 import { CREATE_VNODE, FRAGMENT, TO_DISPLAY_STRING } from './runtime-helper';
 import { transformElement } from './transforms/transformElement';
