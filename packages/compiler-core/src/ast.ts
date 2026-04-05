@@ -1,3 +1,5 @@
+import { CREATE_ELEMENT_BLOCK, OPEN_BLOCK, CREATE_VNODE } from './runtime-helper';
+
 /**
  * 模板 AST 节点类型枚举，与 Vue 3 compiler 中的 `NodeTypes` 对齐，
  * 便于后续扩展元素、插值、指令等节点时沿用同一套分类。
@@ -92,4 +94,12 @@ export function createVNodeCall(callee, tag, props, children) {
     props,
     children,
   };
+}
+
+export function coverToBlock(node, ctx) {
+  node.isBlock = true;
+  node.callee = CREATE_ELEMENT_BLOCK;
+  ctx.helper(OPEN_BLOCK);
+  ctx.helper(CREATE_ELEMENT_BLOCK);
+  ctx.removeHelper(CREATE_VNODE);
 }

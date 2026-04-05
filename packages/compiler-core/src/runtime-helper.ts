@@ -10,8 +10,17 @@ export const CREATE_TEXT = Symbol('createText');
 // 元素节点 codegen 使用的 vnode 创建 helper，与 `transformElement` 中 `createVNodeCall` 的 callee 对应。
 export const CREATE_VNODE = Symbol('createElementVNode');
 
+export const OPEN_BLOCK = Symbol('openBlock');
+
+export const CREATE_ELEMENT_BLOCK = Symbol('createElementBlock');
+
+export const FRAGMENT = Symbol('Fragment');
+
 export const helperMap = {
   [TO_DISPLAY_STRING]: 'toDisplayString',
   [CREATE_TEXT]: 'createText',
   [CREATE_VNODE]: 'createElementVNode',
+  [OPEN_BLOCK]: 'openBlock',
+  [CREATE_ELEMENT_BLOCK]: 'createElementBlock',
+  [FRAGMENT]: 'Fragment',
 };
