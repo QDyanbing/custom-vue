@@ -1,8 +1,8 @@
-# compile.ts — 编译入口（解析 + 变换）
+# compile.ts — 编译入口（解析 + 变换 + 代码生成）
 
 ## 作用
 
-`compile(template)` 在 `parse` 得到 AST 之后，进入 `transform`：用 `traverseNode` 深度优先遍历树，对 `ROOT`、`ELEMENT` 继续下钻子节点；对 `INTERPOLATION` 在变换阶段登记运行时 helper，并将简单表达式改写为带 `_ctx.` 前缀的形式。当前返回的是变换后的 AST，方便直接在 demo 里调试结构变化。
+`compile(template)` 依次调用 `parse` → `transform` → `generate`：得到变换后的 AST（含根 `codegenNode`、helper 集合），再输出 `render` 函数字符串。变换阶段用 `traverseNode` 深度优先遍历，对 `ROOT`、`ELEMENT` 继续下钻子节点；对 `INTERPOLATION` 登记运行时 helper，并将简单表达式改写为带 `_ctx.` 前缀的形式。
 
 ## 数据流（当前实现）
 
@@ -15,11 +15,14 @@
 7. **文本包装成 `TEXT_CALL`**：如果元素子节点里出现了可合并文本，并且当前 `children` 不止一个节点，`transformText` 会把 `TEXT` 或 `COMPOUND_EXPRESSION` 包装成 `TEXT_CALL`，其 `codegenNode` 为 `createCallExpression(ctx.helper(CREATE_TEXT), args)`，用于表达「这里后面要生成 `createText(...)` 调用」。
 8. **动态文本标记**：当被包装的节点不是纯 `TEXT`，而是插值或复合表达式时，会额外给 `createText` 参数补上 `PatchFlags.TEXT`，告诉后续运行时这是一个需要更新的动态文本节点。
 9. **回写时机**：`node.children = _children` 放在整轮扫描和包装结束之后，避免遍历过程中一边读旧节点、一边写新节点。
-10. **`compile` 返回值**：`transform(ast)` 执行完后直接 `return ast`，便于在浏览器 demo 中观察文本合并、插值改写、`TEXT_CALL` / `VNODE_CALL` 包装和 helper 收集后的树结构。
+10. **`createRootCodegenNode`**：在 `transform` 末尾为根节点确定 `codegenNode`（单根元素 block、或多根 Fragment），并 `root.helpers = ctx.helpers.keys()`。
+11. **`generate(ast)`**：见 [codegen.md](./codegen.md)；`compile` 的返回值为该函数字符串。
 
 ## 相关文件
 
 - [parser.md](./parser.md) — `parse` 产出 AST
+- [transform.md](./transform.md) — 遍历与根 `codegenNode`
+- [codegen.md](./codegen.md) — `generate`
 - [runtime-helper.md](./runtime-helper.md) — `TO_DISPLAY_STRING`、`CREATE_VNODE`、`CREATE_TEXT` 与 `helperMap`
 - [ast.md](./ast.md) — `NodeTypes` 与工厂函数
 - [transforms/transformElement.md](./transforms/transformElement.md) — 元素 `codegenNode`
