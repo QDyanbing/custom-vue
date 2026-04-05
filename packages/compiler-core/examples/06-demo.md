@@ -2,7 +2,7 @@
 
 ## 作用
 
-在浏览器中直接 `import` 构建后的 `compiler-core.esm.js`，对模板字符串调用 `compile(template)`，在控制台观察编译流程（当前会执行 `parse` + `transform`，尚未生成最终渲染代码字符串）。
+在浏览器中直接 `import` 构建后的 `compiler-core.esm.js`，对模板字符串调用 `compile(template)`，在控制台观察编译流程（`parse` + `transform` + `generate`，输出 `render` 函数字符串）。
 
 示例模板为 `` `<div>{{ msg }}</div>` ``，用于验证插值与 helper 登记路径。
 
