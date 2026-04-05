@@ -1,3 +1,7 @@
+/**
+ * 代码生成：读取变换后的 AST（根上 `helpers`、`codegenNode`），拼出 `render` 函数字符串，
+ * 从 `Vue` 解构所需 helper，并生成 `TEXT` 与 `VNODE_CALL`（含 block 根时的 `openBlock` 包裹）。
+ */
 import { isArray, isString } from '@vue/shared';
 import { NodeTypes } from './ast';
 import { helperMap, OPEN_BLOCK } from './runtime-helper';
