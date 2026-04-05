@@ -8,7 +8,7 @@
 - `packages/runtime-core` — 平台无关的 VNode、h、createRenderer
 - `packages/runtime-dom` — 浏览器 DOM 的 nodeOps、patchProp，并组装 render
 - `packages/vue` — 对外统一入口，打包并导出
-- `packages/compiler-core` — 编译时（模板解析为 AST，并对 AST 做初步 transform；当前实现含文本、插值 `{{ }}`、元素、双引号属性与闭合标签等）
+- `packages/compiler-core` — 编译时（模板解析为 AST、transform，并生成 `render` 函数字符串；当前实现含文本、插值 `{{ }}`、元素、双引号属性与闭合标签等）
 
 ## 开发
 
