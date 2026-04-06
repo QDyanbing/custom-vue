@@ -18,7 +18,7 @@
       console.log(window.Vue);
 
       const App = {
-        template: `<div>{{ count }}</div>`,
+        template: `<div class="container" style="color: red">{{ count }}</div>`,
         setup() {
           const count = ref(0);
 
@@ -28,7 +28,7 @@
 
           return {
             count,
-          }
+          };
         },
       };
 
