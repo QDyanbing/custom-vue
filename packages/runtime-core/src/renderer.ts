@@ -1,13 +1,13 @@
 import { PatchFlags, ShapeFlags } from '@vue/shared';
-import { isSameVNode, Text, normalizeVNode, type VNode, Fragment } from './vnode';
+import { isSameVNodeType, Text, normalizeVNode, type VNode, Fragment } from './vnode';
 import { createComponentInstance, setupComponent } from './component';
-import { createAppApi } from './apiCreateApp';
+import { createAppAPI } from './apiCreateApp';
 import { ReactiveEffect } from '@vue/reactivity';
 import { queueJob } from './scheduler';
 import { renderComponentRoot, shouldUpdateComponent } from './componentRenderUtils';
 import { updateProps } from './componentProps';
 import { updateSlots } from './componentSlots';
-import { LifecycleHooks, triggerHook } from './apiLifecycle';
+import { LifecycleHooks, triggerHooks } from './apiLifecycle';
 import { setRef } from './renderTemplateRef';
 import { isKeepAlive } from './components/KeepAlive';
 
@@ -61,9 +61,9 @@ export function createRenderer(options) {
    * 卸载组件：先触发生命周期 beforeUnmount，再卸载子树，最后触发 unmounted。
    */
   const unmountComponent = (instance: any) => {
-    triggerHook(instance, LifecycleHooks.BEFORE_UNMOUNT);
+    triggerHooks(instance, LifecycleHooks.BEFORE_UNMOUNT);
     unmount(instance.subTree);
-    triggerHook(instance, LifecycleHooks.UNMOUNTED);
+    triggerHooks(instance, LifecycleHooks.UNMOUNTED);
   };
 
   /**
@@ -115,7 +115,7 @@ export function createRenderer(options) {
       remove();
     }
 
-    if (ref) {
+    if (ref != null) {
       setRef(ref, null);
     }
   };
@@ -310,7 +310,7 @@ export function createRenderer(options) {
     while (i <= e1 && i <= e2) {
       const n1 = c1[i];
       const n2 = (c2[i] = normalizeVNode(c2[i]));
-      if (isSameVNode(n1, n2)) {
+      if (isSameVNodeType(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比下一个节点
         patch(n1, n2, container, null, parentComponent);
       } else {
@@ -329,7 +329,7 @@ export function createRenderer(options) {
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
       const n2 = (c2[e2] = normalizeVNode(c2[e2]));
-      if (isSameVNode(n1, n2)) {
+      if (isSameVNodeType(n1, n2)) {
         // 如果n1和n2是同一个节点，则进行patch，patch完成后对比上一个节点
         patch(n1, n2, container, null, parentComponent);
       } else {
@@ -393,7 +393,7 @@ export function createRenderer(options) {
       for (let j = s1; j <= e1; j++) {
         const n1 = c1[j];
         const newIndex = keyToNewIndexMap.get(n1.key);
-        if (newIndex !== undefined) {
+        if (newIndex != null) {
           if (newIndex > pos) {
             // 如果每一次都比上一次大，表示本来就是连续递增的，不需要计算最长递增子序列
             pos = newIndex;
@@ -603,7 +603,7 @@ export function createRenderer(options) {
 
       if (!instance.isMounted) {
         const { vnode } = instance;
-        triggerHook(instance, LifecycleHooks.BEFORE_MOUNT);
+        triggerHooks(instance, LifecycleHooks.BEFORE_MOUNT);
         const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
         patch(null, subTree, container, anchor, instance);
@@ -613,7 +613,7 @@ export function createRenderer(options) {
         instance.subTree = subTree;
         // 已经挂载过了
         instance.isMounted = true;
-        triggerHook(instance, LifecycleHooks.MOUNTED);
+        triggerHooks(instance, LifecycleHooks.MOUNTED);
       } else {
         let { vnode, next } = instance;
 
@@ -625,17 +625,17 @@ export function createRenderer(options) {
           next = vnode;
         }
 
-        triggerHook(instance, LifecycleHooks.BEFORE_UPDATE);
+        triggerHooks(instance, LifecycleHooks.BEFORE_UPDATE);
         const prevSubTree = instance.subTree;
         // 调用 render 函数 拿到 subTree，并绑定 this 为 instance.proxy
         const subTree = renderComponentRoot(instance);
         // 将 subTree 挂载到页面上
         patch(prevSubTree, subTree, container, anchor, instance);
         // 组件的el 指向 subTree 的el，他们是相同的
-        vnode.el = subTree?.el;
+        next.el = subTree?.el;
         // 保存子树
         instance.subTree = subTree;
-        triggerHook(instance, LifecycleHooks.UPDATED);
+        triggerHooks(instance, LifecycleHooks.UPDATED);
       }
     };
 
@@ -794,12 +794,12 @@ export function createRenderer(options) {
     // 如果老节点和新节点引用相同，说明完全没变，直接返回
     if (n1 === n2) return;
 
-    if (n1 && !n2) {
+    if (n1 && n2 == null) {
       unmount(n1);
       return;
     }
 
-    if (n1 && !isSameVNode(n1, n2)) {
+    if (n1 && !isSameVNodeType(n1, n2)) {
       // 卸载老节点之前，拿到老节点的下一个节点，挂载的时候，将新节点挂载到n1之前的位置
       anchor = hostNextSibling(n1.el);
 
@@ -836,7 +836,7 @@ export function createRenderer(options) {
         }
     }
 
-    if (ref) {
+    if (ref != null) {
       setRef(ref, n2);
     }
   };
@@ -866,7 +866,7 @@ export function createRenderer(options) {
 
   return {
     render,
-    createApp: createAppApi(render),
+    createApp: createAppAPI(render),
   };
 }
 
