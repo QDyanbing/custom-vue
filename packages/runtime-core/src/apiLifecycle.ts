@@ -36,19 +36,12 @@ function createHook(type: LifecycleHooks) {
  */
 function injectHook(target: any, hook: () => void, type: LifecycleHooks) {
   // 如果当前组件实例没有这个生命周期，则创建一个数组
-  if (!target[type]) {
+  if (target[type] == null) {
     target[type] = [];
   }
 
-  // 包装一下生命周期函数，在执行生命周期函数之前设置当前组件实例
-  const _hook = () => {
-    setCurrentInstance(target);
-    hook();
-    unsetCurrentInstance();
-  };
-
   // 将生命周期函数添加到数组中
-  target[type].push(_hook);
+  target[type].push(hook);
 }
 
 // 挂载
@@ -62,13 +55,19 @@ export const onBeforeUnmount = createHook(LifecycleHooks.BEFORE_UNMOUNT);
 export const onUnmounted = createHook(LifecycleHooks.UNMOUNTED);
 
 /**
- * 触发生命周期
- * @param instance 当前组件实例
- * @param type 生命周期类型
+ * 触发生命周期钩子
+ * @param instance 当前组件的实例
+ * @param type 生命周期的类型 bm m bu bum
  */
-export function triggerHook(instance: any, type: LifecycleHooks) {
+export function triggerHooks(instance: any, type: LifecycleHooks) {
   const hooks = instance[type];
+
   if (hooks) {
-    hooks.forEach(hook => hook());
+    setCurrentInstance(instance);
+    try {
+      hooks.forEach(hook => hook());
+    } finally {
+      unsetCurrentInstance();
+    }
   }
 }
