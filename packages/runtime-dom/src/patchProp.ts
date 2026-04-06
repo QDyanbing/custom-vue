@@ -1,7 +1,6 @@
-import { isOn } from '@vue/shared';
 import { patchClass } from './modules/patchClass';
 import { patchStyle } from './modules/patchStyle';
-import { patchEvent } from './modules/patchEvent';
+import { patchEvent } from './modules/events';
 import { patchAttr } from './modules/patchAttr';
 
 /**
@@ -28,8 +27,8 @@ export function patchProp(el: HTMLElement, key: string, prevValue: any, nextValu
     return patchStyle(el, prevValue, nextValue);
   }
 
-  if (isOn(key)) {
-    return patchEvent(el, key, prevValue, nextValue);
+  if (/^on[A-Z]/.test(key)) {
+    return patchEvent(el, key, nextValue);
   }
 
   patchAttr(el, key, nextValue);
