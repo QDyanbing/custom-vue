@@ -47,7 +47,7 @@ export function updateSlots(instance, vnode) {
 
     // 把之前有但是新的没有的插槽删除
     for (const key in slots) {
-      if (!children[key]) {
+      if (children[key] == null) {
         delete slots[key];
       }
     }
