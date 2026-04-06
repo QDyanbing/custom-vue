@@ -100,6 +100,10 @@ function genVNodeCall(node, ctx) {
   }
 }
 
+function genInterpolation(node, ctx) {
+  ctx.push(node.content.content);
+}
+
 function genNode(node, ctx) {
   switch (node.type) {
     case NodeTypes.TEXT:
@@ -107,6 +111,9 @@ function genNode(node, ctx) {
       break;
     case NodeTypes.VNODE_CALL:
       genVNodeCall(node, ctx);
+      break;
+    case NodeTypes.INTERPOLATION:
+      genInterpolation(node, ctx);
       break;
   }
 }
