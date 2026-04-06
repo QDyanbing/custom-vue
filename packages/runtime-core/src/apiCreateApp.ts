@@ -6,7 +6,7 @@ import { h } from './h';
  * @param render 平台渲染函数，签名为 (vnode, container) => void，传 null 表示卸载
  * @returns createApp(rootComponent, rootProps)，返回带 mount / unmount 的应用实例
  */
-export function createAppApi(render: any) {
+export function createAppAPI(render: any) {
   /**
    * 创建应用实例；不会立即挂载，需显式调用 app.mount(container)。
    * @param rootComponent 根组件（组件对象或函数）
@@ -19,6 +19,7 @@ export function createAppApi(render: any) {
     };
 
     const app = {
+      context,
       _container: null,
       mount(container: Element) {
         // 创建组件的虚拟节点
@@ -34,7 +35,6 @@ export function createAppApi(render: any) {
       unmount() {
         // 卸载组件
         render(null, app._container);
-        app._container = null;
       },
       provide(key: string, value: any) {
         context.provides[key] = value;
