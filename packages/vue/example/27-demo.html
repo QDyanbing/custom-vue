@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <style>
+      #app {
+        padding: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/vue.iife.js"></script>
+    <script type="module">
+      const { ref, createApp } = Vue;
+
+      console.log(window.Vue);
+
+      const App = {
+        template: `<div>{{ count }}</div>`,
+        setup() {
+          const count = ref(0);
+
+          setTimeout(() => {
+            count.value++;
+          }, 1000);
+
+          return {
+            count,
+          }
+        },
+      };
+
+      const app = createApp(App);
+      app.mount('#app');
+    </script>
+  </body>
+</html>
