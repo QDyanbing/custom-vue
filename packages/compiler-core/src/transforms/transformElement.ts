@@ -33,7 +33,7 @@ function buildProps(props) {
     const value = createSimpleExpression(current.value, !current.name.startsWith(':'));
     acc.push(createObjectProperty(key, value));
     return acc;
-  }, {});
+  }, []);
 
   return createObjectExpression(properties);
 }
