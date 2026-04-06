@@ -505,7 +505,7 @@ export function createRenderer(options) {
       patchProps(el, oldProps, newProps);
     }
 
-    if (dynamicChildren && n1.dynamicChildren) {
+    if (dynamicChildren.length && n1.dynamicChildren.length) {
       // 这种情况下只更新动态子节点
       patchBlockChildren(n1.dynamicChildren, n2.dynamicChildren, el, parentComponent);
     } else {
