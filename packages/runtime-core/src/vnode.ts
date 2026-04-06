@@ -42,7 +42,7 @@ export interface VNode {
  * @param v2 新的 VNode
  * @returns 是否为“同一个” VNode
  */
-export function isSameVNode(v1: VNode, v2: VNode): boolean {
+export function isSameVNodeType(v1: VNode, v2: VNode): boolean {
   return v1.type === v2.type && v1.key === v2.key;
 }
 
@@ -76,7 +76,7 @@ export function normalizeVNode(vnode: any): VNode {
  * @param children 子节点（可能为 string / number / 数组 / 对象 / 函数等）
  * @returns 标准化后的 children
  */
-export function normalizeChildren(vnode: VNode, children: any): any {
+function normalizeChildren(vnode: VNode, children: any): any {
   let { shapeFlag } = vnode;
 
   if (isArray(children)) {
@@ -214,7 +214,7 @@ export function openBlock() {
 /**
  * 关闭当前 Block，恢复外层的 `currentBlock`。
  */
-export function closeBlock() {
+function closeBlock() {
   blockStack.pop();
   // 拿最后一个block
   currentBlock = blockStack.at(-1);
