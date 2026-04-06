@@ -35,7 +35,7 @@ export const inject = (key: string, defaultValue: any) => {
   // 获取父组件的provides,如果父组件没有证明是根组件
   const parentProvides = instance.parent ? instance.parent?.provides : instance.appContext.provides;
 
-  if (parentProvides && key in parentProvides) {
+  if (key in parentProvides) {
     // 如果父组件有则返回父组件的值
     return parentProvides[key];
   }
