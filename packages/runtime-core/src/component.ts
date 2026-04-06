@@ -4,6 +4,7 @@ import { normalizePropsOptions, initProps } from './componentProps';
 import { hasOwn, isFunction, isObject } from '@vue/shared';
 import { nextTick } from './scheduler';
 import { initSlots } from './componentSlots';
+import { compile } from '@vue/compiler-core';
 
 /**
  * 创建组件实例。
@@ -41,11 +42,11 @@ export function createComponentInstance(vnode, parent) {
     render: null, // 渲染函数
     setupState: {}, // setup 返回的状态
     propsOptions: normalizePropsOptions(type.props), // 用户声明的 props 选项
-    provides: Object.create(parent ? parent.provides : appContext.provides), // 我要注入给子组件访问的属性
+    provides: parent ? parent.provides : appContext.provides, // 我要注入给子组件访问的属性
   };
 
   instance.ctx = { _: instance };
-  instance.emit = (event, ...args) => emit(instance, event, ...args);
+  instance.emit = emit.bind(null, instance);
   return instance;
 }
 
@@ -185,8 +186,20 @@ function setupStatefulComponent(instance) {
 
   if (!instance.render) {
     // 如果上面的都处理完了还是没有返回值，则使用组件定义上的render函数
-    instance.render = type.render;
+    if (type.render) {
+      instance.render = type.render;
+    } else if (type.template) {
+      instance.render = compileToFunction(type.template);
+    }
   }
+}
+
+function compileToFunction(template) {
+  const code = compile(template);
+  console.log(code);
+  const fn = new Function(code);
+
+  return fn();
 }
 
 function handleSetupResult(instance, setupResult) {
