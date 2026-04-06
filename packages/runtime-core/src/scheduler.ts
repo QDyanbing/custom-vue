@@ -8,8 +8,8 @@ const resolvedPromise = Promise.resolve();
  * - 本实现只提供“延后到微任务”的语义，不做队列合并、也不处理回调缺省等分支
  */
 export function nextTick(fn) {
-  // 用户传入的回调函数放到微任务中执行
-  resolvedPromise.then(() => fn.call(this));
+  // 用户传递的回调函数，放到微任务里面
+  return resolvedPromise.then(() => fn.call(this));
 }
 
 /**
