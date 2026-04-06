@@ -82,7 +82,7 @@ export function renderComponentRoot(instance) {
   if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     // 有状态组件
     setCurrentRenderingInstance(instance);
-    const subTree = instance.render.call(instance.proxy);
+    const subTree = instance.render.call(instance.proxy, instance.proxy);
     unsetCurrentRenderingInstance();
     return subTree;
   } else {
