@@ -1,3 +1,5 @@
+import { isString } from '@vue/shared';
+
 type Style = string | Record<string, string | string[]> | null;
 
 /**
@@ -16,8 +18,12 @@ export function patchStyle(el: HTMLElement, prevValue: Style, nextValue: Style):
   const style = el.style;
 
   if (nextValue) {
-    for (const key in nextValue as any) {
-      style[key] = nextValue[key];
+    if (isString(nextValue)) {
+      el.setAttribute('style', nextValue as string);
+    } else {
+      for (const key in nextValue as any) {
+        style[key] = nextValue[key];
+      }
     }
   }
 
