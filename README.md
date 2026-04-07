@@ -17,6 +17,8 @@ pnpm install
 pnpm dev
 ```
 
+`pnpm dev` 当前脚本以 **IIFE** 格式输出（见根目录 `package.json` 的 `dev` 脚本），便于示例页用 `<script src="...vue.iife.js">` 直接引用全局 `Vue`。
+
 构建产物在各自包的 `dist` 下；示例页面在 `packages/vue/example/*.html`。
 
 ## 文档
