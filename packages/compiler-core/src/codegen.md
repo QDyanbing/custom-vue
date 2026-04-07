@@ -4,16 +4,16 @@
 
 `generate(ast)` 在 `transform` 之后执行：根据根节点收集的 `helpers`（`ast.helpers` 为迭代器）与根上 `codegenNode`，输出一段字符串，形如从 `Vue` 解构 helper、`return function render(_ctx, _cache, $props, $setup, $data, $options) { return ... }`。
 
-当前只处理 `TEXT` 与 `VNODE_CALL`；`VNODE_CALL` 会按 `callee`、`tag`、`props`、`children` 生成调用，若 `isBlock` 为真则外层包一层 `(openBlock(), createElementVNode(...))` 形式的表达式。
+根 `codegenNode` 可为 `TEXT`、`INTERPOLATION`、`VNODE_CALL` 等；`VNODE_CALL` 会按 `callee`、`tag`、`props`、`children` 生成调用，若 `isBlock` 为真则外层包一层 `(openBlock(), createElementVNode(...))` 形式的表达式。元素静态属性在 transform 阶段可生成 `JS_OBJECT_EXPRESSION`，由 `genJsObjectExpression` 输出为对象字面量。
 
 ## 数据流（当前实现）
 
 1. **`createCodegenContext(ast)`**：维护 `code` 缓冲、`indentLevel`，以及 `helper(name)`（通过 `helperMap` 得到 `_openBlock` 这类前缀）、`push` / `newline` / `indent` / `deindent`。
 2. **`genFunction`**：把 `ast.helpers` 展开为 `const { createElementVNode: _createElementVNode, ... } = Vue;`，再写入 `render` 函数头。
 3. **`genFunctionBody`**：在函数体内 `return` 后接 `genNode(ast.codegenNode)`。
-4. **`genNode`**：`TEXT` 走 `genText`（`JSON.stringify` 内容）；`VNODE_CALL` 走 `genVNodeCall`。
-5. **`genVNodeCall`**：可选 `openBlock()`；再按 `callee` 与参数列表 `genNodeList` 拼接；子节点可为嵌套数组（由 `children` 传入）。
-6. **返回值**：`generate` 返回拼好的字符串（实现里仍会 `console.log` 便于调试）。
+4. **`genNode`**：`TEXT` → `genText`；`INTERPOLATION` → `genInterpolation`（输出插值内表达式字符串，与 `compile` 阶段对 `_ctx.` 的前缀处理配合）；`VNODE_CALL` → `genVNodeCall`；`JS_OBJECT_EXPRESSION` → `genJsObjectExpression`（由 `properties` 拼 `{ key: "value", ... }`）。
+5. **`genVNodeCall`**：可选 `openBlock()`；再按 `callee` 与参数列表 `genNodeList` 拼接；`props` 可为嵌套的 `genNode` 结果；子节点可为嵌套数组（由 `children` 传入）。
+6. **返回值**：`generate` 返回拼好的字符串。
 
 ## 相关文件
 
