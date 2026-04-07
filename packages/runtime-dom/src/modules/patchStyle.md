@@ -19,41 +19,42 @@ export function patchStyle(
 
 ### 1. 写入新的样式
 
+- 当 `nextValue` 为真值时：
+  - **字符串**（例如 `style="color: red"` 编译结果）：调用 `el.setAttribute('style', nextValue)`，整段覆盖行内样式
+  - **对象**：遍历 key，写入 `el.style[key]`
+
 ```ts
 if (nextValue) {
-  for (const key in nextValue as any) {
-    style[key] = nextValue[key];
+  if (isString(nextValue)) {
+    el.setAttribute('style', nextValue as string);
+  } else {
+    for (const key in nextValue as any) {
+      style[key] = nextValue[key];
+    }
   }
 }
 ```
 
-- 当 `nextValue` 为真值（对象 / 字符串）时：
-  - 遍历 `nextValue` 上的所有 key
-  - 直接写入 `el.style[key]`
+### 2. 清理多余样式（对象形态）
 
-常见场景：从空样式更新到有样式，或者修改某些样式属性。
-
-### 2. 清理多余样式
+当 `prevValue` 为对象时，会遍历旧 key；若新对象中对应项为 `undefined` 或 `null`，则把 `style[key]` 置为 `null`，避免残留。
 
 ```ts
 if (prevValue) {
   for (const key in prevValue as any) {
-    if (!(key in (nextValue as any))) {
+    if (nextValue?.[key] === undefined || nextValue?.[key] === null) {
       style[key] = null;
     }
   }
 }
 ```
 
-- 当 `prevValue` 存在时：
-  - 遍历旧样式 `prevValue`
-  - 对于那些在 `prevValue` 中存在，但在 `nextValue` 中不存在的 key，手动把 `style[key]` 置为 `null`
-- 这样可以删除已经被移除的样式字段，避免“老样式残留”
+（当 `nextValue` 为字符串时，对象形式的 `prevValue` 上各 key 在新结果里往往为 `undefined`，会走清理分支。）
 
 ### 3. 值为 null/undefined 的情况
 
-- 如果 `nextValue` 为 `null/undefined`，不会进入“写入新样式”的分支
-- 但如果 `prevValue` 存在，仍会执行“清理多余样式”逻辑，把所有旧 key 清空
+- 如果 `nextValue` 为 `null/undefined`，不会进入“写入新样式”的对象/字符串分支
+- 若 `prevValue` 仍存在，仍会按上一节清理旧 key
 
 ## 示例
 
