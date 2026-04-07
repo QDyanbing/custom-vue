@@ -73,7 +73,7 @@ export function shouldUpdateComponent(n1, n2): boolean {
 /**
  * 执行组件渲染，返回本次渲染得到的子树 VNode。
  *
- * - 有状态组件：执行 `instance.render.call(instance.proxy)`，并维护当前渲染实例
+ * - 有状态组件：执行 `instance.render.call(instance.proxy, instance.proxy)`（第二参为模板 `_ctx`），并维护当前渲染实例
  * - 函数组件：执行 `vnode.type(vnode.props, ctx)`，ctx 暴露 attrs/slots/emit
  */
 export function renderComponentRoot(instance) {
