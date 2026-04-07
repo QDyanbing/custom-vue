@@ -31,7 +31,7 @@
 在 `updateComponentPreRender`（见 [renderer.md](./renderer.md)）中调用，当父组件重新渲染导致子组件更新时，同步最新的插槽：
 
 1. 用新 VNode 的 children 覆盖 `instance.slots` 上的同名插槽
-2. 遍历旧的 `slots`，删除新 VNode 中已不存在的插槽 key
+2. 遍历旧的 `slots`，若新 VNode 的 `children[key]` 为 `null` 或 `undefined`，则删除该 key（使用 `== null`，避免把合法值为 `0` / `false` 的插槽误删）
 
 因为 `instance.slots` 对象引用不变（只做原地更新），所以 `setup` 中拿到的 `slots` 始终指向最新数据。
 
