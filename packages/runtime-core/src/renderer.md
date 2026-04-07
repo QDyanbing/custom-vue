@@ -74,7 +74,7 @@ container._vnode = vnode;
 `patch` 是"挂载 + 更新"的统一入口：
 
 - 如果 `n1 === n2`：完全同一个引用，直接返回。
-- 如果 `n1` 存在但和 `n2` 不是同一个 VNode（`isSameVNode` 为假）：
+- 如果 `n1` 存在但和 `n2` 不是同一个 VNode（`isSameVNodeType` 为假）：
   - 说明结构发生了根本变化，先通过 `hostNextSibling(n1.el)` 拿到老节点的下一个兄弟作为 anchor，再卸载老节点，最后将新节点挂载到该 anchor 前（保证插入位置正确）。
 - 如果 `n1` 为空：
   - 说明是初次挂载，走 `mountElement`。
@@ -149,7 +149,7 @@ container._vnode = vnode;
 - `patchElement` 负责：
   - 复用旧的 DOM：`n2.el = n1.el`
   - **属性更新**：若 `n2.patchFlag > 0`，按 `PatchFlags`（见 [@vue/shared patchFlags.md](../../shared/src/patchFlags.md)）做定向更新——`CLASS` / `STYLE` 在对应 prop 引用变化时调 `hostPatchProp`；`TEXT` 表示子节点为动态纯文本，若 `n1.children !== n2.children` 则 `hostSetElementText` 并**直接 return**，不再调用 `patchChildren`。若 `patchFlag` 为 0 或未走上述分支，则调用 `patchProps(el, oldProps, newProps)` 全量对比属性。
-  - **子节点更新**：若新旧 VNode 都携带 `dynamicChildren`（Block Tree 模式），走 `patchBlockChildren` 只对比动态节点；否则走 `patchChildren(n1, n2, el, parentComponent)` 做全量 diff（`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系）
+  - **子节点更新**：仅当**新旧两侧**的 `dynamicChildren` 都存在且长度判断为真（`.length` 均非 0）时，走 `patchBlockChildren` 只对比动态节点；若任一侧无动态子或为空数组，则走 `patchChildren` 全量 diff，避免把「空数组」当成可快路径的 Block。`parentComponent` 沿 patch 链传递，供子组件建立 parent 关系
 
 - `patchChildren` 通过 `shapeFlag` 区分几种情况：
   - 文本 → 文本：必要时直接改写 `textContent`。
@@ -166,7 +166,7 @@ Block Tree 是编译器与运行时配合的性能方案，核心思想是在编
 在 `renderer.ts` 中的体现：
 
 - `patchBlockChildren(c1, c2, container, parentComponent)`：遍历 `dynamicChildren` 数组（以新列表 `c2.length` 为准），对每对 `c1[i]` / `c2[i]` 调用 `patch`。由于编译器保证新旧 Block 的 `dynamicChildren` 长度和位置一一对应，因此只需按下标逐个 patch，不需要 key-based diff。
-- `patchElement` 在处理完属性更新后，优先检查 `dynamicChildren`：若新旧 VNode 都携带 `dynamicChildren`，走 `patchBlockChildren`；否则走传统的 `patchChildren`（全量 diff）。
+- `patchElement` 在处理完属性更新后，用 `dynamicChildren.length && n1.dynamicChildren.length` 判断是否走 Block 快路径：两侧都非空时才 `patchBlockChildren`；否则 `patchChildren`。
 
 这样对于一个包含 100 个静态节点和 2 个动态节点的模板，更新时只需要 patch 2 个节点，而不是遍历全部 102 个。
 
