@@ -62,13 +62,13 @@ if (key === 'style') {
 ### 3. 事件
 
 ```ts
-if (isOn(key)) {
-  return patchEvent(el, key, prevValue, nextValue);
+if (/^on[A-Z]/.test(key)) {
+  return patchEvent(el, key, nextValue);
 }
 ```
 
-- 使用 `isOn(key)` 判断是否为事件（通常是 `onXxx` 形式）
-- 委托给 `patchEvent` 处理 add/remove 和更新回调
+- 使用 `/^on[A-Z]/` 判断是否为事件（`on` 后接大写字母，如 `onClick`）
+- 委托给 `events.ts` 中的 `patchEvent`：只接收当前要设置的 `nextValue`，增删改监听由该函数与 invoker 缓存完成
 
 ### 4. 其他 attribute
 
@@ -91,10 +91,10 @@ const oldProps = { class: 'btn', onClick: handleClick, id: 'foo' };
 const newProps = { class: 'btn primary', onClick: handleNewClick };
 ```
 
-diff 时会触发一系列调用：
+diff 时会触发一系列调用（`patchProp` 仍接收 `prevValue` / `nextValue`，但事件分支只把 `nextValue` 交给 `patchEvent`）：
 
 1. `patchProp(el, 'class', 'btn', 'btn primary')`
-2. `patchProp(el, 'onClick', handleClick, handleNewClick)`
+2. `patchProp(el, 'onClick', handleClick, handleNewClick)` → 内部 `patchEvent(el, 'onClick', handleNewClick)`
 3. `patchProp(el, 'id', 'foo', null)` → 移除 `id`
 
 `patchProp` 只负责把调用分发到具体的模块上，从而让 DOM 属性更新逻辑集中又清晰，便于扩展和维护。
