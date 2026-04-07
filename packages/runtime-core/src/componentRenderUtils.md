@@ -39,7 +39,7 @@ return hasPropsChanged(prevProps, nextProps);
 
 `renderComponentRoot` 负责执行组件渲染函数，并区分两类组件：
 
-- 有状态组件：执行 `instance.render.call(instance.proxy)`，并在执行前后维护“当前正在渲染的实例”
+- 有状态组件：执行 `instance.render.call(instance.proxy, instance.proxy)`：第一个参数为 `this`，第二个参数为模板编译产物中的 `_ctx`（与 `this` 同为组件代理，便于编译器生成的 `render` 形参使用）
 - 函数组件：执行 `vnode.type(vnode.props, ctx)`，其中 `ctx` 只暴露 `attrs / slots / emit`
 
 ```ts
@@ -47,7 +47,7 @@ export function renderComponentRoot(instance) {
   const { vnode } = instance;
   if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     setCurrentRenderingInstance(instance);
-    const subTree = instance.render.call(instance.proxy);
+    const subTree = instance.render.call(instance.proxy, instance.proxy);
     unsetCurrentRenderingInstance();
     return subTree;
   } else {
