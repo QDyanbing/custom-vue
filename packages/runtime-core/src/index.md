@@ -15,7 +15,7 @@
 - **响应式能力**：直接 re-export `@vue/reactivity`
 - **VNode / 渲染入口**：`h` / `createVNode` / `VNode` / `Fragment`（片段根，无包裹 DOM）；`openBlock` / `createElementBlock`（Block Tree 动态节点收集）
 - **渲染器工厂**：`createRenderer`
-- **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHook`、`LifecycleHooks`）
+- **组件与生命周期**：`component`（含 `getCurrentInstance`、`setCurrentInstance`、`unsetCurrentInstance`）、`apiLifecycle`（`onBeforeMount`、`onMounted`、`onBeforeUpdate`、`onUpdated`、`onBeforeUnmount`、`onUnmounted`、`triggerHooks`、`LifecycleHooks`）；调度见 [scheduler.md](./scheduler.md)（`nextTick`、`queueJob`）
 - **依赖注入**：`apiInject`（`provide` / `inject`）
 - **异步组件**：`defineAsyncComponent`（把 `loader` 包装成可渲染组件，支持 loading / error / timeout）
 - **内置组件**：`Teleport`（跨容器挂载）、`KeepAlive`（动态子组件缓存，与 renderer 的 deactivate/activate 配合）、`Transition`（子 VNode 上挂过渡钩子，与 renderer 的 mountElement/unmount 配合）
@@ -44,7 +44,7 @@ import { ref, reactive, effect } from '@vue/runtime-core';
 - `Fragment`：片段类型 VNode 的 type 标记（Symbol），renderer 据此走 `processFragment`，卸载时只卸子树
 - `createVNode`：底层工厂函数，`h` 会调用它来真正创建 VNode
 - `normalizeVNode`：将 string/number 转为 Text 类型 VNode，renderer 在 children 处理时使用
-- `isVNode` / `isSameVNode`：判断是否为 VNode、两 VNode 是否可复用
+- `isVNode` / `isSameVNodeType`：判断是否为 VNode、两 VNode 是否可复用
 - `h`：推荐的对外创建入口，负责把“多种调用方式”标准化成统一的 VNode 结构
 - `openBlock`：开启 Block 收集上下文，后续创建的动态节点会被收集到 `currentBlock`
 - `createElementBlock`：创建 Block 根元素 VNode，将 `currentBlock` 写入 `dynamicChildren`
@@ -102,7 +102,7 @@ runtime-core/src/
 ├── apiInject.ts     # provide/inject（组件级），与 appContext.provides 配合
 ├── apiLifecycle.ts  # 生命周期 onXxx、triggerHook、LifecycleHooks（供 renderer 在挂载/更新/卸载时触发）
 ├── component.ts     # 组件实例 createComponentInstance、setupComponent、getCurrentInstance 等
-├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNode、openBlock、createElementBlock
+├── vnode.ts         # VNode、Text、normalizeVNode、normalizeChildren、createVNode、isVNode、isSameVNodeType、openBlock、createElementBlock
 ├── h.ts             # h（参数标准化，内部调用 createVNode）
 ├── renderer.ts      # createRenderer；元素/文本/组件挂载与更新、keyed diff（含 LIS）、生命周期触发
 ├── components/Teleport.ts # Teleport 组件定义（跨容器挂载，支持 to/disabled）
