@@ -6,6 +6,7 @@
 
 ## `buildProps`
 
+- 使用 `props.reduce(..., [])` 累积 `JS_PROPERTY` 列表，再交给 `createObjectExpression` 得到 `JS_OBJECT_EXPRESSION`（避免初始累加器类型不当导致运行期异常）。
 - 属性名会去掉前导 `:`（`v-bind` 简写）。
 - 静态属性：`name` 不以 `:` 开头时，`value` 对应 `isStatic: true` 的简单表达式；动态绑定（`:` 开头）为 `isStatic: false`。
 
