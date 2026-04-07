@@ -29,8 +29,7 @@ const veiKey = Symbol('_vei');
  * 更新元素事件监听关系。
  *
  * @param el 目标元素
- * @param key 事件 key（例如 `onClick`）
- * @param prevValue 上一次回调
+ * @param rawName 事件 prop 名（例如 `onClick`）
  * @param nextValue 这一次回调；传入 `null/undefined` 表示移除监听
  *
  * @remarks
