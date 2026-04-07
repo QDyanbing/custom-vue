@@ -23,7 +23,7 @@ const renderOptions = { patchProp, ...nodeOps };
 ```
 
 - **`nodeOps`**：封装了一套最小 DOM 操作集合，例如：`createElement`、`insert`、`remove` 等
-- **`patchProp`**：负责更新单个属性，根据 key 分派到 `patchClass`、`patchStyle`、`patchEvent`、`patchAttr`
+- **`patchProp`**：负责更新单个属性，根据 key 分派到 `patchClass`、`patchStyle`、`patchEvent`（实现位于 `modules/events.ts`）、`patchAttr`
 
 `renderOptions` 会传给 `createRenderer`，由运行时在内部调用这些方法完成挂载和更新。
 
