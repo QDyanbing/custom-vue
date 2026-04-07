@@ -23,7 +23,7 @@
 - 接收 `parent` 参数：根组件挂载时渲染器传入 `null`，子组件传入父组件实例，用于建立 `instance.parent` 关系
 - 确定 `appContext`：有 parent 时从 `parent.appContext` 继承，否则从 `vnode.appContext` 取（根 vnode 由 createApp 在 mount 时挂上 appContext）
 - 使用 `normalizePropsOptions(type.props)` 标准化组件的 props 选项（数组/对象统一成对象），结果挂到 `instance.propsOptions`
-- 在实例上绑定 `emit` 方法（`instance.emit = (event, ...args) => emit(instance, event, ...args)`），供 `$emit` 和 `setupContext.emit` 使用
+- 在实例上绑定 `emit` 方法（`instance.emit = emit.bind(null, instance)`），供 `$emit` 和 `setupContext.emit` 使用
 - 返回的 instance 包含：`type`、`vnode`、`parent`、`appContext`、`props`、`attrs`、`slots`、`emit`、`subTree`、`isMounted`、`render`、`setupState`，其中 `props` / `attrs` / `render` / `setupState` 在 `setupComponent` + `initProps` 中填充，`slots` 在 `initSlots` 中填充
 
 渲染器在 `mountComponent` 中先调用 `createComponentInstance(vnode, parentComponent)`，再调用 `setupComponent`。
