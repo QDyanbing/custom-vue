@@ -17,7 +17,7 @@
 - [patchFlag 与 PatchFlags](#patchflag-与-patchflags)
 - [Block Tree 与 dynamicChildren](#block-tree-与-dynamicchildren)
 - [isVNode(value)](#isvnodevalue)
-- [isSameVNode(v1, v2)](#issamevnodev1-v2)
+- [isSameVNodeType(v1, v2)](#issamevnodetypev1-v2)
 
 - `VNode`：虚拟节点的数据结构
 - `Text`：文本类型 VNode 的 type 标记（Symbol），供 renderer 走 `processText`
@@ -29,7 +29,7 @@
 - `closeBlock`：关闭当前 Block，恢复外层 Block 上下文
 - `createElementBlock`：创建 Block 根元素 VNode，调用 `createVNode` 后将 `currentBlock` 写入 `dynamicChildren`
 - `isVNode`：判断一个值是否已经是 VNode
-- `isSameVNode`：判断两个 VNode 在 diff 阶段是否视为"同一个节点"
+- `isSameVNodeType`：判断两个 VNode 在 diff 阶段是否视为「同一类型、可复用同一 DOM 节点」
 
 这些内容会被 `h.ts` 和 `renderer.ts` 共同使用：  
 `h` 负责把用户多种调用方式标准化为 VNode，`renderer` 根据 VNode 的结构和标记信息决定如何挂载、更新和卸载真实 DOM；子节点中的原始值由 renderer 侧通过 `normalizeVNode` 转为 Text VNode。
@@ -246,9 +246,9 @@ return vnode;
 - 如果是 VNode：把它当作 children 处理
 - 如果是普通对象：把它当作 props 处理
 
-## isSameVNode(v1, v2)
+## isSameVNodeType(v1, v2)
 
-`isSameVNode` 用于在 diff 阶段判断两个 VNode 是否可以复用同一个真实 DOM 节点：
+`isSameVNodeType` 用于在 diff 阶段判断两个 VNode 是否可以复用同一个真实 DOM 节点：
 
 - 判断依据只有两点：
   - `type` 相同
