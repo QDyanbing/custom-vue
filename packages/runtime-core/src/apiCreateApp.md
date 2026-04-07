@@ -27,7 +27,7 @@ createApp: createAppApi(render)
 | `unmount()` | 调用 `render(null, app._container)` 卸载，并清空 `_container` |
 | `provide(key, value)` | 往 `context.provides` 写入键值；根组件及其后代在 `inject` 时会通过 `appContext.provides` 读到 |
 | `_container` | 内部保存的挂载目标，`unmount` 时使用 |
-| `context`（内部） | 应用上下文对象，目前只包含 `provides`，会透过 `vnode.appContext` 传给根组件实例及其后代，供后续实现 `provide/inject` 能力 |
+| `context` | 应用上下文对象（与 `mount` 时写入 `vnode.appContext` 的对象为同一引用），当前包含 `provides`；挂在 `app` 上便于调试或扩展读取 |
 
 ## 流程简述
 
