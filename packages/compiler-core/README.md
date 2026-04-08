@@ -183,5 +183,6 @@ stack = []
 - **入口**：`src/index.ts` 导出 `parse`、`compile`。
 - **变换**：`src/transform.ts` 在 `parse` 之后遍历 AST：`nodeTransforms` 依次为 `transformElement`、`transformText`、`transformExpression`；根上 `createRootCodegenNode` 决定 `codegenNode`；`src/runtime-helper.ts` 提供 Symbol 与 `helperMap`。
 - **代码生成**：`src/compile.ts` 在 `transform` 后调用 `src/codegen.ts` 的 `generate`，把根 `codegenNode` 与收集的 helpers 拼成 `render` 函数字符串。
+- **对照**：并列参考 `vue3-main` 中词法文件名为 `tokenizer.ts`，本仓库为 `tokenize.ts`，职责相同。
 
 更细的模块说明见 `src` 目录下同名的 `*.md`（`ast.md`、`parser.md`、`tokenize.md`、`compile.md`、`transform.md`、`codegen.md`、`runtime-helper.md`、`index.md`），以及 `src/transforms/` 下 `transformElement.md`、`transformText.md`、`transformExpression.md`。浏览器示例见 `examples/01-demo.html`～`09-demo.html` 及同目录下对应 `*.md`。
