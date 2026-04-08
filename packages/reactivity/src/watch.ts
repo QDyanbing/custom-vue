@@ -1,3 +1,6 @@
+/**
+ * `watch` / `watchEffect`：在 `ReactiveEffect` 之上封装侦听与清理语义。
+ */
 import { isRef, type Ref } from './ref';
 import type { ComputedRef } from './computed';
 import { ReactiveEffect } from './effect';
