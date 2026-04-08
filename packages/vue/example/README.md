@@ -2,6 +2,8 @@
 
 ## 概览
 
+与并列参考目录 `vue3-main` 的差异说明见仓库根目录 [问题记录.md](../../../问题记录.md)。
+
 `packages/vue/example` 目录下放的是一组手写运行时的**最小示例页面**，每个 html 文件都会通过：
 
 - `<script type="module">` 直接从 `../dist/vue.esm.js` 导入运行时能力
