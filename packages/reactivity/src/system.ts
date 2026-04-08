@@ -66,9 +66,9 @@ export function link(dep: Dependency, sub: Sub) {
   }
 
   /**
-   * computed这里
-   * @TODO 源码这里不是这样做的，源码是时间换空间；目前的处理方式是空间换时间；这里后面也可以按官方的尝试一下；
-   * 源码是 如果dep和sub建立过关联关系，则直接返回；否则创建新节点；
+   * 未复用已有 `nextDep` 时新建链路。
+   * 说明：Vue 官方实现更偏「时间换空间」（按路径判断是否已建链）；本实现偏「空间换时间」
+   *（多分配节点、靠后续逻辑收敛）。行为目标一致，**不要求在此文件内改成与 upstream 相同写法**。
    */
 
   let newLink: Link;
@@ -142,7 +142,8 @@ export function propagate(subs: Link) {
     const sub = link.sub;
     if (!sub.tracking && !sub.dirty) {
       /**
-       * @TODO 源码这里是没有建立关联关系，我们的做法是空间换时间；建立了重复关系，但判断了没有执行过；这里后面也可以按官方的尝试一下；
+       * 与官方 propagate 在「脏标记 + 队列」上的取舍可能不同；本处用 `dirty` 避免重复入队。
+       * **保留当前语义即可，不必为对齐 upstream 改实现。**
        */
       // 不管effect还是computed都设置为脏的，一旦重新执行就会走这边；走这边到这里就变成了脏的；
       // 当dirty为false时，才会进来；下一个节点还是脏的，就进不来了；当追踪完了就不脏了；
@@ -233,7 +234,7 @@ function clearTracking(link: Link) {
     // 当前节点删除后，把当前节点的订阅者指向 undefined
     link.sub = undefined;
 
-  // 回收节点到 linkPool，减少重复创建带来的开销。
+    // 回收节点到 linkPool，减少重复创建带来的开销。
     link.nextDep = linkPool;
     linkPool = link;
 
