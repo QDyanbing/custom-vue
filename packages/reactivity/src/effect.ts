@@ -1,7 +1,9 @@
 import { startTrack, endTrack } from './system';
 import type { Link, Sub } from './system';
 
-// @TODO：这里的类型有点麻烦暂时没改
+/**
+ * 调试钩子占位类型；与 Vue core 里基于 DebuggerEvent 的完整签名尚未一一对应，仅保留扩展点。
+ */
 export interface DebuggerOptions {
   onTrack?: (event: unknown) => void;
   onTrigger?: (event: unknown) => void;
