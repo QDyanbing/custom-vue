@@ -29,6 +29,10 @@ pnpm dev
   - `packages/runtime-core/src/*.md`
   - `packages/compiler-core/src/*.md`（另有包级说明 `packages/compiler-core/README.md`）
 
+## 与参考实现对照
+
+同目录下的 `vue3-main` 为教学向精简快照（非本仓库子模块）。实现差异与阅读入口见 [问题记录.md](./问题记录.md) 中的「与 vue3-main 对照」一节。
+
 ## License
 
 ISC
