@@ -1,3 +1,6 @@
+/**
+ * 浏览器 DOM 平台：`createApp`、`render`，并将 `patchProp` 与 `nodeOps` 合并为 `renderOptions`。
+ */
 import { nodeOps } from './nodeOps';
 import { patchProp } from './patchProp';
 import { createRenderer } from '@vue/runtime-core';
