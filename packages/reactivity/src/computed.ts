@@ -1,3 +1,6 @@
+/**
+ * 计算属性：`ComputedRefImpl` 同时作为 `Dependency` 与 `Sub` 参与双向链表调度。
+ */
 import { hasChanged, isFunction } from '@vue/shared';
 import { ReactiveFlags, type Ref } from './ref';
 import { Dependency, endTrack, link, Link, startTrack, Sub } from './system';
