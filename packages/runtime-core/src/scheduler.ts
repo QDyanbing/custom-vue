@@ -1,3 +1,7 @@
+/**
+ * 渲染与组件更新的异步调度：`nextTick`、`queueJob`。
+ * 教学实现：无 job 去重、无队列排序，与 Vue 发行版 scheduler 不同，见下文注释。
+ */
 const resolvedPromise = Promise.resolve();
 
 /**
