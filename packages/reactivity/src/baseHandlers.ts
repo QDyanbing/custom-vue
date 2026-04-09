@@ -4,7 +4,11 @@ import { isRef } from './ref';
 import { reactive } from './reactive';
 
 /**
- * 处理对象的响应式问题；
+ * `reactive` 使用的 Proxy handler：在 `get` 中 `track`、在 `set` 中 `trigger`。
+ *
+ * - 嵌套对象会在首次访问时再包一层 `reactive`。
+ * - 属性值为 `ref` 时在 `get` 中自动解包（与模板/选项式 API 的 ref 解包语义对齐）。
+ * - 数组 `length`、ref 赋值等分支见方法内注释。
  */
 export const mutableHandlers: ProxyHandler<object> = {
   get(target, key, receiver) {
