@@ -20,10 +20,15 @@ const renderOptions = { patchProp, ...nodeOps };
 
 const renderer = createRenderer(renderOptions);
 
+/** 使用 DOM 渲染器将根 VNode 挂载或更新到已有容器元素上。 */
 export function render(vNode: any, container: Element) {
   renderer.render(vNode, container);
 }
 
+/**
+ * 创建应用实例：`mount(selector)` 支持 CSS 选择器字符串或 `Element`，
+ * 内部仍调用 core 的 `createApp` 再绑定到具体 DOM 节点。
+ */
 export function createApp(rootComponent: any, rootProps: any) {
   const app = renderer.createApp(rootComponent, rootProps);
   const _mount = app.mount.bind(app);
