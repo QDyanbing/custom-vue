@@ -1,38 +1,41 @@
 /**
- * 依赖项
+ * 可被订阅的依赖方（如 `RefImpl`、reactive 的 `Dep`、`ComputedRefImpl`）。
+ * `subs` / `subsTail` 指向「依赖本节点的 effect / computed」链表。
  */
 export interface Dependency {
-  // 订阅者链表的头节点
+  /** 订阅者链表头 */
   subs: Link | undefined;
-  // 订阅者链表的尾节点
+  /** 订阅者链表尾，用于 O(1) 追加 */
   subsTail: Link | undefined;
 }
 
 /**
- * 订阅者
+ * 订阅者：在 `run` 期间通过 `link` 挂上所读到的 `Dependency`。
+ * `deps` / `depsTail` 表示「本订阅者当前追踪到的依赖」链表。
  */
 export interface Sub {
-  // 依赖项链表的头节点
+  /** 依赖项链表头（本次追踪路径上的 dep 节点） */
   deps: Link | undefined;
-  // 依赖项链表的尾节点
+  /** 依赖项链表尾 */
   depsTail: Link | undefined;
+  /** 是否处于 `startTrack`～`endTrack` 包裹的追踪区间 */
   tracking: boolean;
+  /** 传播阶段用于跳过已处理边或标记需重算（与 `propagate` 配合） */
   dirty: boolean;
 }
 
 /**
- * 链表节点
+ * 双向链表边：同时挂在某个 `Dependency.subs*` 与某个 `Sub.deps*` 上。
+ * `nextDep` / `prevSub` 等指针含义见 `link`、`propagate` 内注释。
  */
 export interface Link {
-  // 订阅者
   sub: Sub;
-  // 下一个订阅者节点
+  /** 同一 dep 上的下一订阅者边 */
   nextSub: Link | undefined;
-  // 上一个订阅者节点
+  /** 同一 dep 上的上一订阅者边 */
   prevSub: Link | undefined;
-  // 依赖项
   dep: Dependency;
-  // 下一个依赖项节点
+  /** 同一 sub 上的下一依赖边 */
   nextDep: Link | undefined;
 }
 
