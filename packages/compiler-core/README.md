@@ -12,7 +12,7 @@
 <div id="1">{{ msg }}</div>
 ```
 
-把上面这一坨当做一个字符串来解析，解析成 js 文件，这个过程叫做编译时
+把上面这段模板当作普通字符串读入，再解析成可执行的 `render` 输出，这个过程叫做编译时
 
 1. 把 .vue 文件的内容当做一个字符串，转换成 ast 语法树（ast语法树只是用来描述语法的），它是一个对象
 2. 把 ast 语法树，转换成我们运行时的代码 `createElementBlock`、`createElementVNode`、`createVNode`

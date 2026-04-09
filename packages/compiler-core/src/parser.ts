@@ -1,7 +1,9 @@
 /**
- * 将模板字符串交给 `Tokenizer` 扫描，并把回调里得到的片段组装成 AST。
- * 当前实现：`ROOT` 下含 `TEXT`、`INTERPOLATION`（内层 `SIMPLE_EXPRESSION`，首尾空白在回调内裁切）、嵌套 `ELEMENT`（双引号属性）；闭合与 `loc` 由 `onCloseTag`、`setLocEnd` 与栈配合；尾部纯文本仍依赖 `tokenize` 的 `cleanup`。
- * 每次 `parse` 入口会先 `reset` 再解析；`tokenize` 结束后对根 `children` 做 `condenseWhitespace`，规则与元素子节点一致。
+ * 模板解析：用 `Tokenizer` 扫描输入，再把回调片段组装为 AST。
+ *
+ * - **节点类型**：`ROOT` 下可含 `TEXT`、`INTERPOLATION`（内层 `SIMPLE_EXPRESSION`，空白在回调内裁切）、嵌套 `ELEMENT`（双引号属性）。
+ * - **闭合与位置**：`onCloseTag`、`setLocEnd` 与栈协作；尾部纯文本依赖 `tokenize` 的 `cleanup`。
+ * - **入口约定**：每次 `parse` 先 `reset`；`tokenize` 结束后对根 `children` 做 `condenseWhitespace`，与元素子节点规则一致。
  */
 import { NodeTypes } from './ast';
 import { Tokenizer } from './tokenize';
