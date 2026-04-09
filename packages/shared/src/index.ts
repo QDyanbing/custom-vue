@@ -1,6 +1,6 @@
 /**
- * shared 包工具函数与标志位的统一导出入口。
- * 在其他包中只需要从 `@vue/shared` 引用，而不需要关心具体文件路径。
+ * `@vue/shared` 统一导出入口：工具函数（`utils`）、VNode 形状位（`shapeFlags`）、补丁提示位（`patchFlags`）。
+ * 业务与包代码应只从 `@vue/shared` 引用，避免深路径依赖。
  */
 export * from './utils';
 export * from './shapeFlags';
