@@ -12,10 +12,10 @@ import { setRef } from './renderTemplateRef';
 import { isKeepAlive } from './components/KeepAlive';
 
 /**
- * 创建一个渲染器。
+ * 按平台注入的宿主 API 创建渲染器。
  *
- * @param options 平台相关的宿主操作集合（如 DOM 创建、插入、删除）
- * @returns 包含 render 方法的渲染器对象
+ * @param options 宿主能力：元素/文本创建、`insert`/`remove`、`patchProp` 等；DOM 侧见 `runtime-dom` 组装的 `renderOptions`。
+ * @returns `{ render, createApp }`：`render` 驱动整棵 VNode 树，`createApp` 包装根组件与 `mount`。
  */
 export function createRenderer(options) {
   const {

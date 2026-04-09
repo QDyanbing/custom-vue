@@ -4,6 +4,11 @@ import { getCurrentRenderingInstance } from './component';
 import { isTeleport } from './components/Teleport';
 
 /**
+ * 虚拟节点定义、`createVNode` 与 `normalizeVNode`。
+ * 与渲染器、`h`、编译产物约定字段（如 `patchFlag`、`dynamicChildren`）配合使用；说明见 `vnode.md`。
+ */
+
+/**
  * 文本节点标记
  */
 export const Text = Symbol('v-txt');

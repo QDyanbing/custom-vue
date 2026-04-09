@@ -2,6 +2,9 @@ import { isArray, isObject } from '@vue/shared';
 import { createVNode, isVNode } from './vnode';
 
 /**
+ * 虚拟节点工厂：根据参数个数与类型把调用归一到 `createVNode`。
+ * 更多背景见同目录 `h.md`。
+ *
  * `h` 函数的常见使用方式：
  * 1. h('div', 'hello world') 第二个参数为 子节点
  * 2. h('div', [h('span', 'hello'), h('span', ' world')]) 第二个参数为 子节点
