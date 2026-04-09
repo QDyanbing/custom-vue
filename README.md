@@ -9,6 +9,7 @@
 - `packages/runtime-dom` — 浏览器 DOM 的 nodeOps、patchProp，并组装 render
 - `packages/vue` — 对外统一入口，打包并导出
 - `packages/compiler-core` — 编译时（模板解析为 AST、transform，并生成 `render` 函数字符串；当前实现含文本、插值 `{{ }}`、元素、双引号属性与闭合标签等）
+- `packages/shared` — 跨包工具函数、`ShapeFlags`、`PatchFlags` 等位标志
 
 ## 开发
 
@@ -27,7 +28,9 @@ pnpm dev
 - 各包说明在对应 `src` 下的 `*.md`：
   - `packages/reactivity/src/*.md`
   - `packages/runtime-core/src/*.md`
+  - `packages/runtime-dom/src/*.md`
   - `packages/compiler-core/src/*.md`（另有包级说明 `packages/compiler-core/README.md`）
+  - `packages/shared/src/*.md`（另有包级说明 `packages/shared/README.md`）
 
 ## 与参考实现对照
 
