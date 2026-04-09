@@ -28,6 +28,8 @@
 - `22-demo.html`：演示 `defineAsyncComponent` 的基础用法，包括 `loader`、`loadingComponent`、`errorComponent`、`timeout` 和异步组件的 props 透传（说明见 [22-demo.md](./22-demo.md)）。
 - `23-demo.html`：演示根节点使用 `Fragment`、响应式更新子节点以及 `app.unmount()` 时片段只卸载 `children`（说明见 [23-demo.md](./23-demo.md)）。
 - `24-demo.html`：演示 `createVNode` 第四参 `patchFlag`（`PatchFlags.TEXT`）与动态文本更新路径（说明见 [24-demo.md](./24-demo.md)）。
+- `25-demo.html`：演示 Block Tree（`openBlock` / `createElementBlock`）与 `dynamicChildren` 只更新动态子节点（说明见 [25-demo.md](./25-demo.md)）。
+- `26-demo.html`：演示 `renderList`、`toDisplayString` 与 `Fragment` 在 `STABLE_FRAGMENT` 下的更新快路径（说明见 [26-demo.md](./26-demo.md)）。
 - `27-demo.html`：演示根组件 `template` 字符串（含 `class` / `style` 与插值）与 `ref` 响应式更新（说明见 [27-demo.md](./27-demo.md)）；依赖 IIFE 构建的 `vue.iife.js`。
 
 后续如果新增 demo，建议在这里简单列一下文件名和它覆盖的能力，方便快速索引。
