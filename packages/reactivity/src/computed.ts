@@ -26,24 +26,25 @@ export interface ComputedRef<T = any> extends BaseComputedRef<T> {
 }
 
 /**
- * 计算属性的实现类,计算属性即是 dep，也是 sub；
- * 当computed内函数执行收集依赖时，会收集 computed 作为 sub；
- * 当computed的值被effect访问时，会作为effect的dep（这个时候effect为sub）
+ * 计算属性实现：同时实现 `Dependency` 与 `Sub`。
+ *
+ * - 执行 getter 收集依赖时，本实例作为 `Sub` 链接到所读 ref / reactive。
+ * - 被外层 `effect` 读取 `.value` 时，本实例作为 `Dependency` 被订阅。
  */
 class ComputedRefImpl implements Dependency, Sub {
-  // computed 也是一个ref，通过 isRef 也返回true；
+  /** 满足 `isRef` 判别，便于与 ref 统一处理 */
   [ReactiveFlags.IS_REF] = true;
-  // 保存 fn 的返回值
+  /** 缓存的计算结果 */
   _value: any;
-  // 作为 dep，要关联 subs，等我的值更新了，我要通知它们重新执行；
+  /** 作为 dep：订阅者链表，值变更时通知下游 */
   subs: Link;
   subsTail: Link;
-  // 作为 sub，我要知道哪些 dep，被我收集了
+  /** 作为 sub：所依赖的上游 dep 链表 */
   deps: Link;
   depsTail: Link;
 
   tracking: boolean = false;
-  // 计算属性，脏不脏，如果 dirty 为 true，表示计算属性是脏的，get value 的时候，需要执行 update
+  /** 为 true 时需在读取 `value` 时重新执行 getter（`update`） */
   dirty: boolean = true;
 
   constructor(
