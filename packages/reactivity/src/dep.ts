@@ -2,7 +2,8 @@ import { activeSub } from './effect';
 import { link, propagate, type Link } from './system';
 
 /**
- * 依赖项
+ * 与 `reactive` 对象某一属性键对应的依赖桶（`targetMap[target][key]`）。
+ * 自身维护订阅者链表，供 `trigger` 时沿链表通知。
  */
 class Dep {
   // 订阅者链表的头节点
