@@ -17,14 +17,15 @@ export interface ReactiveEffectOptions extends DebuggerOptions {
   onStop?: () => void;
 }
 
-// 当前正在执行的 effect（用于依赖收集）
+/** 当前正在执行的 effect 订阅者；依赖收集时只与栈顶这一层建立 `link`。 */
 export let activeSub = null;
 
+/** 由 `ReactiveEffect.run` 在嵌套调用时切换栈顶；业务代码勿随意改写。 */
 export function setActiveSub(sub: any) {
   activeSub = sub;
 }
 
-// effect 实现类
+/** `effect()` 返回的副作用实例，封装 `fn`、依赖链表与 `run`/`stop`。 */
 export class ReactiveEffect implements Sub {
   // 表示当前 effect 是否处于激活状态。
   active: boolean = true;
