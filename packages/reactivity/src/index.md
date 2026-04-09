@@ -4,6 +4,12 @@
 
 `index.ts` 是 `reactivity` 的统一入口，负责导出公共 API，供外部直接使用。
 
+## 阅读顺序（可选）
+
+1. `effect.md` + `system.md`：订阅者与依赖的双向链表、`ReactiveEffect.run` 如何嵌套。
+2. `ref.md` / `reactive.md` + `dep.md` / `baseHandlers.md`：两种依赖收集路径。
+3. `computed.md`、`watch.md`：在 `ReactiveEffect` 之上的组合 API。
+
 ## 目录
 
 - [导出内容](#导出内容)
