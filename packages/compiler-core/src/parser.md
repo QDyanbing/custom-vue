@@ -2,7 +2,7 @@
 
 ## 作用
 
-`parse(input)` 是编译器核心对外的解析函数：把模板字符串交给 `Tokenizer`，在回调里用 `NodeTypes` 组装 AST，并返回根节点。
+`parse(input)` 是对外解析入口：把模板字符串交给 `Tokenizer`，在回调里用 `NodeTypes` 组装 AST 并返回根节点。下列步骤与模块级状态以 `parser.ts` 为准。
 
 ## 数据流（当前实现）
 
