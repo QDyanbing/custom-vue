@@ -75,37 +75,26 @@ class ComputedRefImpl implements Dependency, Sub {
   }
 
   update() {
-    /**
-     * 实现 sub 的功能，为了在 执行 fn 期间，收集 fn 执行过程中访问到的响应式数据
-     * 建立 dep 和 sub 之间的关联关系
-     */
-    // 先将当前的 effect 保存起来，用来处理嵌套的逻辑
+    /** 以自身为 `Sub` 执行 getter，收集上游 dep；返回值是否变化用于向下游 `propagate`。 */
     const prevSub = activeSub;
 
-    // 每次执行 fn 之前，把 this 放到 activeSub 上面
     setActiveSub(this);
     startTrack(this);
 
     try {
-      // 拿到老值
       const oldValue = this._value;
-      // 拿到新的值
       this._value = this.fn();
 
-      // 如果值发生了变化，就返回 true，否则就是 false
       return hasChanged(this._value, oldValue);
     } finally {
       endTrack(this);
-      // 执行完成后，恢复之前的 effect
       setActiveSub(prevSub);
     }
   }
 }
 
 /**
- * 计算属性
- * @param getterOrOptions 有可能是一个 函数，也有可能是一个对象，对象的话里面有 get 和 set 属性
- * @returns {ComputedRefImpl}
+ * 创建计算属性：入参可为 getter 函数，或 `{ get, set? }`。
  */
 export function computed<T>(
   getterOrOptions: ComputedGetter<T> | WritableComputedOptions<T>,
@@ -114,15 +103,8 @@ export function computed<T>(
   let setter: ComputedSetter<T> | undefined;
 
   if (isFunction(getterOrOptions)) {
-    // const c = computed(()=>{})
     getter = getterOrOptions;
   } else {
-    /**
-     * const c = computed({
-     *   get(){},
-     *   set(){}
-     * })
-     */
     getter = getterOrOptions.get;
     setter = getterOrOptions.set;
   }
