@@ -2,7 +2,7 @@
 
 ## 概述
 
-`scheduler.ts` 提供渲染与回调的**微任务调度**：`nextTick` 把回调推迟到当前宏任务之后的微任务执行；`queueJob` 把一次「任务」（例如组件 `update` 里的 `effect.run`）排入微任务队列。
+`scheduler.ts` 提供渲染与回调的**微任务调度**：`nextTick` 把回调推迟到当前宏任务之后的微任务执行；`queueJob` 把一次「任务」（例如组件 `update` 里的 `effect.run`）排入微任务队列。本实现为教学向简化（无 job 去重与排序），与发行版 Vue 的调度器不必逐行一致。
 
 ## nextTick(fn)
 
