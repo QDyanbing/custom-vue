@@ -52,8 +52,7 @@ export interface WatchHandle extends WatchStopHandle {
 }
 
 /**
- * 监听响应式数据的变化，并在变化时执行回调函数
- * watch 的实现原理：就是依赖 effect 的 scheduler
+ * 监听响应式数据变化并执行回调；内部基于 `ReactiveEffect` 与可选 `scheduler`。
  *
  * **使用场景：**
  * - 需要监听响应式数据的变化并执行副作用时

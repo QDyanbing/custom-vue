@@ -2,7 +2,7 @@
 
 ## 概述
 
-`index.ts` 是 `reactivity` 的统一入口，负责导出公共 API，供外部直接使用。
+`index.ts` 是 `reactivity` 的统一入口，导出对外 API。列表与行为以源码为准；若与下文条目有出入，以 `index.ts` 实际导出为准。
 
 ## 阅读顺序（可选）
 
