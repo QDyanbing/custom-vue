@@ -2,7 +2,7 @@
 
 ## 作用
 
-`index.ts` 是 `@vue/compiler-core` 包的对外入口，将 `parser` 与 `compile` 中的 API 原样 re-export（例如 `parse`、`compile`）；`compile` 内部会走完 `transform` 与 `generate`。
+`index.ts` 对外 re-export `parse`（见 `parser.ts`）与 `compile`（见 `compile.ts`）。`compile` 在内部串联 `transform` 与 `generate`，得到 `render` 函数字符串；具体步骤见 [compile.md](./compile.md)。
 
 ## 使用方式
 
