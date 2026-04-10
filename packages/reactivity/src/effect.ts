@@ -47,30 +47,15 @@ export class ReactiveEffect implements Sub {
       return this.fn();
     }
 
-    /**
-     * 先将当前的 effect 保存起来，用来处理嵌套的逻辑;
-     * effect(()=>{
-     *  effect(()=>{
-     *    console.log('effect2');
-     *  });
-     *  console.log('effect1');
-     * });
-     *
-     */
+    // 嵌套 effect：先保存外层 activeSub，再把当前实例设为栈顶，run 结束后再恢复。
     const prevSub = activeSub;
-    // 将当前的 effect 设置为活跃的 effect
     setActiveSub(this);
-
-    // 开始追踪依赖
     startTrack(this);
 
     try {
       return this.fn();
     } finally {
-      // 结束本轮依赖追踪
       endTrack(this);
-
-      // 执行完成后，恢复之前的 effect，这样就可以处理嵌套的逻辑了
       setActiveSub(prevSub);
     }
   }
@@ -92,7 +77,7 @@ export class ReactiveEffect implements Sub {
 
   stop() {
     if (this.active) {
-      // 直接开始追踪依赖，不执行run直接结束追踪依赖；就会把依赖关系清理掉；
+      // 不执行 fn，仅走一轮 startTrack/endTrack，清掉多余依赖边。
       startTrack(this);
       endTrack(this);
       this.active = false;
@@ -104,13 +89,8 @@ export const effect = (fn: Function, options?: ReactiveEffectOptions) => {
   const e = new ReactiveEffect(fn);
   Object.assign(e, options);
   e.run();
-  /**
-   * 绑定函数的 this
-   */
   const runner = e.run.bind(e);
-  /**
-   * 把 effect 的实例，放到函数属性中
-   */
+  /** 便于外部访问 `ReactiveEffect` 实例（如 `stop`） */
   runner.effect = e;
 
   return runner;
