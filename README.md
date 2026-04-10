@@ -1,6 +1,6 @@
 # custom-vue
 
-自研的 Vue 3 风格运行时与响应式实现（学习/练手用）。包含响应式包、运行时核心与 DOM 渲染入口。
+自研的 Vue 3 风格响应式、运行时与模板编译（学习/练手用）。包含 `@vue/reactivity`、`runtime-core`、`runtime-dom`、`compiler-core` 与对外聚合包 `vue`。
 
 ## 目录结构
 

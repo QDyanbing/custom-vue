@@ -1,7 +1,7 @@
 {
   "name": "my-vue",
   "version": "1.0.0",
-  "description": "",
+  "description": "自研 Vue 3 风格响应式、运行时与模板编译（学习/示例用 monorepo）",
   "type": "module",
   "main": "index.js",
   "scripts": {
