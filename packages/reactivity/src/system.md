@@ -2,7 +2,7 @@
 
 ## 概述
 
-`system` 模块负责维护依赖项（Dependency）和订阅者（Sub）之间的双向链表关系，承载依赖收集、更新传播与清理。
+`system` 模块维护 `Dependency` 与 `Sub` 之间的双向链表，负责依赖收集、更新传播与边清理。`link`、`propagate`、`startTrack`、`endTrack`、`clearTracking` 的具体行为以 `system.ts` 为准；本文档用于对照阅读。
 
 ## 核心数据结构
 
