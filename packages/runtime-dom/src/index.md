@@ -2,7 +2,7 @@
 
 ## 概述
 
-`index.ts` 是 DOM 运行时的入口文件，负责把平台无关的渲染逻辑（`@vue/runtime-core`）和浏览器 DOM 平台绑定在一起。
+`index.ts` 将 `@vue/runtime-core` 的 `createRenderer` 与浏览器侧的 `nodeOps`、`patchProp` 组合为 `renderOptions`，并导出 `render`、`createApp` 以及 core 的 re-export。若与下文不一致，以 `index.ts` 为准。
 
 ## 目录
 
