@@ -2,7 +2,7 @@
 
 ### 概览
 
-`index.ts` 是 `runtime-core` 的统一入口，负责把运行时对外可见的能力都整理在一个导出面上，方便上层包按需使用。
+`index.ts` 汇总 `runtime-core` 对外导出：响应式 re-export、`h` / `createRenderer`、组件与生命周期、内置组件等。下列清单若与源码不一致，以 `index.ts` 为准。
 
 ### 目录
 
