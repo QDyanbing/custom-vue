@@ -1,5 +1,6 @@
 /**
- * 浏览器 DOM 平台：`createApp`、`render`，并将 `patchProp` 与 `nodeOps` 合并为 `renderOptions`。
+ * 浏览器 DOM 平台入口：组合 `nodeOps` 与 `patchProp` 为 `renderOptions`，
+ * 经 `createRenderer` 得到 `render` / `createApp`，并再导出 core 的公共 API。
  */
 import { nodeOps } from './nodeOps';
 import { patchProp } from './patchProp';

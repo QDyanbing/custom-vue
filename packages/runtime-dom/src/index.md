@@ -2,7 +2,7 @@
 
 ## 概述
 
-`index.ts` 将 `@vue/runtime-core` 的 `createRenderer` 与浏览器侧的 `nodeOps`、`patchProp` 组合为 `renderOptions`，并导出 `render`、`createApp` 以及 core 的 re-export。若与下文不一致，以 `index.ts` 为准。
+`index.ts` 用浏览器侧的 `nodeOps` 与 `patchProp` 组装 `renderOptions`，调用 `createRenderer` 得到 `renderer`，再导出 `render`、`createApp` 及对 `@vue/runtime-core` 的再导出。若与下文不一致，以源码为准。
 
 ## 目录
 
