@@ -2,14 +2,14 @@
 
 ## 概览
 
-与并列参考目录 `vue3-main` 的差异说明见仓库根目录 [问题记录.md](../../../问题记录.md)。
+与并列目录 `vue3-main` 的对照见仓库根目录 [问题记录.md](../../../问题记录.md)。
 
-示例页依赖先执行根目录 `pnpm dev`（或各包构建脚本）生成 `packages/vue/dist/*.js`，再按各 html 中的路径引用。
+运行示例前请在仓库根执行 `pnpm dev`（或各包构建脚本），生成 `packages/vue/dist/*.js`，再按各 HTML 中的路径引用。
 
-`packages/vue/example` 目录下放的是一组手写运行时的**最小示例页面**，每个 html 文件都会通过：
+`packages/vue/example` 为一组**最小示例页面**，每个 HTML 通常：
 
-- `<script type="module">` 直接从 `../dist/vue.esm.js` 导入运行时能力
-- 使用 `createApp` + 选项式组件演示当前实现的特性
+- 通过 `<script type="module">` 从 `../dist/vue.esm.js` 导入运行时 API
+- 使用 `createApp` 与选项式组件演示当前实现能力
 
 目前与组件 props/attrs、ref、生命周期等相关的示例有：
 
