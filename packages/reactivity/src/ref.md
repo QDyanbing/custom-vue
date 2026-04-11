@@ -2,7 +2,7 @@
 
 ## 概述
 
-`ref` 用于创建响应式引用，可包装任意类型的值（基本类型、对象、数组等）。字段级行为与 `RefImpl`、`trackRef`、`triggerRef` 的实现见 `ref.ts`，本文档为阅读笔记。
+`ref` 创建响应式引用，可包装任意类型。对象在构造时会转为 `reactive` 代理；读写 `.value` 时分别走 `trackRef` / `triggerRef`。实现细节以 `ref.ts` 为准，本文为阅读笔记。
 
 ## 目录
 
