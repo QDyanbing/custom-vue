@@ -2,7 +2,7 @@
 
 ## 概述
 
-`effect` 用于创建副作用函数。当函数里访问的响应式数据变化时，副作用会自动重新执行。
+`effect(fn)` 注册副作用：执行 `fn` 时通过全局 `activeSub` 收集依赖；依赖变更后经 `propagate` / `queueJob` 等路径再次调度执行。细节见 `effect.ts` 与 `system.ts`。
 
 ## 主要功能
 
