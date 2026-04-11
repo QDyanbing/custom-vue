@@ -54,11 +54,11 @@ class ComputedRefImpl implements Dependency, Sub {
 
   get value() {
     if (this.dirty) {
-      // 如果计算属性脏了，执行 update
+      // `dirty` 为真时先 `update`，用 getter 重算并更新上游依赖边。
       this.update();
     }
 
-    // 作为 dep 要和 sub 做关联关系，收集依赖
+    // 作为 Dependency：被外层 effect / 其他 computed 读取时挂链。
     if (activeSub) {
       link(this, activeSub);
     }

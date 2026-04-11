@@ -27,8 +27,7 @@ export type OnCleanup = (cleanupFn: () => void) => void;
 export type WatchEffect = (onCleanup: OnCleanup) => void;
 
 /**
- * watch 的回调函数类型
- * 接收新值、旧值和清理函数注册器
+ * `watch` 回调：收到新值、旧值，以及用于注册下次回调前清理逻辑的 `onCleanup`。
  */
 export type WatchCallback<V = any, OV = any> = (
   value: V,
@@ -36,15 +35,10 @@ export type WatchCallback<V = any, OV = any> = (
   onCleanup: OnCleanup,
 ) => any;
 
-/**
- * 停止 watch 的函数类型
- */
+/** 调用后停止侦听，与 `watch` / `watchEffect` 的返回值一致。 */
 export type WatchStopHandle = () => void;
 
-/**
- * watch 的扩展句柄接口
- * 提供暂停、恢复和停止功能
- */
+/** 在 `WatchStopHandle` 基础上增加 `pause` / `resume`（若实现提供）。 */
 export interface WatchHandle extends WatchStopHandle {
   pause: () => void;
   resume: () => void;
