@@ -9,12 +9,12 @@
 <div id="1">{{ msg }}</div>
 ```
 
-把上面这段模板当作普通字符串读入，再解析成可执行的 `render` 输出，这个过程叫做编译时
+把上面这段模板当作普通字符串读入，再解析成可执行的 `render` 输出，这一过程属于**编译时**。
 
-1. 把 .vue 文件的内容当做一个字符串，转换成 ast 语法树（ast语法树只是用来描述语法的），它是一个对象
-2. 把 ast 语法树，转换成我们运行时的代码 `createElementBlock`、`createElementVNode`、`createVNode`
+1. 将模板（或 `.vue` 中的模板段）作为字符串，解析为 **AST**（抽象语法树，用对象描述结构）。
+2. 将 AST 经变换与代码生成，得到运行时调用的代码（如 `createElementBlock`、`createElementVNode`、`createVNode`）。
 
-- babel、eslint 都是基于 ast 语法树
+Babel、ESLint 等工具同样以 AST 为中间表示。
 
 ```js
 const ast = {
@@ -39,11 +39,9 @@ const ast = {
 const vnode = createElementBlock('div', { id: '1' }, ['111']);
 ```
 
-https://astexplorer.net/ 可以看到 ast 语法树解析出来的结果
+可在 [astexplorer.net](https://astexplorer.net/) 查看解析结果。编译时通常发生在构建工具或在线 playground 中。
 
-编译时是在构建工具里面使用的
-
-下面的内容是源码中处理编译时的一些枚举声明，我们先拿过来
+下文摘录本仓库 `ast.ts` 中与编译相关的枚举，便于与源码对照阅读。
 
 - ast.ts
 
@@ -157,20 +155,18 @@ export enum State {
 ```
 
 ```js
+// 示意：解析后得到嵌套对象描述的树结构（非本仓库 parser 的真实输出）
 const root = {
   type: 0,
   children: [
     {
-      div,
-      children: [{ span, children: [hello] }],
+      /* ... */
     },
   ],
 };
 ```
 
-stack = []
-
-<div><span>hello</span></div>
+解析嵌套标签（如 `<div><span>hello</span></div>`）时，常用栈维护当前打开的节点，具体见 `parser.ts` 与 `parser.md`。
 
 ## 当前实现（与本包源码同步）
 
