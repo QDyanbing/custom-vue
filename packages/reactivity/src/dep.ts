@@ -1,3 +1,7 @@
+/**
+ * `reactive` 对象的按属性依赖：`track` / `trigger` 与 `targetMap` 配合，
+ * 在 `Proxy` 的 get/set 路径上与 `system.link` / `propagate` 衔接。
+ */
 import { activeSub } from './effect';
 import { link, propagate, type Link } from './system';
 
@@ -27,6 +31,7 @@ class Dep {
  */
 const targetMap = new WeakMap<object, Map<string | number | symbol, Dep>>();
 
+/** 在 `activeSub` 存在时，为 `(target, key)` 与当前订阅者建立 `link`。 */
 export const track = (target: object, key: string | number | symbol) => {
   if (!activeSub) return;
   let depsMap = targetMap.get(target);
@@ -44,6 +49,7 @@ export const track = (target: object, key: string | number | symbol) => {
   link(dep, activeSub);
 };
 
+/** 通知 `(target, key)` 上的订阅者；数组 `length` 等分支见方法内注释。 */
 export const trigger = (target: object, key: string | number | symbol) => {
   const depsMap = targetMap.get(target);
   if (!depsMap) return;
@@ -60,14 +66,10 @@ export const trigger = (target: object, key: string | number | symbol) => {
       }
     });
   } else {
-    // 如果target不是数组，或者key不是length;
-
-    // 获取 key 对应的 dep
+    // 非「数组 + length」路径：按 key 取 dep 并向下游传播。
     const dep = depsMap.get(key);
-    // 如果没有 dep，则说明没有收集过依赖，直接返回
     if (!dep) return;
 
-    // 触发依赖更新
     propagate(dep.subs);
   }
 };
