@@ -1,3 +1,7 @@
+/**
+ * 平台无关渲染器：`createRenderer` 接收宿主 `options`，闭包内实现 `patch` / 挂载 / 更新 / 卸载，
+ * 并与组件实例、`queueJob`、生命周期钩子协作。DOM 侧实现见 `@vue/runtime-dom`。
+ */
 import { PatchFlags, ShapeFlags } from '@vue/shared';
 import { isSameVNodeType, Text, normalizeVNode, type VNode, Fragment } from './vnode';
 import { createComponentInstance, setupComponent } from './component';
