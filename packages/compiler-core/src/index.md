@@ -2,7 +2,7 @@
 
 ## 作用
 
-`index.ts` 对外 re-export `parse`（见 `parser.ts`）与 `compile`（见 `compile.ts`）。`compile` 在内部串联 `transform` 与 `generate`，得到 `render` 函数字符串；具体步骤见 [compile.md](./compile.md)。
+`index.ts` 对外导出 `parse`（`parser.ts`）与 `compile`（`compile.ts`）。`compile` 在内部依次执行 `transform` 与 `generate`，产出 `render` 函数字符串；流水线说明见 [compile.md](./compile.md)。
 
 ## 使用方式
 

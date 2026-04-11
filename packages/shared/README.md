@@ -1,6 +1,6 @@
 ## @vue/shared
 
-本包提供各子包共用的类型与工具（位标志、小型工具函数等），避免在 `reactivity`、`runtime-core` 等处重复实现。更细的字段含义见 `src` 下同名的 `*.md`。
+本包存放各子包共用的工具函数与位枚举（`ShapeFlags`、`PatchFlags` 等），避免在 `reactivity`、`runtime-core` 等处重复实现。字段含义见 `src` 下同名 `*.md`。
 
 ### 目录
 
