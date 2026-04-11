@@ -2,7 +2,7 @@
 
 ### 概览
 
-`index.ts` 汇总 `runtime-core` 对外导出：响应式 re-export、`h` / `createRenderer`、组件与生命周期、内置组件等。下列清单若与源码不一致，以 `index.ts` 为准。
+`index.ts` 汇总 `@vue/runtime-core` 的对外导出：再导出 `@vue/reactivity`、`h` / `createRenderer`、组件与生命周期、内置组件等。下列清单若与源码不一致，以 `index.ts` 为准。
 
 ### 目录
 
