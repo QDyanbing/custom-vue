@@ -61,15 +61,14 @@ export class ReactiveEffect implements Sub {
   }
 
   /**
-   * 通知更新的方法，如果依赖的数据发生了变化，会调用这个函数
+   * 依赖变更后的入口：由 `propagate` 等路径调用，最终走到 `scheduler`（默认即再次 `run`）。
    */
   notify() {
     this.scheduler();
   }
 
   /**
-   * 默认调度逻辑：直接执行 run。
-   * 若用户传入 scheduler，会以实例上的 scheduler 为准。
+   * 调度一次执行：默认实现为 `run()`；构造时若合并了自定义 `scheduler`，则由此处间接调用。
    */
   scheduler() {
     this.run();
@@ -85,6 +84,11 @@ export class ReactiveEffect implements Sub {
   }
 }
 
+/**
+ * 注册副作用：首次 `run` 收集依赖；依赖更新时由调度路径再次执行。
+ *
+ * @returns `runner`：`runner()` 等价于再次执行副作用；`runner.effect` 为底层 `ReactiveEffect`（可 `stop`）。
+ */
 export const effect = (fn: Function, options?: ReactiveEffectOptions) => {
   const e = new ReactiveEffect(fn);
   Object.assign(e, options);
