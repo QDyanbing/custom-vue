@@ -14,7 +14,7 @@ const resolvedPromise = Promise.resolve();
  * - 本实现只提供“延后到微任务”的语义，不做队列合并、也不处理回调缺省等分支
  */
 export function nextTick(fn) {
-  // 用户传递的回调函数，放到微任务里面
+  // 将回调推迟到当前同步代码之后的微任务阶段执行。
   return resolvedPromise.then(() => fn.call(this));
 }
 
@@ -28,7 +28,7 @@ export function nextTick(fn) {
  * 渲染器里会把组件的 update（effect.run）交给它，从而让响应式触发时的更新变成异步调度。
  */
 export function queueJob(job) {
-  // 把渲染函数放到微任务中执行
+  // 每次入队单独 `then`；与带 flush 去重的实现相比更简单，见文件头说明。
   resolvedPromise.then(() => {
     job();
   });

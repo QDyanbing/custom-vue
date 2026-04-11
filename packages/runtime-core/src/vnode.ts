@@ -8,9 +8,7 @@ import { isTeleport } from './components/Teleport';
  * 与渲染器、`h`、编译产物约定字段（如 `patchFlag`、`dynamicChildren`）配合使用；说明见 `vnode.md`。
  */
 
-/**
- * 文本节点标记
- */
+/** 文本类 VNode 的 `type` 标记；渲染器在 `patch` 中据此走文本分支。 */
 export const Text = Symbol('v-txt');
 
 /**
